@@ -1,0 +1,68 @@
+import { ProdutoPDV } from "../types/pdv";
+
+export const produtosMock: ProdutoPDV[] = [
+  {
+    id: "burger-bacon-double",
+    nome: "Bacon Double",
+    descricao: "Pão brioche, 2 carnes, queijo, bacon e molho especial.",
+    categoria: "HAMBÚRGUER",
+    preco: 42.9,
+    ativo: true,
+  },
+  {
+    id: "burger-classico",
+    nome: "Hambúrguer Clássico",
+    descricao: "Pão brioche, carne 150g, queijo e molho especial.",
+    categoria: "HAMBÚRGUER",
+    preco: 32.9,
+    ativo: true,
+  },
+  {
+    id: "burger-provolone",
+    nome: "Provolone",
+    descricao: "Carne 150g, provolone, rúcula e geleia de bacon.",
+    categoria: "HAMBÚRGUER",
+    preco: 44.9,
+    ativo: true,
+  },
+  {
+    id: "burger-gorgonzola",
+    nome: "Gorgonzola",
+    descricao: "Carne 150g, molho de gorgonzola e bacon.",
+    categoria: "HAMBÚRGUER",
+    preco: 46.9,
+    ativo: true,
+  },
+  {
+    id: "burger-costela",
+    nome: "Costela",
+    descricao: "Hambúrguer de costela, queijo e molho especial.",
+    categoria: "HAMBÚRGUER",
+    preco: 48.9,
+    ativo: true,
+  },
+  {
+    id: "batata-frita",
+    nome: "Batata Frita",
+    descricao: "Batata frita crocante 200g.",
+    categoria: "ACOMPANHAMENTO",
+    preco: 14.9,
+    ativo: true,
+  },
+  {
+    id: "batata-especial",
+    nome: "Batata Especial",
+    descricao: "Batata crocante com molho especial.",
+    categoria: "ACOMPANHAMENTO",
+    preco: 19.9,
+    ativo: true,
+  },
+  {
+    id: "refrigerante-lata",
+    nome: "Refrigerante Lata",
+    descricao: "Lata 350ml.",
+    categoria: "BEBIDA",
+    preco: 7,
+    ativo: true,
+  },
+];
