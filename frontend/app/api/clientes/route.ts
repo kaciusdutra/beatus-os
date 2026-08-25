@@ -27,18 +27,9 @@ export async function GET(
     !telefone?.trim() &&
     !cpf?.trim()
   ) {
-
-  } catch (error) {
-    console.error(
-      "ERRO AO BUSCAR CLIENTE:",
-      error
-    );
-
-    
     return NextResponse.json(
       {
         sucesso: false,
-
         mensagem:
           "Informe o telefone ou CPF do cliente.",
       },
@@ -52,26 +43,28 @@ export async function GET(
     const cliente =
       telefone?.trim()
         ? await clienteService.buscarPorTelefone(
-            telefone
+            telefone.trim()
           )
         : await clienteService.buscarPorCpf(
-            cpf!
+            cpf!.trim()
           );
 
     return NextResponse.json({
       sucesso: true,
-
       encontrado:
         Boolean(cliente),
-
       cliente:
         cliente ?? null,
     });
   } catch (error) {
+    console.error(
+      "ERRO AO BUSCAR CLIENTE:",
+      error
+    );
+
     return NextResponse.json(
       {
         sucesso: false,
-
         mensagem:
           error instanceof Error
             ? error.message
@@ -164,7 +157,6 @@ export async function POST(
     return NextResponse.json(
       {
         sucesso: true,
-
         cliente,
       },
       {
