@@ -16,6 +16,7 @@ CREATE TABLE "Cliente" (
     "empresaId" TEXT NOT NULL,
     "nome" TEXT NOT NULL,
     "telefone" TEXT NOT NULL,
+    "cpf" TEXT NOT NULL,
     "email" TEXT,
     "dataNascimento" TIMESTAMP(3),
     "origemPrimeiroPedido" TEXT,
@@ -114,6 +115,9 @@ CREATE INDEX "Cliente_empresaId_idx" ON "Cliente"("empresaId");
 
 -- CreateIndex
 CREATE INDEX "Cliente_empresaId_ativo_idx" ON "Cliente"("empresaId", "ativo");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Cliente_empresaId_cpf_key" ON "Cliente"("empresaId", "cpf");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cliente_empresaId_telefone_key" ON "Cliente"("empresaId", "telefone");
