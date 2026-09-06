@@ -8,20 +8,162 @@ datasource db {
 }
 
 model Empresa {
-  id           String    @id @default(uuid())
-  nome         String
-  nomeFantasia String?
-  ativo        Boolean   @default(true)
-  criadoEm     DateTime  @default(now())
-  atualizadoEm DateTime  @updatedAt
-  clientes     Cliente[]
-  pedidos      Pedido[]
+  id               String            @id @default(uuid())
+  nome             String
+  nomeFantasia     String?
+  ativo            Boolean           @default(true)
+  criadoEm         DateTime          @default(now())
+  atualizadoEm     DateTime          @updatedAt
+  clientes         Cliente[]
+  pedidos          Pedido[]
+  produtos         Produto[]
+  fornecedores     Fornecedor[]
+  entradasCompra   EntradaCompra[]
+  insumos          Insumo[]
+  fichasTecnicas   FichaTecnica[]
+  categoriasInsumo CategoriaInsumo[]
+  unidadesMedida   UnidadeMedida[]
 
   @@index([ativo])
 }
 
+model Fornecedor {
+  id           String   @id @default(uuid())
+  empresaId    String
+  razaoSocial  String
+  nomeFantasia String?
+  cnpj         String?
+  cpf          String?
+  telefone     String?
+  email        String?
+  observacao   String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id])
+  entradasCompra EntradaCompra[]
+  insumos        Insumo[]
+
+  @@unique([empresaId, cnpj])
+  @@unique([empresaId, cpf])
+  @@index([empresaId])
+  @@index([empresaId, ativo])
+}
+
+model EntradaCompra {
+  id           String @id @default(uuid())
+  empresaId    String
+  fornecedorId String
+
+  tipoDocumento   String
+  numeroDocumento String?
+  serie           String?
+  chaveAcesso     String?
+
+  status String @default("RASCUNHO")
+
+  dataDocumento DateTime?
+  dataEntrada   DateTime  @default(now())
+
+  valorProdutos Decimal @default(0) @db.Decimal(12, 2)
+  valorDesconto Decimal @default(0) @db.Decimal(12, 2)
+  valorFrete    Decimal @default(0) @db.Decimal(12, 2)
+  valorTotal    Decimal @default(0) @db.Decimal(12, 2)
+
+  documentoArquivo String?
+  observacao       String?
+
+  documentos EntradaCompraDocumento[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa    Empresa             @relation(fields: [empresaId], references: [id])
+  fornecedor Fornecedor          @relation(fields: [fornecedorId], references: [id])
+  itens      EntradaCompraItem[]
+
+  @@index([empresaId])
+  @@index([empresaId, fornecedorId])
+  @@index([empresaId, dataEntrada])
+  @@index([empresaId, tipoDocumento])
+  @@index([empresaId, status])
+}
+
+model EntradaCompraItem {
+  id              String @id @default(uuid())
+  entradaCompraId String
+
+  descricaoOriginal String
+  codigoFornecedor  String?
+
+  quantidade Decimal @db.Decimal(12, 3)
+  unidade    String
+
+  valorUnitario Decimal @db.Decimal(12, 4)
+  desconto      Decimal @default(0) @db.Decimal(12, 2)
+  valorTotal    Decimal @db.Decimal(12, 2)
+
+  lote     String?
+  validade DateTime?
+
+  observacao String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  entradaCompra EntradaCompra @relation(fields: [entradaCompraId], references: [id], onDelete: Cascade)
+
+  @@index([entradaCompraId])
+}
+
+model EntradaCompraDocumento {
+  id              String @id @default(uuid())
+  entradaCompraId String
+
+  nomeArquivo String
+  mimeType    String
+  tamanho     Int
+
+  tipoDocumento String
+  origem        String
+  statusLeitura String @default("PENDENTE")
+
+  caminhoArquivo String
+  hashArquivo    String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  entradaCompra EntradaCompra @relation(fields: [entradaCompraId], references: [id], onDelete: Cascade)
+
+  @@index([entradaCompraId])
+  @@index([entradaCompraId, tipoDocumento])
+  @@index([entradaCompraId, statusLeitura])
+}
+
+model Produto {
+  id           String   @id
+  empresaId    String
+  nome         String
+  descricao    String
+  categoria    String
+  preco        Decimal  @db.Decimal(12, 2)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa      Empresa       @relation(fields: [empresaId], references: [id])
+  itens        PedidoItem[]
+  fichaTecnica FichaTecnica?
+
+  @@index([empresaId])
+  @@index([empresaId, ativo])
+  @@index([empresaId, categoria])
+}
+
 model Cliente {
-  id                   String     @id @default(uuid())
+  id                   String    @id @default(uuid())
   empresaId            String
   nome                 String
   telefone             String
@@ -30,16 +172,16 @@ model Cliente {
   dataNascimento       DateTime?
   origemPrimeiroPedido String?
   ultimoPedidoEm       DateTime?
-  quantidadePedidos    Int        @default(0)
-  valorTotalCompras    Decimal    @default(0) @db.Decimal(12, 2)
-  ticketMedio          Decimal    @default(0) @db.Decimal(12, 2)
-  ativo                Boolean    @default(true)
-  criadoEm             DateTime   @default(now())
-  atualizadoEm         DateTime   @updatedAt
+  quantidadePedidos    Int       @default(0)
+  valorTotalCompras    Decimal   @default(0) @db.Decimal(12, 2)
+  ticketMedio          Decimal   @default(0) @db.Decimal(12, 2)
+  ativo                Boolean   @default(true)
+  criadoEm             DateTime  @default(now())
+  atualizadoEm         DateTime  @updatedAt
 
-  empresa              Empresa    @relation(fields: [empresaId], references: [id])
-  enderecos            Endereco[]
-  pedidos              Pedido[]
+  empresa   Empresa    @relation(fields: [empresaId], references: [id])
+  enderecos Endereco[]
+  pedidos   Pedido[]
 
   @@unique([empresaId, telefone])
   @@unique([empresaId, cpf])
@@ -123,6 +265,7 @@ model PedidoItem {
   observacao    String?
   criadoEm      DateTime @default(now())
   pedido        Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto       Produto? @relation(fields: [produtoId], references: [id])
 
   @@index([pedidoId])
 }
@@ -145,4 +288,126 @@ model Pagamento {
   @@index([pedidoId])
   @@index([status])
   @@index([forma, status])
+}
+
+model Insumo {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  nome        String
+  categoriaId String?
+
+  unidadeCompraId String?
+
+  quantidadeCompra Decimal @db.Decimal(12, 3)
+  precoCompra      Decimal @db.Decimal(12, 4)
+  custoUnitario    Decimal @db.Decimal(12, 4)
+
+  fornecedorId String?
+
+  ativo Boolean @default(true)
+
+  observacao String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  fornecedor Fornecedor? @relation(fields: [fornecedorId], references: [id])
+
+  categoriaInsumo CategoriaInsumo? @relation(fields: [categoriaId], references: [id])
+
+  unidadeMedida UnidadeMedida? @relation(fields: [unidadeCompraId], references: [id])
+
+  fichaTecnicaItens FichaTecnicaItem[]
+
+  @@unique([empresaId, nome])
+  @@index([empresaId])
+  @@index([empresaId, ativo])
+  @@index([empresaId, fornecedorId])
+}
+
+model FichaTecnica {
+  id                String   @id @default(uuid())
+  empresaId         String
+  tipo              String   @default("PRODUTO")
+  produtoId         String?  @unique
+  nome              String
+  rendimento        Decimal? @db.Decimal(12, 3)
+  unidadeRendimento String?
+  embalagem         Decimal  @default(0) @db.Decimal(12, 4)
+  ativo             Boolean  @default(true)
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  empresa             Empresa            @relation(fields: [empresaId], references: [id])
+  produto             Produto?           @relation(fields: [produtoId], references: [id])
+  itens               FichaTecnicaItem[]
+  itensComoPreparacao FichaTecnicaItem[] @relation("FichaTecnicaPreparacao")
+
+  @@index([empresaId])
+  @@index([empresaId, produtoId])
+  @@index([empresaId, tipo])
+}
+
+model FichaTecnicaItem {
+  id              String   @id @default(uuid())
+  fichaTecnicaId  String
+  tipo            String   @default("INSUMO")
+  insumoId        String?
+  preparacaoId    String?
+  quantidade      Decimal  @db.Decimal(12, 4)
+  unidade         String
+  percentualPerda Decimal  @default(0) @db.Decimal(8, 4)
+  custoCalculado  Decimal  @default(0) @db.Decimal(12, 4)
+  observacao      String?
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+
+  fichaTecnica FichaTecnica  @relation(fields: [fichaTecnicaId], references: [id], onDelete: Cascade)
+  insumo       Insumo?       @relation(fields: [insumoId], references: [id])
+  preparacao   FichaTecnica? @relation("FichaTecnicaPreparacao", fields: [preparacaoId], references: [id])
+
+  @@index([fichaTecnicaId])
+  @@index([insumoId])
+  @@index([preparacaoId])
+}
+
+model CategoriaInsumo {
+  id        String @id @default(uuid())
+  empresaId String
+
+  nome  String
+  ativo Boolean @default(true)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id])
+  insumos Insumo[]
+
+  @@unique([empresaId, nome])
+  @@index([empresaId])
+  @@index([empresaId, ativo])
+}
+
+model UnidadeMedida {
+  id        String @id @default(uuid())
+  empresaId String
+
+  nome       String
+  abreviacao String
+  ativo      Boolean @default(true)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id])
+  insumos Insumo[]
+
+  @@unique([empresaId, abreviacao])
+  @@index([empresaId])
+  @@index([empresaId, ativo])
 }

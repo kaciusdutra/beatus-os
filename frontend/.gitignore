@@ -41,3 +41,20 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# arquivos físicos gerados pela aplicação
+/storage/
+
+# arquivos de teste locais
+documento-baixado-teste.pdf
+recibo-upload-teste.pdf
+utf8-test.json
+
+# Arquivos físicos gerados pela aplicação
+/frontend/storage/
+
+# Arquivos de teste locais
+/frontend/documento-baixado-teste.pdf
+/frontend/recibo-upload-teste.pdf
+/frontend/utf8-test.json
+/utf8-test.json
