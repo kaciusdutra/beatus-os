@@ -2,10 +2,10 @@
 
 import {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useState,
-  ReactNode,
 } from "react";
 
 import {
@@ -24,16 +24,20 @@ interface SystemContextValue {
 
 const SystemContext =
   createContext<SystemContextValue | undefined>(
-    undefined
+    undefined,
   );
 
 interface SystemProviderProps {
   children: ReactNode;
 }
 
-function obterEstadoAtual(): SystemState {
-  const estadoReal = getSystemState();
+function obterEstadoReal(): SystemState {
+  return getSystemState();
+}
 
+function aplicarSimulacao(
+  estadoReal: SystemState,
+): SystemState {
   const estadoSimulado =
     obterEstadoSimulado();
 
@@ -50,23 +54,38 @@ function obterEstadoAtual(): SystemState {
 export function SystemProvider({
   children,
 }: SystemProviderProps) {
+  /*
+   * O primeiro estado é sempre calculado sem
+   * acessar recursos exclusivos do navegador.
+   *
+   * Isso garante que o HTML inicial produzido
+   * pelo servidor seja compatível com a hidratação
+   * no cliente.
+   */
   const [systemState, setSystemState] =
     useState<SystemState>(() =>
-      obterEstadoAtual()
+      obterEstadoReal(),
     );
 
   function atualizarEstado() {
+    const estadoReal =
+      obterEstadoReal();
+
     setSystemState(
-      obterEstadoAtual()
+      aplicarSimulacao(estadoReal),
     );
   }
 
   useEffect(() => {
+    /*
+     * Depois da hidratação podemos aplicar
+     * a simulação baseada na URL (?sim=...).
+     */
     atualizarEstado();
 
     const intervalo = setInterval(
       atualizarEstado,
-      1000
+      1000,
     );
 
     return () =>
@@ -91,7 +110,7 @@ export function useSystem() {
 
   if (!context) {
     throw new Error(
-      "useSystem deve ser utilizado dentro de SystemProvider."
+      "useSystem deve ser utilizado dentro de SystemProvider.",
     );
   }
 

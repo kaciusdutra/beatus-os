@@ -14,6 +14,7 @@ export type Permission =
   | "producao.gerenciar"
   | "estoque.visualizar"
   | "estoque.gerenciar"
+  | "compras.visualizar"
   | "financeiro.visualizar"
   | "financeiro.gerenciar"
   | "inteligencia.visualizar"

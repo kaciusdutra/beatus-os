@@ -9,6 +9,7 @@ export type ModuleId =
   | "pedidos"
   | "producao"
   | "estoque"
+  | "compras"
   | "financeiro"
   | "inteligencia";
 
@@ -17,6 +18,8 @@ export interface ModuleDefinition {
   titulo: string;
   rota: string;
   icone: string;
+
+
 
   /**
    * Define se o módulo depende da operação
@@ -36,6 +39,8 @@ export interface ModuleDefinition {
    */
   operacional: boolean;
 }
+
+
 
 export const moduleRegistry: ModuleDefinition[] = [
   {
@@ -103,6 +108,16 @@ export const moduleRegistry: ModuleDefinition[] = [
       "estoque.visualizar",
     operacional: true,
   },
+
+  {
+  id: "compras",
+  titulo: "Compras",
+  rota: "/compras",
+  icone: "🛒",
+  requerOperacao: false,
+  permissaoVisualizacao: "compras.visualizar",
+  operacional: false,
+},
 
   {
     id: "financeiro",
