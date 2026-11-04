@@ -75,3 +75,6 @@ desktop.ini
 *.tmp
 *.temp
 *.bak
+
+# Saídas do Claude (nunca entram no Git)
+Claude outputs/
