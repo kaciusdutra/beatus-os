@@ -13,8 +13,29 @@ import {
 } from "@zxing/browser";
 
 interface CapturaDocumentoNotaProps {
-  onConfirmar: (arquivo: File) => Promise<boolean> | boolean;
+  /**
+   * Recebe a imagem original capturada ou selecionada.
+   *
+   * O componente não grava o arquivo no banco.
+   * O fluxo superior decide quando e onde persistir.
+   */
+  onConfirmar: (
+    arquivo: File
+  ) => Promise<boolean> | boolean;
+
+  /**
+   * Recebe o conteúdo bruto do QR Code confirmado
+   * pelo usuário.
+   *
+   * O componente não interpreta NFC-e nem grava o QR.
+   * O fluxo superior decide como processar o conteúdo.
+   */
+  onQrCodeConfirmado?: (
+    conteudo: string
+  ) => Promise<boolean> | boolean;
+
   onCancelar?: () => void;
+
   disabled?: boolean;
 }
 
@@ -25,6 +46,7 @@ type ModoCaptura =
 
 export default function CapturaDocumentoNota({
   onConfirmar,
+  onQrCodeConfirmado,
   onCancelar,
   disabled = false,
 }: CapturaDocumentoNotaProps) {
@@ -61,6 +83,9 @@ export default function CapturaDocumentoNota({
   const [confirmando, setConfirmando] =
     useState(false);
 
+  const [processandoQr, setProcessandoQr] =
+    useState(false);
+
   const [qrEncontrado, setQrEncontrado] =
     useState<string | null>(null);
 
@@ -70,9 +95,8 @@ export default function CapturaDocumentoNota({
   /*
    * Encerra apenas o leitor ZXing.
    *
-   * A câmera só será encerrada pelo stopCamera().
-   * Isso é importante porque encontrar um QR não
-   * deve impedir a captura posterior da nota.
+   * A câmera continua ligada. Isso permite que o usuário
+   * fotografe a nota mesmo depois que um QR foi encontrado.
    */
   const pararScanner = useCallback(() => {
     if (scannerControlsRef.current) {
@@ -99,7 +123,7 @@ export default function CapturaDocumentoNota({
 
       if (stream) {
         stream.getTracks().forEach(
-          (track) => track.stop(),
+          (track) => track.stop()
         );
       }
 
@@ -136,6 +160,7 @@ export default function CapturaDocumentoNota({
       setQrEncontrado(null);
       setQrConfirmado(false);
       setConfirmando(false);
+      setProcessandoQr(false);
       setModo("ESCOLHA");
     }, [
       pararCamera,
@@ -145,8 +170,7 @@ export default function CapturaDocumentoNota({
   /*
    * Inicia a leitura do QR pela câmera.
    *
-   * O ZXing passa a controlar a câmera e o <video>.
-   * Não utilizamos getUserMedia() separadamente.
+   * O ZXing controla a leitura e alimenta o <video>.
    */
   const iniciarScanner =
     useCallback(async () => {
@@ -183,10 +207,10 @@ export default function CapturaDocumentoNota({
               setErro(null);
 
               /*
-               * O QR já foi encontrado.
-               * Paramos apenas a leitura contínua.
-               * A câmera permanece ligada para que
-               * o usuário possa fotografar a nota.
+               * O QR foi encontrado.
+               *
+               * Paramos somente a leitura contínua.
+               * A câmera permanece ativa.
                */
               if (
                 scannerControlsRef.current
@@ -197,7 +221,7 @@ export default function CapturaDocumentoNota({
               }
 
               scannerRef.current = null;
-            },
+            }
           );
 
         scannerControlsRef.current =
@@ -205,20 +229,17 @@ export default function CapturaDocumentoNota({
       } catch (error) {
         console.error(
           "Erro ao iniciar leitura do QR Code:",
-          error,
+          error
         );
 
         setErro(
-          "Não foi possível iniciar a leitura do QR Code pela câmera.",
+          "Não foi possível iniciar a leitura do QR Code pela câmera."
         );
       }
     }, []);
 
   /*
    * Apenas entra no modo câmera.
-   *
-   * O useEffect abaixo será responsável por
-   * inicializar o ZXing.
    */
   const abrirCamera = () => {
     if (
@@ -240,9 +261,6 @@ export default function CapturaDocumentoNota({
   /*
    * Quando o vídeo realmente estiver disponível,
    * marcamos a câmera como pronta.
-   *
-   * O ZXing dispara os eventos do vídeo porque
-   * ele próprio está alimentando o elemento.
    */
   const quandoVideoCarregar =
     useCallback(() => {
@@ -281,13 +299,11 @@ export default function CapturaDocumentoNota({
   ]);
 
   /*
-   * Confirma que o conteúdo do QR foi aceito.
+   * Confirma o QR e entrega seu conteúdo ao fluxo superior.
    *
-   * Nesta etapa ele ainda não vai para o banco.
-   * A próxima etapa será interpretar o conteúdo
-   * como NFC-e e alimentar os dados fiscais.
+   * O componente não interpreta o conteúdo.
    */
-  const usarQrCode = () => {
+  const usarQrCode = async () => {
     if (
       !qrEncontrado ||
       bloqueado
@@ -295,20 +311,48 @@ export default function CapturaDocumentoNota({
       return;
     }
 
-    setQrConfirmado(true);
-    setErro(null);
+    try {
+      setProcessandoQr(true);
+      setErro(null);
+
+      if (onQrCodeConfirmado) {
+        const sucesso =
+          await onQrCodeConfirmado(
+            qrEncontrado
+          );
+
+        if (!sucesso) {
+          return;
+        }
+      }
+
+      setQrConfirmado(true);
+    } catch (error) {
+      console.error(
+        "Erro ao confirmar QR Code:",
+        error
+      );
+
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível processar o QR Code."
+      );
+    } finally {
+      setProcessandoQr(false);
+    }
   };
 
   /*
    * O usuário decidiu fotografar a nota mesmo
    * depois de o QR ter sido encontrado.
    *
-   * Não precisamos abrir outra câmera.
-   * A câmera já está ativa.
+   * A câmera continua ativa.
    */
   const fotografarNota = () => {
     setQrEncontrado(null);
     setQrConfirmado(false);
+    setProcessandoQr(false);
     setErro(null);
   };
 
@@ -320,7 +364,7 @@ export default function CapturaDocumentoNota({
 
     if (!video) {
       setErro(
-        "A visualização da câmera não está disponível.",
+        "A visualização da câmera não está disponível."
       );
 
       return;
@@ -332,7 +376,7 @@ export default function CapturaDocumentoNota({
       video.videoHeight <= 0
     ) {
       setErro(
-        "A câmera ainda não está pronta para capturar a imagem.",
+        "A câmera ainda não está pronta para capturar a imagem."
       );
 
       return;
@@ -349,7 +393,7 @@ export default function CapturaDocumentoNota({
 
     if (!contexto) {
       setErro(
-        "Não foi possível preparar a imagem capturada.",
+        "Não foi possível preparar a imagem capturada."
       );
 
       return;
@@ -360,14 +404,14 @@ export default function CapturaDocumentoNota({
       0,
       0,
       canvas.width,
-      canvas.height,
+      canvas.height
     );
 
     canvas.toBlob(
       (blob) => {
         if (!blob) {
           setErro(
-            "Não foi possível gerar a fotografia.",
+            "Não foi possível gerar a fotografia."
           );
 
           return;
@@ -380,19 +424,19 @@ export default function CapturaDocumentoNota({
             "nota-fiscal",
             agora.getFullYear(),
             String(
-              agora.getMonth() + 1,
+              agora.getMonth() + 1
             ).padStart(2, "0"),
             String(
-              agora.getDate(),
+              agora.getDate()
             ).padStart(2, "0"),
             String(
-              agora.getHours(),
+              agora.getHours()
             ).padStart(2, "0"),
             String(
-              agora.getMinutes(),
+              agora.getMinutes()
             ).padStart(2, "0"),
             String(
-              agora.getSeconds(),
+              agora.getSeconds()
             ).padStart(2, "0"),
           ].join("-") + ".jpg";
 
@@ -402,7 +446,7 @@ export default function CapturaDocumentoNota({
           {
             type: "image/jpeg",
             lastModified: Date.now(),
-          },
+          }
         );
 
         const novaPreviewUrl =
@@ -411,7 +455,7 @@ export default function CapturaDocumentoNota({
         setPreviewUrl((urlAnterior) => {
           if (urlAnterior) {
             URL.revokeObjectURL(
-              urlAnterior,
+              urlAnterior
             );
           }
 
@@ -425,7 +469,7 @@ export default function CapturaDocumentoNota({
         setModo("PREVIA");
       },
       "image/jpeg",
-      0.92,
+      0.92
     );
   };
 
@@ -433,7 +477,7 @@ export default function CapturaDocumentoNota({
    * Seleção de imagem existente no dispositivo.
    */
   const selecionarArquivo = (
-    evento: React.ChangeEvent<HTMLInputElement>,
+    evento: React.ChangeEvent<HTMLInputElement>
   ) => {
     const arquivo =
       evento.target.files?.[0];
@@ -446,7 +490,7 @@ export default function CapturaDocumentoNota({
       !arquivo.type.startsWith("image/")
     ) {
       setErro(
-        "Selecione uma imagem da nota fiscal.",
+        "Selecione uma imagem da nota fiscal."
       );
 
       evento.target.value = "";
@@ -460,7 +504,7 @@ export default function CapturaDocumentoNota({
     setPreviewUrl((urlAnterior) => {
       if (urlAnterior) {
         URL.revokeObjectURL(
-          urlAnterior,
+          urlAnterior
         );
       }
 
@@ -471,14 +515,15 @@ export default function CapturaDocumentoNota({
     setErro(null);
     setQrEncontrado(null);
     setQrConfirmado(false);
+    setProcessandoQr(false);
     setModo("PREVIA");
 
     evento.target.value = "";
   };
 
   /*
-   * Confirma a fotografia e envia ao fluxo
-   * existente de documentos.
+   * Confirma a fotografia e entrega o arquivo
+   * original ao fluxo superior.
    */
   const confirmarFoto = async () => {
     if (
@@ -495,7 +540,7 @@ export default function CapturaDocumentoNota({
 
       const sucesso =
         await onConfirmar(
-          arquivoPreview,
+          arquivoPreview
         );
 
       if (!sucesso) {
@@ -506,13 +551,13 @@ export default function CapturaDocumentoNota({
     } catch (error) {
       console.error(
         "Erro ao confirmar fotografia:",
-        error,
+        error
       );
 
       setErro(
         error instanceof Error
           ? error.message
-          : "Não foi possível confirmar a fotografia.",
+          : "Não foi possível confirmar a fotografia."
       );
     } finally {
       setConfirmando(false);
@@ -530,7 +575,7 @@ export default function CapturaDocumentoNota({
 
       if (previewUrl) {
         URL.revokeObjectURL(
-          previewUrl,
+          previewUrl
         );
       }
     };
@@ -540,7 +585,9 @@ export default function CapturaDocumentoNota({
   ]);
 
   const bloqueado =
-    disabled || confirmando;
+    disabled ||
+    confirmando ||
+    processandoQr;
 
   /*
    * ESTADO: ESCOLHA
@@ -548,7 +595,7 @@ export default function CapturaDocumentoNota({
   if (modo === "ESCOLHA") {
     return (
       <section
-        aria-label="Adicionar fotografia da nota fiscal"
+        aria-label="Adicionar documento da nota fiscal"
         style={{
           display: "flex",
           flexDirection: "column",
@@ -729,9 +776,9 @@ export default function CapturaDocumentoNota({
               opacity: 0.75,
             }}
           >
-            Enquadre toda a nota dentro da
-            imagem e mantenha o aparelho
-            estável.
+            Primeiro tentaremos localizar o
+            QR Code. Se ele não for utilizado,
+            você poderá fotografar a nota.
           </p>
         </div>
 
@@ -768,7 +815,7 @@ export default function CapturaDocumentoNota({
             aria-hidden="true"
             style={{
               position: "absolute",
-              inset: "10%",
+              inset: "30%",
               border:
                 "2px solid rgba(255,255,255,0.9)",
               borderRadius: 8,
@@ -914,7 +961,9 @@ export default function CapturaDocumentoNota({
             <>
               <button
                 type="button"
-                onClick={usarQrCode}
+                onClick={
+                  usarQrCode
+                }
                 disabled={
                   bloqueado ||
                   qrConfirmado
@@ -940,9 +989,11 @@ export default function CapturaDocumentoNota({
                       : 1,
                 }}
               >
-                {qrConfirmado
-                  ? "✓ QR Code confirmado"
-                  : "✓ Usar este QR Code"}
+                {processandoQr
+                  ? "Processando QR Code..."
+                  : qrConfirmado
+                    ? "✓ QR Code confirmado"
+                    : "✓ Usar este QR Code"}
               </button>
 
               <button
@@ -950,7 +1001,9 @@ export default function CapturaDocumentoNota({
                 onClick={
                   fotografarNota
                 }
-                disabled={bloqueado}
+                disabled={
+                  bloqueado
+                }
                 style={{
                   minHeight: 54,
                   borderRadius: 12,
@@ -963,10 +1016,9 @@ export default function CapturaDocumentoNota({
                   cursor: bloqueado
                     ? "not-allowed"
                     : "pointer",
-                  opacity:
-                    bloqueado
-                      ? 0.6
-                      : 1,
+                  opacity: bloqueado
+                    ? 0.6
+                    : 1,
                 }}
               >
                 📄 Fotografar nota
@@ -1151,7 +1203,9 @@ export default function CapturaDocumentoNota({
 
         <button
           type="button"
-          onClick={confirmarFoto}
+          onClick={
+            confirmarFoto
+          }
           disabled={
             bloqueado ||
             !arquivoPreview
@@ -1178,7 +1232,7 @@ export default function CapturaDocumentoNota({
           }}
         >
           {confirmando
-            ? "Salvando..."
+            ? "Processando..."
             : "✓ Usar esta imagem"}
         </button>
       </div>
