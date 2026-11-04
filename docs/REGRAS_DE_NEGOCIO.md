@@ -126,6 +126,11 @@
 
    Todas as entradas vão para o financeiro, classificadas pelo destino. Se surgirem novos destinos, a lista será ajustada.
 7. Quando o CNPJ e o certificado digital do Beatus estiverem prontos, as NF-e emitidas para o CNPJ serão baixadas automaticamente da SEFAZ (XML).
+8. A entrada só pode ser **confirmada** quando todos os itens tiverem destino. *(04/11/2026)*
+9. Itens com destino **Insumo** ou **Embalagem** precisam estar ligados a um insumo cadastrado (a embalagem é cadastrada como insumo da categoria "Embalagem"). Os outros destinos guardam só o destino. *(04/11/2026)*
+10. A classificação dos itens (destino e insumo) só pode ser feita ou alterada enquanto a entrada estiver em **rascunho**. *(04/11/2026)*
+11. A atualização do custo do insumo a partir da compra confirmada fica para um bloco seguinte, porque exige a conversão de unidades. *(04/11/2026)*
+12. Série e chave de acesso só existem em **nota fiscal**. Nos outros tipos de documento (recibo, comprovante, outro), esses campos ficam desabilitados. *(04/11/2026)*
 
 ## 10. Beatriz (atendente de IA)
 

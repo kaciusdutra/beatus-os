@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { EntradaCompra } from "../types/entradaCompra";
 
+import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
+
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", {
     style: "currency",
@@ -26,9 +28,17 @@ function formatarData(valor: string): string {
 }
 
 function obterNomeFornecedor(
-  fornecedorId: string
+  fornecedorId: string,
+  nomesFornecedores: Map<string, string>
 ): string {
-  return fornecedorId || "Fornecedor não informado";
+  if (!fornecedorId) {
+    return "Fornecedor não informado";
+  }
+
+  return (
+    nomesFornecedores.get(fornecedorId) ??
+    "Fornecedor não encontrado"
+  );
 }
 
 function obterRotuloStatus(
@@ -91,17 +101,25 @@ export default function ComprasPage() {
   const [busca, setBusca] =
     useState("");
 
+  const [nomesFornecedores, setNomesFornecedores] =
+    useState<Map<string, string>>(
+      () => new Map()
+    );
+
   const carregarEntradas = async () => {
     try {
       setCarregando(true);
       setErro("");
 
-      const resposta = await fetch(
-        "/api/compras/entradas",
-        {
-          cache: "no-store",
-        }
-      );
+      const [resposta, respostaFornecedores] =
+        await Promise.all([
+          fetch("/api/compras/entradas", {
+            cache: "no-store",
+          }),
+          fetch("/api/fornecedores", {
+            cache: "no-store",
+          }),
+        ]);
 
       const dados = await resposta.json();
 
@@ -114,6 +132,32 @@ export default function ComprasPage() {
 
       setEntradas(
         dados?.entradas ?? []
+      );
+
+      const dadosFornecedores =
+        await respostaFornecedores.json();
+
+      if (
+        !respostaFornecedores.ok ||
+        !dadosFornecedores?.sucesso
+      ) {
+        throw new Error(
+          dadosFornecedores?.mensagem ??
+            "Não foi possível carregar os fornecedores."
+        );
+      }
+
+      const fornecedores: Fornecedor[] =
+        dadosFornecedores.fornecedores ?? [];
+
+      setNomesFornecedores(
+        new Map(
+          fornecedores.map((fornecedor) => [
+            fornecedor.id,
+            fornecedor.nomeFantasia?.trim() ||
+              fornecedor.razaoSocial,
+          ])
+        )
       );
     } catch (error) {
       setErro(
@@ -145,7 +189,8 @@ export default function ComprasPage() {
         (entrada) => {
           const fornecedor =
             obterNomeFornecedor(
-              entrada.fornecedorId
+              entrada.fornecedorId,
+              nomesFornecedores
             ).toLocaleLowerCase(
               "pt-BR"
             );
@@ -173,7 +218,7 @@ export default function ComprasPage() {
           );
         }
       );
-    }, [busca, entradas]);
+    }, [busca, entradas, nomesFornecedores]);
 
   const totalEntradas =
     entradas.length;
@@ -190,8 +235,14 @@ export default function ComprasPage() {
         entrada.status === "CONFIRMADA"
     ).length;
 
+  // Entradas canceladas não somam no valor das entradas.
   const valorTotal =
-    entradas.reduce(
+    entradas
+      .filter(
+        (entrada) =>
+          entrada.status !== "CANCELADA"
+      )
+      .reduce(
       (total, entrada) =>
         total + Number(entrada.valorTotal ?? 0),
       0
@@ -378,7 +429,8 @@ export default function ComprasPage() {
 
                       <td className="px-5 py-4 text-sm text-slate-600">
                         {obterNomeFornecedor(
-                          entrada.fornecedorId
+                          entrada.fornecedorId,
+                          nomesFornecedores
                         )}
                       </td>
 

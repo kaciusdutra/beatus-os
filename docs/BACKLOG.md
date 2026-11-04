@@ -38,13 +38,13 @@ O plano de endurecimento S1 a S6 (`docs/PLANO_DE_SPRINTS.md`) corre por cima des
 
 Concluído: leitura do QR da NFC-e (v2 e v3), preenchimento automático e fornecedor encontrado pelo CNPJ (commit a24eb8a).
 
+Concluído no bloco 7A: nome do fornecedor na lista, card sem as canceladas, tela de detalhe com itens, valores e botões de confirmar e cancelar, volta para a lista depois de salvar, e série e chave de acesso só para nota fiscal.
+
 - [ ] Destino de cada item: Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço (exige migração).
 - [ ] Memória de classificação (descrição + fornecedor → destino) e destino padrão por fornecedor.
 - [ ] Ligar o item da entrada ao insumo cadastrado, sem duplicar o insumo (preserva o ID e o histórico de custos).
-- [ ] Tela de detalhe da entrada mostrando fornecedor, itens e valores, onde os itens são classificados. Hoje ela mostra o ID interno no topo.
-- [ ] Lista de compras: mostrar o nome do fornecedor no lugar do ID.
-- [ ] Card "Valor das entradas": não somar as entradas canceladas.
-- [ ] Depois de confirmar o QR ou a foto, voltar automaticamente para a tela inicial do módulo.
+- [ ] Classificar os itens na tela de detalhe da entrada (destino e insumo), com a confirmação bloqueada enquanto houver item sem destino.
+- [ ] Atualizar o custo do insumo quando a entrada for confirmada, com conversão entre a unidade da nota e a unidade de compra do insumo (decidido em 04/11/2026: fica para depois da 7B).
 - [ ] Leitura dos itens pela **foto** do cupom ou da nota (IA), com conferência humana.
 - [ ] Importação de **XML** da NF-e.
 - [ ] Quando o CNPJ e o certificado digital saírem: baixa automática das NF-e da SEFAZ.

@@ -239,6 +239,10 @@ export default function NovaEntradaCompraPage() {
     formularioInicial
   );
 
+  const ehNotaFiscal =
+    formulario.tipoDocumento ===
+    "NOTA_FISCAL";
+
   const [
     itens,
     setItens,
@@ -429,10 +433,23 @@ export default function NovaEntradaCompraPage() {
     valor: string
   ) {
     setFormulario(
-      (anterior) => ({
-        ...anterior,
-        [campo]: valor,
-      })
+      (anterior) => {
+        const atualizado = {
+          ...anterior,
+          [campo]: valor,
+        };
+
+        // Série e chave de acesso só existem em nota fiscal.
+        if (
+          campo === "tipoDocumento" &&
+          valor !== "NOTA_FISCAL"
+        ) {
+          atualizado.serie = "";
+          atualizado.chaveAcesso = "";
+        }
+
+        return atualizado;
+      }
     );
   }
 
@@ -771,12 +788,16 @@ export default function NovaEntradaCompraPage() {
                 undefined,
 
               serie:
-                formulario.serie.trim() ||
-                undefined,
+                ehNotaFiscal
+                  ? formulario.serie.trim() ||
+                    undefined
+                  : undefined,
 
               chaveAcesso:
-                formulario.chaveAcesso.trim() ||
-                undefined,
+                ehNotaFiscal
+                  ? formulario.chaveAcesso.trim() ||
+                    undefined
+                  : undefined,
 
               dataDocumento:
                 formatarDataParaApi(
@@ -901,9 +922,8 @@ export default function NovaEntradaCompraPage() {
         }
       }
 
-      router.push(
-        `/compras/entradas/${entradaId}`
-      );
+      // Depois de salvar, volta para a tela inicial do módulo.
+      router.push("/compras");
     } catch (error) {
       setErro(
         error instanceof Error
@@ -1312,9 +1332,15 @@ export default function NovaEntradaCompraPage() {
                     )
                   }
                   disabled={
-                    salvando
+                    salvando ||
+                    !ehNotaFiscal
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  placeholder={
+                    ehNotaFiscal
+                      ? undefined
+                      : "Só para nota fiscal"
+                  }
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
 
@@ -1387,10 +1413,15 @@ export default function NovaEntradaCompraPage() {
                   }
                   maxLength={44}
                   disabled={
-                    salvando
+                    salvando ||
+                    !ehNotaFiscal
                   }
-                  placeholder="44 dígitos"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  placeholder={
+                    ehNotaFiscal
+                      ? "44 dígitos"
+                      : "Só para nota fiscal"
+                  }
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
             </div>
