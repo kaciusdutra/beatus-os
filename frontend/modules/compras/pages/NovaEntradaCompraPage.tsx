@@ -1010,7 +1010,7 @@ export default function NovaEntradaCompraPage() {
                 onClick={
                   iniciarDigitacaoManual
                 }
-                className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 ✍️ Digitar manualmente
               </button>
@@ -1439,19 +1439,6 @@ export default function NovaEntradaCompraPage() {
                   aparecem no documento.
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={
-                  adicionarItem
-                }
-                disabled={
-                  salvando
-                }
-                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
-              >
-                + Adicionar item
-              </button>
             </div>
 
             <div className="space-y-5 p-6">
@@ -1521,7 +1508,7 @@ export default function NovaEntradaCompraPage() {
 
                       <div>
                         <label className="mb-2 block text-sm font-semibold text-slate-700">
-                          Código fornecedor
+                          Código do produto na nota
                         </label>
 
                         <input
@@ -1540,6 +1527,7 @@ export default function NovaEntradaCompraPage() {
                           disabled={
                             salvando
                           }
+                          placeholder="Opcional"
                           className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                         />
                       </div>
@@ -1680,6 +1668,20 @@ export default function NovaEntradaCompraPage() {
                   </div>
                 )
               )}
+
+              {/* O botão fica sempre abaixo do último item. */}
+              <button
+                type="button"
+                onClick={
+                  adicionarItem
+                }
+                disabled={
+                  salvando
+                }
+                className="w-full cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-500 hover:bg-slate-50 disabled:opacity-60"
+              >
+                + Adicionar item
+              </button>
             </div>
           </section>
 

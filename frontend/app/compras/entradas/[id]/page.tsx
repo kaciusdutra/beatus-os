@@ -4,8 +4,58 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import CapturaDocumentoNota from "@/modules/compras/components/CapturaDocumentoNota";
-import { EntradaCompra } from "@/modules/compras/types/entradaCompra";
+import {
+  DESTINOS_ITEM_COMPRA,
+  contarItensSemDestino,
+  rotuloDestinoItemCompra,
+} from "@/modules/compras/domain/destinoItemCompra";
+import {
+  EntradaCompra,
+  IdentificacaoItemCompra,
+  OrigemSugestaoClassificacao,
+} from "@/modules/compras/types/entradaCompra";
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
+
+interface ClassificacaoTela {
+  destino: string;
+  sugestao?: OrigemSugestaoClassificacao;
+}
+
+const ROTULO_SUGESTAO: Record<
+  OrigemSugestaoClassificacao,
+  string
+> = {
+  MEMORIA: "Destino das compras anteriores",
+  PADRAO_FORNECEDOR: "Destino padrão do fornecedor",
+};
+
+function montarClassificacao(
+  entrada: EntradaCompra,
+  identificacoes: IdentificacaoItemCompra[] = [],
+): Record<string, ClassificacaoTela> {
+  const resultado: Record<string, ClassificacaoTela> =
+    {};
+
+  for (const item of entrada.itens) {
+    const identificacao = item.destino
+      ? undefined
+      : identificacoes.find(
+          (i) => i.itemId === item.id,
+        );
+
+    resultado[item.id] =
+      identificacao?.destinoSugerido
+        ? {
+            destino: identificacao.destinoSugerido,
+            sugestao: identificacao.origem,
+          }
+        : {
+            destino: item.destino ?? "",
+          };
+  }
+
+  return resultado;
+}
 
 interface Props {
   params: Promise<{
@@ -126,6 +176,17 @@ export default function EntradaCompraPage({
   const [motivoCancelamento, setMotivoCancelamento] =
     useState("");
 
+  const [identificacoes, setIdentificacoes] = useState<
+    IdentificacaoItemCompra[]
+  >([]);
+  const [classificacao, setClassificacao] = useState<
+    Record<string, ClassificacaoTela>
+  >({});
+  const [classificacaoAlterada, setClassificacaoAlterada] =
+    useState(false);
+  const [salvandoClassificacao, setSalvandoClassificacao] =
+    useState(false);
+
   useEffect(() => {
     let ativo = true;
 
@@ -192,6 +253,44 @@ export default function EntradaCompraPage({
         ) {
           setFornecedor(dadosFornecedor.fornecedor);
         }
+
+        // Identificação dos itens (regra 9.13): conhecido ou novo.
+        const respostaIdentificacao = await fetch(
+          `/api/compras/entradas/${encodeURIComponent(
+            id,
+          )}/itens/classificacao`,
+          { cache: "no-store" },
+        );
+
+        const dadosIdentificacao =
+          await respostaIdentificacao.json();
+
+        if (!ativo) {
+          return;
+        }
+
+        const identificadas: IdentificacaoItemCompra[] =
+          respostaIdentificacao.ok &&
+          dadosIdentificacao?.sucesso
+            ? dadosIdentificacao.identificacoes ?? []
+            : [];
+
+        setIdentificacoes(identificadas);
+
+        const classificacaoInicial = montarClassificacao(
+          dados.entrada,
+          identificadas,
+        );
+
+        setClassificacao(classificacaoInicial);
+
+        // Sugestões de rascunho ainda precisam ser salvas.
+        setClassificacaoAlterada(
+          dados.entrada.status === "RASCUNHO" &&
+            Object.values(classificacaoInicial).some(
+              (c) => c.sugestao,
+            ),
+        );
       } catch (error) {
         if (!ativo) {
           return;
@@ -290,6 +389,77 @@ export default function EntradaCompraPage({
     }
   }
 
+  function alterarDestino(
+    itemId: string,
+    destino: string,
+  ) {
+    setClassificacao((atual) => ({
+      ...atual,
+      [itemId]: {
+        destino,
+        sugestao: undefined,
+      },
+    }));
+
+    setClassificacaoAlterada(true);
+    setMensagem(null);
+  }
+
+  async function salvarClassificacao(): Promise<void> {
+    if (!entradaId || !entrada) {
+      return;
+    }
+
+    try {
+      setSalvandoClassificacao(true);
+      setErro(null);
+      setMensagem(null);
+
+      const resposta = await fetch(
+        `/api/compras/entradas/${encodeURIComponent(
+          entradaId,
+        )}/itens/classificacao`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            itens: entrada.itens.map((item) => ({
+              itemId: item.id,
+              destino:
+                classificacao[item.id]?.destino || null,
+            })),
+          }),
+        },
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados?.sucesso) {
+        throw new Error(
+          dados?.mensagem ??
+            "Não foi possível salvar a classificação.",
+        );
+      }
+
+      setEntrada(dados.entrada);
+      setClassificacao(
+        montarClassificacao(dados.entrada),
+      );
+      setClassificacaoAlterada(false);
+      setMensagem("Classificação salva.");
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a classificação.",
+      );
+    } finally {
+      setSalvandoClassificacao(false);
+    }
+  }
+
   async function executarAcao(
     acao: "confirmar" | "cancelar",
   ): Promise<void> {
@@ -353,6 +523,13 @@ export default function EntradaCompraPage({
           : atual,
       );
 
+      if (dados.entrada) {
+        setClassificacao(
+          montarClassificacao(dados.entrada),
+        );
+        setClassificacaoAlterada(false);
+      }
+
       setMensagem(
         acao === "confirmar"
           ? "Entrada confirmada com sucesso."
@@ -407,6 +584,20 @@ export default function EntradaCompraPage({
 
   const ehRascunho = entrada.status === "RASCUNHO";
   const ehConfirmada = entrada.status === "CONFIRMADA";
+
+  // Pendências pelo que está gravado (é o que o servidor confere).
+  const semDestino = contarItensSemDestino(entrada.itens);
+
+  const motivoBloqueioConfirmacao = classificacaoAlterada
+    ? "Salve a classificação dos itens antes de confirmar."
+    : semDestino > 0
+      ? `Falta classificar o destino de ${semDestino} ${
+          semDestino === 1 ? "item" : "itens"
+        }.`
+      : null;
+
+  const identificacaoDoItem = (itemId: string) =>
+    identificacoes.find((i) => i.itemId === itemId);
 
   const nomeFornecedor = fornecedor
     ? fornecedor.nomeFantasia?.trim() ||
@@ -531,10 +722,37 @@ export default function EntradaCompraPage({
       )}
 
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-5">
-          <h2 className="text-lg font-bold text-slate-900">
-            Itens
-          </h2>
+        <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              Itens
+            </h2>
+
+            {ehRascunho && (
+              <p className="mt-1 text-sm text-slate-500">
+                Escolha o destino de cada item. Itens já
+                conhecidos deste fornecedor vêm preenchidos
+                para conferência.
+              </p>
+            )}
+          </div>
+
+          {ehRascunho && entrada.itens.length > 0 && (
+            <button
+              type="button"
+              onClick={salvarClassificacao}
+              disabled={
+                !classificacaoAlterada ||
+                salvandoClassificacao ||
+                processando
+              }
+              className="shrink-0 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-40"
+            >
+              {salvandoClassificacao
+                ? "Salvando..."
+                : "Salvar classificação"}
+            </button>
+          )}
         </div>
 
         {entrada.itens.length === 0 ? (
@@ -548,6 +766,9 @@ export default function EntradaCompraPage({
                 <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <th className="px-5 py-3 text-left">
                     Descrição
+                  </th>
+                  <th className="px-5 py-3 text-left">
+                    Destino
                   </th>
                   <th className="px-5 py-3 text-right">
                     Quantidade
@@ -568,8 +789,27 @@ export default function EntradaCompraPage({
                 {entrada.itens.map((item) => (
                   <tr key={item.id}>
                     <td className="px-5 py-3">
-                      <div className="font-medium text-slate-900">
-                        {item.descricaoOriginal}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium text-slate-900">
+                          {item.descricaoOriginal}
+                        </span>
+
+                        {ehRascunho &&
+                          identificacaoDoItem(item.id) && (
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                identificacaoDoItem(item.id)
+                                  ?.conhecido
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-sky-100 text-sky-700"
+                              }`}
+                            >
+                              {identificacaoDoItem(item.id)
+                                ?.conhecido
+                                ? "Item já conhecido"
+                                : "Item novo"}
+                            </span>
+                          )}
                       </div>
                       {(item.codigoFornecedor ||
                         item.lote ||
@@ -588,6 +828,67 @@ export default function EntradaCompraPage({
                             .filter(Boolean)
                             .join(" · ")}
                         </div>
+                      )}
+                    </td>
+                    <td className="min-w-56 px-5 py-3 align-top">
+                      {ehRascunho ? (
+                        <div className="space-y-1">
+                          <select
+                            aria-label={`Destino de ${item.descricaoOriginal}`}
+                            value={
+                              classificacao[item.id]
+                                ?.destino ?? ""
+                            }
+                            onChange={(evento) =>
+                              alterarDestino(
+                                item.id,
+                                evento.target.value,
+                              )
+                            }
+                            disabled={
+                              salvandoClassificacao ||
+                              processando
+                            }
+                            className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 ${
+                              classificacao[item.id]
+                                ?.destino
+                                ? "border-slate-300 bg-white"
+                                : "border-amber-300 bg-amber-50"
+                            }`}
+                          >
+                            <option value="">
+                              Selecione o destino...
+                            </option>
+                            {DESTINOS_ITEM_COMPRA.map(
+                              (destino) => (
+                                <option
+                                  key={destino.valor}
+                                  value={destino.valor}
+                                >
+                                  {destino.rotulo}
+                                </option>
+                              ),
+                            )}
+                          </select>
+
+                          {classificacao[item.id]
+                            ?.sugestao && (
+                            <p className="text-xs font-medium text-sky-700">
+                              {
+                                ROTULO_SUGESTAO[
+                                  classificacao[item.id]
+                                    ?.sugestao ?? "MEMORIA"
+                                ]
+                              }
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="font-medium text-slate-800">
+                          {rotuloDestinoItemCompra(
+                            item.destino,
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="px-5 py-3 text-right text-slate-700">
@@ -719,16 +1020,28 @@ export default function EntradaCompraPage({
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           {ehRascunho && !confirmandoEntrada && (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-500">
-                Confira fornecedor, itens e valores antes de
-                confirmar. Depois de confirmada, a entrada
-                não pode mais ser alterada.
-              </p>
+              <div className="text-sm">
+                <p className="text-slate-500">
+                  Confira fornecedor, itens e valores antes
+                  de confirmar. Depois de confirmada, a
+                  entrada não pode mais ser alterada.
+                </p>
+
+                {motivoBloqueioConfirmacao && (
+                  <p className="mt-2 font-semibold text-amber-700">
+                    {motivoBloqueioConfirmacao}
+                  </p>
+                )}
+              </div>
 
               <button
                 type="button"
                 onClick={() => setConfirmandoEntrada(true)}
-                disabled={processando || enviando}
+                disabled={
+                  processando ||
+                  enviando ||
+                  motivoBloqueioConfirmacao !== null
+                }
                 className="shrink-0 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
               >
                 Confirmar entrada

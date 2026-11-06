@@ -1,5 +1,7 @@
 import {
+  ClassificacaoItemInput,
   EntradaCompra,
+  MemoriaClassificacaoItemCompra,
 } from "../types/entradaCompra";
 
 import {
@@ -40,4 +42,20 @@ export interface EntradaCompraRepositoryPort {
     buscarDocumentoPorId(
     id: string
   ): Promise<EntradaCompraDocumento | undefined>;
+
+  // Grava só o destino dos itens.
+  classificarItens(
+    entradaId: string,
+    itens: ClassificacaoItemInput[]
+  ): Promise<EntradaCompra>;
+
+  buscarMemoriasClassificacao(
+    fornecedorId: string,
+    descricoesNormalizadas: string[]
+  ): Promise<MemoriaClassificacaoItemCompra[]>;
+
+  // Cria ou atualiza a memória e soma 1 em vezesUsada.
+  registrarMemoriasClassificacao(
+    memorias: MemoriaClassificacaoItemCompra[]
+  ): Promise<void>;
 }

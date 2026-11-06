@@ -1,9 +1,18 @@
 import {
+  ClassificacaoItemInput,
   EntradaCompra,
+  IdentificacaoItemCompra,
   EntradaCompraItem,
+  MemoriaClassificacaoItemCompra,
   StatusEntradaCompra,
   TipoDocumentoEntradaCompra,
 } from "../types/entradaCompra";
+
+import {
+  contarItensSemDestino,
+  ehDestinoItemCompra,
+  normalizarDescricaoItemCompra,
+} from "../domain/destinoItemCompra";
 
 import {
   EntradaCompraDocumento,
@@ -434,6 +443,38 @@ function validarDocumento(
   }
 }
 
+function montarMemorias(
+  entrada: EntradaCompra
+): MemoriaClassificacaoItemCompra[] {
+  const porDescricao = new Map<
+    string,
+    MemoriaClassificacaoItemCompra
+  >();
+
+  for (const item of entrada.itens) {
+    if (!item.destino) {
+      continue;
+    }
+
+    const descricaoNormalizada =
+      normalizarDescricaoItemCompra(
+        item.descricaoOriginal
+      );
+
+    if (!descricaoNormalizada) {
+      continue;
+    }
+
+    porDescricao.set(descricaoNormalizada, {
+      fornecedorId: entrada.fornecedorId,
+      descricaoNormalizada,
+      destino: item.destino,
+    });
+  }
+
+  return [...porDescricao.values()];
+}
+
 export class EntradaCompraService {
   constructor(
     private readonly repository:
@@ -653,6 +694,15 @@ export class EntradaCompraService {
         existente
       );
 
+    // Regra 9.8: só confirma com todos os itens classificados.
+    if (
+      contarItensSemDestino(existente.itens) > 0
+    ) {
+      throw new Error(
+        "Classifique o destino de todos os itens antes de confirmar a entrada."
+      );
+    }
+
     const confirmada:
       EntradaCompra =
       {
@@ -665,9 +715,178 @@ export class EntradaCompraService {
           new Date().toISOString(),
       };
 
-    return this.repository.atualizar(
-      confirmada
+    const resultado =
+      await this.repository.atualizar(
+        confirmada
+      );
+
+    // A memória aprende com as entradas confirmadas.
+    await this.repository.registrarMemoriasClassificacao(
+      montarMemorias(resultado)
     );
+
+    return resultado;
+  }
+
+  async classificarItens(
+    entradaId: string,
+    itens: ClassificacaoItemInput[]
+  ): Promise<EntradaCompra> {
+    const existente =
+      await this.repository.buscarPorId(
+        entradaId
+      );
+
+    if (!existente) {
+      throw new Error(
+        "Entrada de compra não encontrada."
+      );
+    }
+
+    // Regra 9.10: classificação só no rascunho.
+    if (existente.status !== "RASCUNHO") {
+      throw new Error(
+        "Somente entradas em RASCUNHO podem ter os itens classificados."
+      );
+    }
+
+    if (itens.length === 0) {
+      throw new Error(
+        "Informe ao menos um item para classificar."
+      );
+    }
+
+    const idsItens = new Set(
+      existente.itens.map((item) => item.id)
+    );
+
+    const vistos = new Set<string>();
+
+    for (const item of itens) {
+      if (!idsItens.has(item.itemId)) {
+        throw new Error(
+          "Item não pertence a esta entrada de compra."
+        );
+      }
+
+      if (vistos.has(item.itemId)) {
+        throw new Error(
+          "Item informado mais de uma vez."
+        );
+      }
+
+      vistos.add(item.itemId);
+
+      if (
+        item.destino !== null &&
+        !ehDestinoItemCompra(item.destino)
+      ) {
+        throw new Error(
+          "Destino do item inválido."
+        );
+      }
+    }
+
+    // Regra 9.9: na entrada, o item recebe só o destino.
+    return this.repository.classificarItens(
+      entradaId,
+      itens.map((item) => ({
+        itemId: item.itemId,
+        destino: item.destino,
+      }))
+    );
+  }
+
+  // Regra 9.13: diz, para cada item, se ele já é conhecido do fornecedor
+  // e sugere o destino dos itens ainda não classificados.
+  async identificarItens(
+    entradaId: string
+  ): Promise<IdentificacaoItemCompra[]> {
+    const entrada =
+      await this.repository.buscarPorId(
+        entradaId
+      );
+
+    if (!entrada) {
+      throw new Error(
+        "Entrada de compra não encontrada."
+      );
+    }
+
+    if (entrada.itens.length === 0) {
+      return [];
+    }
+
+    const chaves = entrada.itens.map((item) => ({
+      item,
+      chave: normalizarDescricaoItemCompra(
+        item.descricaoOriginal
+      ),
+    }));
+
+    const memorias =
+      await this.repository.buscarMemoriasClassificacao(
+        entrada.fornecedorId,
+        [
+          ...new Set(
+            chaves
+              .map(({ chave }) => chave)
+              .filter(Boolean)
+          ),
+        ]
+      );
+
+    const memoriaPorChave = new Map(
+      memorias.map((memoria) => [
+        memoria.descricaoNormalizada,
+        memoria,
+      ])
+    );
+
+    const precisaPadrao = chaves.some(
+      ({ item, chave }) =>
+        !item.destino &&
+        !memoriaPorChave.has(chave)
+    );
+
+    const fornecedor = precisaPadrao
+      ? await this.fornecedorRepository.buscarPorId(
+          entrada.fornecedorId
+        )
+      : undefined;
+
+    const destinoPadrao =
+      ehDestinoItemCompra(
+        fornecedor?.destinoPadrao
+      )
+        ? fornecedor.destinoPadrao
+        : undefined;
+
+    return chaves.map(({ item, chave }) => {
+      const memoria = memoriaPorChave.get(chave);
+
+      const identificacao: IdentificacaoItemCompra =
+        {
+          itemId: item.id,
+          chave,
+          conhecido: Boolean(memoria),
+        };
+
+      if (!item.destino) {
+        if (memoria) {
+          identificacao.destinoSugerido =
+            memoria.destino;
+          identificacao.origem = "MEMORIA";
+        } else if (destinoPadrao) {
+          identificacao.destinoSugerido =
+            destinoPadrao;
+          identificacao.origem =
+            "PADRAO_FORNECEDOR";
+        }
+      }
+
+      return identificacao;
+    });
   }
 
   async cancelarEntradaCompra(

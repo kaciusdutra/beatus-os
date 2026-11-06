@@ -24,6 +24,8 @@ model Empresa {
   categoriasInsumo CategoriaInsumo[]
   unidadesMedida   UnidadeMedida[]
 
+  classificacoesItemCompra ClassificacaoItemCompra[]
+
   @@index([ativo])
 }
 
@@ -41,9 +43,14 @@ model Fornecedor {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
+  // Destino sugerido para os itens deste fornecedor quando não houver memória.
+  destinoPadrao String?
+
   empresa        Empresa         @relation(fields: [empresaId], references: [id])
   entradasCompra EntradaCompra[]
   insumos        Insumo[]
+
+  classificacoesItemCompra ClassificacaoItemCompra[]
 
   @@unique([empresaId, cnpj])
   @@unique([empresaId, cpf])
@@ -109,12 +116,47 @@ model EntradaCompraItem {
 
   observacao String?
 
+  // INSUMO | EMBALAGEM | LIMPEZA_HIGIENE | EXPEDIENTE | EQUIPAMENTO_UTENSILIO | SERVICO
+  // Vazio = item ainda não classificado.
+  destino  String?
+  insumoId String?
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   entradaCompra EntradaCompra @relation(fields: [entradaCompraId], references: [id], onDelete: Cascade)
 
+  insumo Insumo? @relation(fields: [insumoId], references: [id])
+
   @@index([entradaCompraId])
+  @@index([insumoId])
+}
+
+// Memória de classificação: descrição do item + fornecedor -> destino (e insumo).
+model ClassificacaoItemCompra {
+  id String @id @default(uuid())
+
+  empresaId    String
+  fornecedorId String
+
+  // Descrição em maiúsculas, sem acentos e sem espaços repetidos.
+  descricaoNormalizada String
+
+  destino  String
+  insumoId String?
+
+  vezesUsada Int @default(1)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa    Empresa    @relation(fields: [empresaId], references: [id])
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id])
+  insumo     Insumo?    @relation(fields: [insumoId], references: [id])
+
+  @@unique([empresaId, fornecedorId, descricaoNormalizada])
+  @@index([empresaId])
+  @@index([insumoId])
 }
 
 model EntradaCompraDocumento {
@@ -322,6 +364,9 @@ model Insumo {
   unidadeMedida UnidadeMedida? @relation(fields: [unidadeCompraId], references: [id])
 
   fichaTecnicaItens FichaTecnicaItem[]
+
+  itensEntradaCompra       EntradaCompraItem[]
+  classificacoesItemCompra ClassificacaoItemCompra[]
 
   @@unique([empresaId, nome])
   @@index([empresaId])

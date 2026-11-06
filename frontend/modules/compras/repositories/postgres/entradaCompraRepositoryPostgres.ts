@@ -11,11 +11,18 @@ import {
 } from "../entradaCompraRepositoryPort";
 
 import {
+  ClassificacaoItemInput,
   EntradaCompra,
   EntradaCompraItem,
+  MemoriaClassificacaoItemCompra,
   TipoDocumentoEntradaCompra,
   StatusEntradaCompra,
 } from "../../types/entradaCompra";
+
+import {
+  DestinoItemCompra,
+  ehDestinoItemCompra,
+} from "../../domain/destinoItemCompra";
 
 import {
   EntradaCompraDocumento,
@@ -38,6 +45,8 @@ function mapearItem(
     lote: string | null;
     validade: Date | null;
     observacao: string | null;
+    destino: string | null;
+    insumoId: string | null;
     criadoEm: Date;
     atualizadoEm: Date;
   }
@@ -81,6 +90,15 @@ function mapearItem(
 
     observacao:
       item.observacao ??
+      undefined,
+
+    destino:
+      ehDestinoItemCompra(item.destino)
+        ? item.destino
+        : undefined,
+
+    insumoId:
+      item.insumoId ??
       undefined,
 
     criadoEm:
@@ -184,6 +202,8 @@ function mapearEntrada(
       lote: string | null;
       validade: Date | null;
       observacao: string | null;
+      destino: string | null;
+      insumoId: string | null;
       criadoEm: Date;
       atualizadoEm: Date;
     }[];
@@ -906,5 +926,129 @@ export class EntradaCompraRepositoryPostgres
         id,
       },
     });
+  }
+
+  async classificarItens(
+    entradaId: string,
+    itens: ClassificacaoItemInput[]
+  ): Promise<EntradaCompra> {
+    const existente =
+      await prisma.entradaCompra.findFirst({
+        where: {
+          id: entradaId,
+          empresaId:
+            this.contexto.empresaId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (!existente) {
+      throw new Error(
+        "Entrada de compra não encontrada."
+      );
+    }
+
+    await prisma.$transaction(
+      itens.map((item) =>
+        prisma.entradaCompraItem.updateMany({
+          where: {
+            id: item.itemId,
+            entradaCompraId: entradaId,
+          },
+          data: {
+            destino: item.destino,
+          },
+        })
+      )
+    );
+
+    const atualizada =
+      await this.buscarPorId(entradaId);
+
+    if (!atualizada) {
+      throw new Error(
+        "Entrada de compra não encontrada."
+      );
+    }
+
+    return atualizada;
+  }
+
+  async buscarMemoriasClassificacao(
+    fornecedorId: string,
+    descricoesNormalizadas: string[]
+  ): Promise<MemoriaClassificacaoItemCompra[]> {
+    if (descricoesNormalizadas.length === 0) {
+      return [];
+    }
+
+    const memorias =
+      await prisma.classificacaoItemCompra.findMany({
+        where: {
+          empresaId:
+            this.contexto.empresaId,
+          fornecedorId,
+          descricaoNormalizada: {
+            in: descricoesNormalizadas,
+          },
+        },
+      });
+
+    return memorias
+      .filter((memoria) =>
+        ehDestinoItemCompra(memoria.destino)
+      )
+      .map((memoria) => ({
+        fornecedorId:
+          memoria.fornecedorId,
+        descricaoNormalizada:
+          memoria.descricaoNormalizada,
+        destino:
+          memoria.destino as DestinoItemCompra,
+      }));
+  }
+
+  async registrarMemoriasClassificacao(
+    memorias: MemoriaClassificacaoItemCompra[]
+  ): Promise<void> {
+    if (memorias.length === 0) {
+      return;
+    }
+
+    const empresaId =
+      this.contexto.empresaId;
+
+    await prisma.$transaction(
+      memorias.map((memoria) =>
+        prisma.classificacaoItemCompra.upsert({
+          where: {
+            empresaId_fornecedorId_descricaoNormalizada:
+              {
+                empresaId,
+                fornecedorId:
+                  memoria.fornecedorId,
+                descricaoNormalizada:
+                  memoria.descricaoNormalizada,
+              },
+          },
+          create: {
+            empresaId,
+            fornecedorId:
+              memoria.fornecedorId,
+            descricaoNormalizada:
+              memoria.descricaoNormalizada,
+            destino: memoria.destino,
+          },
+          update: {
+            destino: memoria.destino,
+            vezesUsada: {
+              increment: 1,
+            },
+          },
+        })
+      )
+    );
   }
 }

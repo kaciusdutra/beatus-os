@@ -1,6 +1,8 @@
 import {
+  ClassificacaoItemInput,
   EntradaCompra,
   EntradaCompraItem,
+  MemoriaClassificacaoItemCompra,
   TipoDocumentoEntradaCompra,
 } from "../types/entradaCompra";
 
@@ -28,6 +30,78 @@ class EntradaCompraRepositoryFake
   implements EntradaCompraRepositoryPort
 {
   private entradas: EntradaCompra[] = [];
+
+  memorias: (MemoriaClassificacaoItemCompra & {
+    vezesUsada: number;
+  })[] = [];
+
+  async classificarItens(
+    entradaId: string,
+    itens: ClassificacaoItemInput[]
+  ): Promise<EntradaCompra> {
+    const entrada =
+      this.entradas.find(
+        (item) => item.id === entradaId
+      );
+
+    if (!entrada) {
+      throw new Error(
+        "Entrada de compra não encontrada."
+      );
+    }
+
+    entrada.itens = entrada.itens.map((item) => {
+      const classificacao = itens.find(
+        (c) => c.itemId === item.id
+      );
+
+      return classificacao
+        ? {
+            ...item,
+            destino:
+              classificacao.destino ?? undefined,
+          }
+        : item;
+    });
+
+    return entrada;
+  }
+
+  async buscarMemoriasClassificacao(
+    fornecedorId: string,
+    descricoesNormalizadas: string[]
+  ): Promise<MemoriaClassificacaoItemCompra[]> {
+    return this.memorias.filter(
+      (memoria) =>
+        memoria.fornecedorId === fornecedorId &&
+        descricoesNormalizadas.includes(
+          memoria.descricaoNormalizada
+        )
+    );
+  }
+
+  async registrarMemoriasClassificacao(
+    memorias: MemoriaClassificacaoItemCompra[]
+  ): Promise<void> {
+    for (const memoria of memorias) {
+      const existente = this.memorias.find(
+        (item) =>
+          item.fornecedorId === memoria.fornecedorId &&
+          item.descricaoNormalizada ===
+            memoria.descricaoNormalizada
+      );
+
+      if (existente) {
+        existente.destino = memoria.destino;
+        existente.vezesUsada += 1;
+      } else {
+        this.memorias.push({
+          ...memoria,
+          vezesUsada: 1,
+        });
+      }
+    }
+  }
 
   async criar(
     entrada: EntradaCompra
@@ -881,6 +955,110 @@ async function executarTestes() {
   );
 
   // --------------------------------------------------
+  // CLASSIFICAÇÃO DOS ITENS (regras 9.8 a 9.10)
+  // --------------------------------------------------
+
+  const itemId = criada.itens[0].id;
+
+  await esperarErro(
+    () =>
+      service.confirmarEntradaCompra(
+        criada.id
+      ),
+    "Classifique o destino de todos os itens antes de confirmar a entrada."
+  );
+
+  // Item novo: sem memória, a sugestão vem do destino padrão do fornecedor.
+  fornecedor.destinoPadrao = "INSUMO";
+
+  const identificacaoInicial =
+    await service.identificarItens(criada.id);
+
+  if (
+    identificacaoInicial.length !== 1 ||
+    identificacaoInicial[0].conhecido ||
+    identificacaoInicial[0].chave !==
+      "QUEIJO COALHO DE BUFALA" ||
+    identificacaoInicial[0].origem !==
+      "PADRAO_FORNECEDOR" ||
+    identificacaoInicial[0].destinoSugerido !==
+      "INSUMO"
+  ) {
+    throw new Error(
+      "Falha: identificação de item novo com destino padrão."
+    );
+  }
+
+  await esperarErro(
+    () =>
+      service.classificarItens(criada.id, [
+        {
+          itemId,
+          destino:
+            "PATRIMONIO" as unknown as "INSUMO",
+        },
+      ]),
+    "Destino do item inválido."
+  );
+
+  await esperarErro(
+    () =>
+      service.classificarItens(criada.id, [
+        {
+          itemId: "item-de-outra-entrada",
+          destino: "SERVICO",
+        },
+      ]),
+    "Item não pertence a esta entrada de compra."
+  );
+
+  await esperarErro(
+    () =>
+      service.classificarItens(criada.id, [
+        { itemId, destino: "SERVICO" },
+        { itemId, destino: "INSUMO" },
+      ]),
+    "Item informado mais de uma vez."
+  );
+
+  // Regra 9.9: o destino basta, sem insumo ligado.
+  const classificada =
+    await service.classificarItens(criada.id, [
+      {
+        itemId,
+        destino: "INSUMO",
+      },
+    ]);
+
+  if (
+    classificada.itens[0].destino !== "INSUMO" ||
+    classificada.itens[0].insumoId !== undefined ||
+    classificada.itens[0].id !== itemId
+  ) {
+    throw new Error(
+      "Falha: classificação do item não foi gravada."
+    );
+  }
+
+  const identificacaoClassificada =
+    await service.identificarItens(criada.id);
+
+  if (
+    identificacaoClassificada[0].destinoSugerido !==
+    undefined
+  ) {
+    throw new Error(
+      "Falha: item já classificado não deve receber sugestão."
+    );
+  }
+
+  if (entradaRepository.memorias.length !== 0) {
+    throw new Error(
+      "Falha: a memória só deve aprender na confirmação."
+    );
+  }
+
+  // --------------------------------------------------
   // CONFIRMAÇÃO
   // --------------------------------------------------
 
@@ -922,6 +1100,68 @@ async function executarTestes() {
   ) {
     throw new Error(
       "Falha: confirmação alterou o ID do documento."
+    );
+  }
+
+  // --------------------------------------------------
+  // MEMÓRIA DE CLASSIFICAÇÃO (regra 9.13)
+  // --------------------------------------------------
+
+  if (
+    (entradaRepository.memorias.length as number) !== 1 ||
+    entradaRepository.memorias[0]
+      .descricaoNormalizada !==
+      "QUEIJO COALHO DE BUFALA" ||
+    entradaRepository.memorias[0].destino !==
+      "INSUMO" ||
+    entradaRepository.memorias[0].vezesUsada !== 1
+  ) {
+    throw new Error(
+      "Falha: memória não foi registrada na confirmação."
+    );
+  }
+
+  await esperarErro(
+    () =>
+      service.classificarItens(criada.id, [
+        {
+          itemId,
+          destino: "SERVICO",
+        },
+      ]),
+    "Somente entradas em RASCUNHO podem ter os itens classificados."
+  );
+
+  // Nova entrada do mesmo fornecedor, com o item escrito de outro jeito:
+  // é reconhecida pela chave, e a memória tem prioridade sobre o padrão.
+  fornecedor.destinoPadrao = "SERVICO";
+
+  const segundaEntrada =
+    await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        itens: [
+          criarItem("segunda", {
+            descricaoOriginal:
+              "  queijo  COALHO de búfala. ",
+          }),
+        ],
+      }),
+    });
+
+  const identificacaoSegunda =
+    await service.identificarItens(
+      segundaEntrada.id
+    );
+
+  if (
+    identificacaoSegunda.length !== 1 ||
+    !identificacaoSegunda[0].conhecido ||
+    identificacaoSegunda[0].origem !== "MEMORIA" ||
+    identificacaoSegunda[0].destinoSugerido !==
+      "INSUMO"
+  ) {
+    throw new Error(
+      "Falha: item conhecido não foi identificado pela memória."
     );
   }
 

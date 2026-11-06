@@ -40,10 +40,8 @@ Concluído: leitura do QR da NFC-e (v2 e v3), preenchimento automático e fornec
 
 Concluído no bloco 7A: nome do fornecedor na lista, card sem as canceladas, tela de detalhe com itens, valores e botões de confirmar e cancelar, volta para a lista depois de salvar, e série e chave de acesso só para nota fiscal.
 
-- [ ] Destino de cada item: Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço (exige migração).
-- [ ] Memória de classificação (descrição + fornecedor → destino) e destino padrão por fornecedor.
-- [ ] Ligar o item da entrada ao insumo cadastrado, sem duplicar o insumo (preserva o ID e o histórico de custos).
-- [ ] Classificar os itens na tela de detalhe da entrada (destino e insumo), com a confirmação bloqueada enquanto houver item sem destino.
+Concluído no bloco 7B: destino de cada item (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), confirmação só com todos os itens classificados, identificação de "Item já conhecido" ou "Item novo" pela chave em caixa alta e memória do destino por fornecedor; na nova entrada, o botão "Adicionar item" fica abaixo do último item e o campo passou a se chamar "Código do produto na nota".
+- [ ] Tela para definir o destino padrão do fornecedor (o campo já existe no banco e já é usado nas sugestões); entra com a tela de cadastro de fornecedores.
 - [ ] Atualizar o custo do insumo quando a entrada for confirmada, com conversão entre a unidade da nota e a unidade de compra do insumo (decidido em 04/11/2026: fica para depois da 7B).
 - [ ] Leitura dos itens pela **foto** do cupom ou da nota (IA), com conferência humana.
 - [ ] Importação de **XML** da NF-e.
@@ -77,6 +75,8 @@ Concluído no bloco 7A: nome do fornecedor na lista, card sem as canceladas, tel
 - [ ] Estoque, financeiro, produção, receitas e ingredientes ainda **não têm tabela no banco** (são legado em memória ou localStorage). Ver a S5.
 
 ## G08: Fichas, preparações e precificação
+
+- [ ] Ligar os itens de compra (pela chave do item do fornecedor) ao insumo cadastrado, sem duplicar o insumo, para que a ficha use o custo real da compra. Os campos `insumoId` já existem no item da entrada e na memória de classificação, vazios (decisão de 06/11/2026).
 
 - [ ] Módulo de precificação separado do cadastro de produtos.
 - [ ] Impostos de cada insumo visíveis na composição do preço.

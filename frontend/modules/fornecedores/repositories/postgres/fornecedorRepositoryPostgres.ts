@@ -42,6 +42,7 @@ function mapearFornecedor(
     telefone: string | null;
     email: string | null;
     observacao: string | null;
+    destinoPadrao?: string | null;
     criadoEm: Date;
     atualizadoEm: Date;
     ativo: boolean;
@@ -75,6 +76,10 @@ function mapearFornecedor(
 
     observacao:
       fornecedor.observacao ??
+      undefined,
+
+    destinoPadrao:
+      fornecedor.destinoPadrao ??
       undefined,
 
     criadoEm:

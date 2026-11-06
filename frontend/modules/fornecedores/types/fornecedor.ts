@@ -15,6 +15,9 @@ export interface Fornecedor {
 
   observacao?: string;
 
+  // Destino sugerido para os itens de compra deste fornecedor (somente leitura por enquanto).
+  destinoPadrao?: string;
+
   criadoEm: string;
 
   atualizadoEm: string;
