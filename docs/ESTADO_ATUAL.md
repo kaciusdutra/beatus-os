@@ -1,27 +1,28 @@
 # Beatus OS: Estado Atual
 
-> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 04/11/2026.
+> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 06/11/2026.
 
 ## Onde estamos
 
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
-- **Bloco concluído:** 7A, acertos das telas de Compras (commit `43ce3f8`).
-- **Próximo bloco:** 7B, destino dos itens, ligação com o insumo e memória de classificação. Exige migração: precisa da autorização do Kacius e de um checkpoint no Git antes.
+- **Bloco concluído:** 7B, destino dos itens e identificação do item do fornecedor (commit `126ea63`). Antes dele, a 7A (commit `43ce3f8`).
+- **Próximo bloco:** 7C, a definir com o Kacius entre a tela de cadastro de fornecedores (com o destino padrão), a importação do XML da NF-e e a leitura dos itens pela foto.
 
 ## Ambiente
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 13 migrações aplicadas, de 19/08 a 03/09/2026.
+- 14 migrações aplicadas, de 19/08 a 04/11/2026. A última (`add_destino_itens_compra`) tem o checkpoint `checkpoint-antes-7b` antes dela.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
-- Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 8 avisos antigos, e o check só falha se piorar.
+- Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
 
 ## Histórico recente
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 06/11/2026 | `126ea63` | G07 7B: destino de cada item da entrada (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), obrigatório para confirmar; chave do item em caixa alta e etiqueta "Item já conhecido" ou "Item novo"; memória do destino por fornecedor, gravada na confirmação; ligação com o insumo fica para a G08; botão "Adicionar item" abaixo do último item; regras 9.8 a 9.13 |
 | 04/11/2026 | `43ce3f8` | G07 7A: nome do fornecedor na lista; card "Valor das entradas" sem as canceladas; tela de detalhe com fornecedor, itens, totais, documentos e botões Confirmar e Cancelar (com motivo); a nova entrada volta para a lista depois de salvar; série e chave de acesso só em nota fiscal; decisões de Compras registradas nas regras 9.8 a 9.12 |
 | 04/11/2026 | `a120bd5` | Documentos do projeto em `docs/` (regras de negócio, backlog, plano de sprints e estado atual) |
 | 04/11/2026 | `a24eb8a` | Leitura do QR da NFC-e (v2 e v3, online e contingência) e dados da chave; a nova entrada preenche chave, série e número e seleciona o fornecedor pelo CNPJ; a data de entrada passa a usar o horário local; inclui a tela de nova entrada e a captura de documento, que estavam fora do Git |
