@@ -170,7 +170,12 @@ export async function POST(
         tamanho: arquivo.size,
         tipoDocumento,
         origem,
-        statusLeitura: criarStatusInicial(),
+        statusLeitura:
+          // A leitura por XML ou foto já preencheu a entrada.
+          String(formData.get("statusLeitura") ?? "").trim() ===
+          "EXTRAIDO"
+            ? "EXTRAIDO"
+            : criarStatusInicial(),
         caminhoArquivo: caminhoRelativo,
         hashArquivo,
         criadoEm: agora,

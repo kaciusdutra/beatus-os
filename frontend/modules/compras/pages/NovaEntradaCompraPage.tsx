@@ -20,7 +20,14 @@ import {
   type NotaXmlNfe,
 } from "@/modules/compras/services/documentos/interpretarXmlNfe";
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
-import { cnpjValido } from "@/modules/fornecedores/domain/documentoFornecedor";
+import {
+  cnpjValido,
+  formatarCpf,
+} from "@/modules/fornecedores/domain/documentoFornecedor";
+import {
+  type CampoIncerto,
+  type LeituraFotoDocumento,
+} from "@/modules/compras/services/documentos/leituraFotoDocumento";
 import { formatarCep } from "@/modules/fornecedores/domain/enderecoFornecedor";
 
 type TipoDocumento =
@@ -44,7 +51,42 @@ interface ItemFormulario {
   // Vêm do XML da NF-e, quando a nota informa (rastreabilidade).
   lote?: string;
   validade?: string;
+  // Vêm da leitura por foto: item que a pessoa precisa conferir com o papel.
+  incerto?: boolean;
+  motivoIncerteza?: string;
 }
+
+// Resposta da rota /api/compras/leitura-foto (bloco 7F).
+interface ResultadoLeituraFotoTela {
+  leitura: LeituraFotoDocumento;
+  modelo: string;
+  uso: {
+    tokensEntrada: number;
+    tokensSaida: number;
+  };
+  // Em reais; só vem quando os preços foram configurados no .env.
+  custoEstimadoReais?: number;
+}
+
+type OrigemFornecedorFoto =
+  | "DOCUMENTO"
+  | "NOME"
+  | "CONFIRMADO";
+
+const ROTULO_CAMPO_INCERTO: Record<
+  CampoIncerto,
+  string
+> = {
+  emitente: "emitente",
+  documento: "CPF/CNPJ",
+  numero: "número",
+  serie: "série",
+  chave: "chave de acesso",
+  data: "data",
+  desconto: "desconto",
+  frete: "frete",
+  total: "total",
+};
 
 interface FormularioEntrada {
   fornecedorId: string;
@@ -151,6 +193,119 @@ function somenteDigitos(
     /\D/g,
     ""
   );
+}
+
+function semAcento(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+// Sugere o fornecedor mais parecido pelo nome lido (ex.: recibo sem CPF/CNPJ).
+// Só serve de sugestão: a pessoa confirma.
+function encontrarFornecedorPorNome(
+  fornecedores: Fornecedor[],
+  nome: string
+): Fornecedor | undefined {
+  const procurado = semAcento(nome);
+
+  if (procurado.length < 4) {
+    return undefined;
+  }
+
+  return fornecedores.find((fornecedor) =>
+    [
+      fornecedor.nomeFantasia,
+      fornecedor.razaoSocial,
+    ].some((candidato) => {
+      const comparado = semAcento(
+        candidato ?? ""
+      );
+
+      return (
+        comparado.length >= 4 &&
+        (comparado.includes(procurado) ||
+          procurado.includes(comparado))
+      );
+    })
+  );
+}
+
+/*
+ * Reduz a foto antes de enviar à IA: o tamanho da imagem define o custo da
+ * leitura e uma foto de celular passa de 5 MB. A foto ORIGINAL continua sendo
+ * guardada na entrada, sem nenhuma alteração.
+ */
+async function reduzirImagemParaLeitura(
+  arquivo: File
+): Promise<File> {
+  const LADO_MAXIMO = 1800;
+
+  const imagem = await createImageBitmap(arquivo);
+
+  try {
+    const escala = Math.min(
+      1,
+      LADO_MAXIMO /
+        Math.max(imagem.width, imagem.height)
+    );
+
+    if (
+      escala === 1 &&
+      arquivo.type === "image/jpeg" &&
+      arquivo.size <= 1.5 * 1024 * 1024
+    ) {
+      return arquivo;
+    }
+
+    const canvas =
+      document.createElement("canvas");
+
+    canvas.width = Math.round(
+      imagem.width * escala
+    );
+
+    canvas.height = Math.round(
+      imagem.height * escala
+    );
+
+    const contexto =
+      canvas.getContext("2d");
+
+    if (!contexto) {
+      throw new Error(
+        "Não foi possível preparar a imagem para a leitura."
+      );
+    }
+
+    contexto.drawImage(
+      imagem,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const blob = await new Promise<Blob | null>(
+      (resolver) =>
+        canvas.toBlob(resolver, "image/jpeg", 0.85)
+    );
+
+    if (!blob) {
+      throw new Error(
+        "Não foi possível preparar a imagem para a leitura."
+      );
+    }
+
+    return new File([blob], "leitura.jpg", {
+      type: "image/jpeg",
+    });
+  } finally {
+    imagem.close();
+  }
 }
 
 // CNPJ do emitente do XML; CPF vira 14 dígitos, como na chave de acesso.
@@ -326,6 +481,33 @@ export default function NovaEntradaCompraPage() {
     setErroCadastroFornecedor,
   ] = useState("");
 
+  // Leitura dos itens por foto (bloco 7F).
+  const [
+    lendoFoto,
+    setLendoFoto,
+  ] = useState(false);
+
+  const [
+    leituraFoto,
+    setLeituraFoto,
+  ] =
+    useState<ResultadoLeituraFotoTela | null>(
+      null
+    );
+
+  const [
+    erroLeituraFoto,
+    setErroLeituraFoto,
+  ] = useState("");
+
+  const [
+    fornecedorDaFoto,
+    setFornecedorDaFoto,
+  ] = useState<{
+    fornecedor: Fornecedor;
+    por: OrigemFornecedorFoto;
+  } | null>(null);
+
   const [
     carregandoFornecedores,
     setCarregandoFornecedores,
@@ -386,6 +568,32 @@ export default function NovaEntradaCompraPage() {
           ? interpretacaoQr.dadosChave
               ?.documentoEmitente
           : undefined;
+
+      const documentoFoto =
+        leituraFoto?.leitura.emitente.documento;
+
+      if (
+        documentoFoto &&
+        fornecedorDaFoto?.por !== "DOCUMENTO"
+      ) {
+        const encontradoFoto =
+          encontrarFornecedorPorDocumento(
+            ativos,
+            documentoFoto.padStart(14, "0")
+          );
+
+        if (encontradoFoto) {
+          setFornecedorDaFoto({
+            fornecedor: encontradoFoto,
+            por: "DOCUMENTO",
+          });
+
+          setFormulario((anterior) => ({
+            ...anterior,
+            fornecedorId: encontradoFoto.id,
+          }));
+        }
+      }
 
       if (notaXml && !fornecedorDoXml) {
         const encontradoXml =
@@ -601,6 +809,9 @@ export default function NovaEntradaCompraPage() {
               ? {
                   ...item,
                   [campo]: valor,
+                  // Quem edita o item já está conferindo.
+                  incerto: false,
+                  motivoIncerteza: undefined,
                 }
               : item
         )
@@ -663,6 +874,9 @@ export default function NovaEntradaCompraPage() {
     setArquivoDocumento(arquivo);
     setNotaXml(null);
     setFornecedorDoXml(null);
+    setLeituraFoto(null);
+    setFornecedorDaFoto(null);
+    setErroLeituraFoto("");
     setErro("");
 
     /*
@@ -801,6 +1015,9 @@ export default function NovaEntradaCompraPage() {
       setNotaXml(nota);
       setFornecedorDoXml(fornecedor ?? null);
       setErroCadastroFornecedor("");
+      setLeituraFoto(null);
+      setFornecedorDaFoto(null);
+      setErroLeituraFoto("");
 
       setFormulario((anterior) => ({
         ...anterior,
@@ -932,7 +1149,229 @@ export default function NovaEntradaCompraPage() {
     }
   }
 
+  /*
+   * Preenche a tela com o que a IA leu. Nada é salvo: a pessoa confere
+   * (principalmente o que vier em amarelo) e só depois salva a entrada.
+   */
+  function aplicarLeituraFoto(
+    resultado: ResultadoLeituraFotoTela
+  ) {
+    const { leitura } = resultado;
+
+    const documento =
+      leitura.emitente.documento;
+
+    // CPF e CNPJ são comparados com 14 dígitos, como na chave de acesso.
+    let encontrado = documento
+      ? encontrarFornecedorPorDocumento(
+          fornecedores,
+          documento.padStart(14, "0")
+        )
+      : undefined;
+
+    let por: OrigemFornecedorFoto =
+      "DOCUMENTO";
+
+    if (!encontrado && leitura.emitente.nome) {
+      encontrado = encontrarFornecedorPorNome(
+        fornecedores,
+        leitura.emitente.nome
+      );
+
+      por = "NOME";
+    }
+
+    setLeituraFoto(resultado);
+    setErroCadastroFornecedor("");
+
+    setFornecedorDaFoto(
+      encontrado
+        ? { fornecedor: encontrado, por }
+        : null
+    );
+
+    const ehNota =
+      leitura.tipoDocumento === "NOTA_FISCAL";
+
+    setFormulario((anterior) => ({
+      ...anterior,
+      // Achado pelo CPF/CNPJ: seleciona. Só pelo nome: apenas sugere.
+      fornecedorId:
+        encontrado && por === "DOCUMENTO"
+          ? encontrado.id
+          : anterior.fornecedorId,
+      tipoDocumento: leitura.tipoDocumento,
+      numeroDocumento:
+        leitura.numeroDocumento ??
+        anterior.numeroDocumento,
+      serie: ehNota
+        ? (leitura.serie ?? anterior.serie)
+        : "",
+      chaveAcesso: ehNota
+        ? (leitura.chaveAcesso ??
+          anterior.chaveAcesso)
+        : "",
+      dataDocumento: leitura.dataDocumento
+        ? `${leitura.dataDocumento}T00:00`
+        : anterior.dataDocumento,
+      desconto: String(leitura.desconto),
+      frete: String(leitura.frete),
+    }));
+
+    if (leitura.itens.length > 0) {
+      setItens(
+        leitura.itens.map((item, indice) => ({
+          id: `foto-${indice + 1}`,
+          descricaoOriginal: item.descricao,
+          codigoFornecedor: item.codigo ?? "",
+          quantidade: String(item.quantidade),
+          unidade: item.unidade,
+          valorUnitario: String(
+            item.valorUnitario
+          ),
+          desconto: String(item.desconto),
+          incerto: item.incerto,
+          motivoIncerteza: item.motivoIncerteza,
+        }))
+      );
+    }
+  }
+
+  async function lerItensDaFoto() {
+    if (!arquivoDocumento || notaXml) {
+      return;
+    }
+
+    setLendoFoto(true);
+    setErroLeituraFoto("");
+
+    try {
+      const imagem =
+        await reduzirImagemParaLeitura(
+          arquivoDocumento
+        );
+
+      const corpo = new FormData();
+
+      corpo.append("imagem", imagem);
+
+      corpo.append(
+        "tipoDocumento",
+        formulario.tipoDocumento
+      );
+
+      const resposta = await fetch(
+        "/api/compras/leitura-foto",
+        {
+          method: "POST",
+          body: corpo,
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados?.sucesso) {
+        throw new Error(
+          dados?.mensagem ??
+            "Não foi possível ler o documento agora. Digite os itens manualmente."
+        );
+      }
+
+      aplicarLeituraFoto(
+        dados as ResultadoLeituraFotoTela
+      );
+    } catch (error) {
+      setErroLeituraFoto(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível ler o documento agora. Digite os itens manualmente."
+      );
+    } finally {
+      setLendoFoto(false);
+    }
+  }
+
+  // Cria o fornecedor com o que foi lido (CNPJ ou CPF válido + nome) e o seleciona.
+  async function cadastrarFornecedorDaFoto() {
+    const emitente =
+      leituraFoto?.leitura.emitente;
+
+    if (
+      !emitente?.nome ||
+      !emitente.documento ||
+      !emitente.tipoDocumento
+    ) {
+      return;
+    }
+
+    setCadastrandoFornecedor(true);
+    setErroCadastroFornecedor("");
+
+    try {
+      const resposta = await fetch(
+        "/api/fornecedores",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            razaoSocial: emitente.nome,
+            cnpj:
+              emitente.tipoDocumento === "CNPJ"
+                ? emitente.documento
+                : undefined,
+            cpf:
+              emitente.tipoDocumento === "CPF"
+                ? emitente.documento
+                : undefined,
+            telefone: emitente.telefone,
+          }),
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados?.sucesso) {
+        throw new Error(
+          dados?.mensagem ??
+            "Não foi possível cadastrar o fornecedor."
+        );
+      }
+
+      const novo: Fornecedor =
+        dados.fornecedor;
+
+      setFornecedores((anteriores) => [
+        ...anteriores,
+        novo,
+      ]);
+
+      setFornecedorDaFoto({
+        fornecedor: novo,
+        por: "DOCUMENTO",
+      });
+
+      setFormulario((anterior) => ({
+        ...anterior,
+        fornecedorId: novo.id,
+      }));
+    } catch (error) {
+      setErroCadastroFornecedor(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível cadastrar o fornecedor."
+      );
+    } finally {
+      setCadastrandoFornecedor(false);
+    }
+  }
+
   function limparCapturaDocumento() {
+    setLeituraFoto(null);
+    setFornecedorDaFoto(null);
+    setErroLeituraFoto("");
     setNotaXml(null);
     setFornecedorDoXml(null);
     setArquivoDocumento(null);
@@ -1228,6 +1667,14 @@ export default function NovaEntradaCompraPage() {
           notaXml ? "XML" : "FOTOGRAFIA"
         );
 
+        // A leitura (XML ou foto) preencheu a entrada.
+        if (leituraFoto || notaXml) {
+          formData.append(
+            "statusLeitura",
+            "EXTRAIDO"
+          );
+        }
+
         const respostaDocumento =
           await fetch(
             `/api/compras/entradas/${encodeURIComponent(
@@ -1450,6 +1897,265 @@ export default function NovaEntradaCompraPage() {
                   >
                     Trocar documento
                   </button>
+                </div>
+              )}
+
+              {arquivoDocumento && !notaXml && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Ler itens da foto (IA)
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    A IA lê a foto, inclusive recibo
+                    escrito à mão, e preenche o
+                    documento, o fornecedor e os itens.
+                    Você confere tudo antes de salvar.
+                    Cada leitura tem custo e envia a
+                    imagem a um serviço externo
+                    (Anthropic). Se você já digitou
+                    itens, eles serão substituídos
+                    pelos lidos.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void lerItensDaFoto()
+                    }
+                    disabled={lendoFoto || salvando}
+                    className="mt-3 cursor-pointer rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {lendoFoto
+                      ? "Lendo a foto... (pode levar até 1 minuto)"
+                      : leituraFoto
+                        ? "🤖 Ler de novo"
+                        : "🤖 Ler itens da foto"}
+                  </button>
+
+                  {erroLeituraFoto && (
+                    <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                      {erroLeituraFoto}
+                    </p>
+                  )}
+
+                  {leituraFoto && (
+                    <div className="mt-4 space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-800">
+                      <p className="text-sm font-semibold">
+                        ✓ Lido por IA: confira tudo com o
+                        papel antes de salvar
+                        {leituraFoto.leitura.manuscrito &&
+                          " · documento escrito à mão"}
+                      </p>
+
+                      <p>
+                        Itens lidos:{" "}
+                        {leituraFoto.leitura.itens.length}
+                        {leituraFoto.leitura.valorTotal !==
+                          undefined &&
+                          ` · Total lido no documento ${formatarMoeda(
+                            leituraFoto.leitura.valorTotal
+                          )}`}
+                        {leituraFoto.leitura.itens.filter(
+                          (item) => item.incerto
+                        ).length > 0 &&
+                          ` · ${
+                            leituraFoto.leitura.itens.filter(
+                              (item) => item.incerto
+                            ).length
+                          } em amarelo para conferir`}
+                      </p>
+
+                      <p>
+                        Emitente lido:{" "}
+                        <strong>
+                          {leituraFoto.leitura.emitente
+                            .nome ?? "não identificado"}
+                        </strong>
+                        {leituraFoto.leitura.emitente
+                          .documento &&
+                          ` · ${
+                            leituraFoto.leitura.emitente
+                              .tipoDocumento
+                          } ${
+                            leituraFoto.leitura.emitente
+                              .tipoDocumento === "CNPJ"
+                              ? formatarCnpj(
+                                  leituraFoto.leitura
+                                    .emitente.documento
+                                )
+                              : formatarCpf(
+                                  leituraFoto.leitura
+                                    .emitente.documento
+                                )
+                          }`}
+                      </p>
+
+                      {fornecedorDaFoto &&
+                      fornecedorDaFoto.por !== "NOME" ? (
+                        <p>
+                          Fornecedor selecionado:{" "}
+                          <strong>
+                            {fornecedorDaFoto.fornecedor
+                              .nomeFantasia ||
+                              fornecedorDaFoto.fornecedor
+                                .razaoSocial}
+                          </strong>
+                        </p>
+                      ) : fornecedorDaFoto ? (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-amber-800">
+                          <p className="font-semibold">
+                            Parece ser o fornecedor{" "}
+                            {fornecedorDaFoto.fornecedor
+                              .nomeFantasia ||
+                              fornecedorDaFoto.fornecedor
+                                .razaoSocial}
+                            , mas o documento não foi
+                            lido. Confirme.
+                          </p>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormulario(
+                                (anterior) => ({
+                                  ...anterior,
+                                  fornecedorId:
+                                    fornecedorDaFoto
+                                      .fornecedor.id,
+                                })
+                              );
+
+                              setFornecedorDaFoto({
+                                fornecedor:
+                                  fornecedorDaFoto.fornecedor,
+                                por: "CONFIRMADO",
+                              });
+                            }}
+                            className="mt-2 cursor-pointer rounded-lg bg-amber-600 px-3 py-1.5 font-semibold text-white hover:bg-amber-700"
+                          >
+                            Usar este fornecedor
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-amber-800">
+                          <p className="font-semibold">
+                            O emitente não está
+                            cadastrado como fornecedor.
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-4">
+                            {leituraFoto.leitura.emitente
+                              .nome &&
+                            leituraFoto.leitura.emitente
+                              .documento ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void cadastrarFornecedorDaFoto()
+                                }
+                                disabled={
+                                  cadastrandoFornecedor ||
+                                  salvando
+                                }
+                                className="cursor-pointer rounded-lg bg-amber-600 px-3 py-1.5 font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {cadastrandoFornecedor
+                                  ? "Cadastrando..."
+                                  : "Cadastrar com os dados lidos"}
+                              </button>
+                            ) : (
+                              <span>
+                                Sem CPF/CNPJ legível, o
+                                cadastro automático não é
+                                possível.
+                              </span>
+                            )}
+
+                            <a
+                              href={
+                                leituraFoto.leitura.emitente
+                                  .tipoDocumento === "CNPJ"
+                                  ? `/compras/fornecedores?cnpj=${leituraFoto.leitura.emitente.documento}`
+                                  : "/compras/fornecedores"
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline underline-offset-2 hover:text-amber-900"
+                            >
+                              ou cadastrar na tela de
+                              fornecedores
+                            </a>
+                          </div>
+
+                          {erroCadastroFornecedor && (
+                            <p className="font-semibold text-red-700">
+                              {erroCadastroFornecedor}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {leituraFoto.leitura.camposIncertos
+                        .length > 0 && (
+                        <p className="font-semibold text-amber-800">
+                          Campos para conferir com o
+                          papel:{" "}
+                          {leituraFoto.leitura.camposIncertos
+                            .map(
+                              (campo) =>
+                                ROTULO_CAMPO_INCERTO[campo]
+                            )
+                            .join(", ")}
+                          .
+                        </p>
+                      )}
+
+                      {leituraFoto.leitura.avisos.map(
+                        (aviso) => (
+                          <p
+                            key={aviso}
+                            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800"
+                          >
+                            {aviso}
+                          </p>
+                        )
+                      )}
+
+                      {leituraFoto.leitura
+                        .observacoes && (
+                        <p>
+                          Observação da IA:{" "}
+                          {leituraFoto.leitura.observacoes}
+                        </p>
+                      )}
+
+                      <p className="text-blue-700">
+                        Esta leitura usou{" "}
+                        {leituraFoto.uso.tokensEntrada.toLocaleString(
+                          "pt-BR"
+                        )}{" "}
+                        tokens de entrada e{" "}
+                        {leituraFoto.uso.tokensSaida.toLocaleString(
+                          "pt-BR"
+                        )}{" "}
+                        de saída
+                        {leituraFoto.custoEstimadoReais !==
+                        undefined
+                          ? ` (≈ ${leituraFoto.custoEstimadoReais.toLocaleString(
+                              "pt-BR",
+                              {
+                                style: "currency",
+                                currency: "BRL",
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 4,
+                              }
+                            )})`
+                          : " (configure os preços no .env para ver o custo em reais)"}
+                        .
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2059,7 +2765,11 @@ export default function NovaEntradaCompraPage() {
                     key={
                       item.id
                     }
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                    className={`rounded-2xl border p-5 ${
+                      item.incerto
+                        ? "border-amber-400 bg-amber-50"
+                        : "border-slate-200 bg-slate-50"
+                    }`}
                   >
                     <div className="mb-4 flex items-center justify-between">
                       <h3 className="font-semibold text-slate-900">
@@ -2086,6 +2796,14 @@ export default function NovaEntradaCompraPage() {
                         </button>
                       )}
                     </div>
+
+                    {item.incerto && (
+                      <p className="mb-4 rounded-lg border border-amber-300 bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900">
+                        Conferir com o papel:{" "}
+                        {item.motivoIncerteza ??
+                          "a IA ficou em dúvida neste item."}
+                      </p>
+                    )}
 
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                       <div className="md:col-span-2 xl:col-span-4">

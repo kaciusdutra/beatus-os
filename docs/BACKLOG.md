@@ -48,6 +48,12 @@ Concluído no bloco 7D: importação do XML da NF-e/NFC-e na nova entrada (docum
 
 Concluído no bloco 7E (migração `add_endereco_inscricao_fornecedor`): inscrição estadual e endereço do fornecedor (campos separados), busca do endereço pelo CEP (rota `/api/cep/[cep]`, compartilhada), endereço vindo também da busca pelo CNPJ e botão "Cadastrar com os dados da nota" na nova entrada.
 
+Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (IA) para nota, cupom e recibo manuscrito, com itens em amarelo para conferir, avisos de soma e de CPF/CNPJ, fornecedor encontrado pelo documento ou sugerido pelo nome, cadastro com os dados lidos, e consumo de tokens e custo por leitura na tela.
+
+- [ ] **Colocar a chave da Anthropic** em `frontend/.env` (`ANTHROPIC_API_KEY`), depois de avaliar o custo por foto. Opcionais: `ANTHROPIC_PRECO_ENTRADA_REAIS_MILHAO` e `ANTHROPIC_PRECO_SAIDA_REAIS_MILHAO` (reais por milhão de tokens, para a tela mostrar o custo em reais) e `ANTHROPIC_MODELO` (padrão `claude-sonnet-5-5`). Testar a leitura com fotos reais (notas, cupons e recibos manuscritos) e ajustar as instruções da IA se preciso.
+- [ ] Guardar o consumo de tokens e o custo de cada leitura no banco (exige migração), para somar por entrada e por mês e repassar ao preço dos produtos.
+- [ ] Refazer a leitura com um modelo mais forte quando a IA deixar muitos itens em dúvida, e avaliar o plano de reserva da Anthropic para recusas.
+
 - [ ] **Busca de endereço pelo CEP no cadastro de clientes** (a rota `/api/cep/[cep]` já existe; o cliente já guarda o endereço completo, sem migração). Pedido em 10/11/2026: bloco separado, no módulo Clientes.
 - [ ] Completar o cadastro de um fornecedor já existente com os dados do XML (inscrição estadual e endereço), com uma regra de qual dado vale mais.
 - [ ] Decidir onde entram no custo o ICMS-ST, o IPI, o seguro e as outras despesas da nota (hoje só aparecem como aviso, regra 9.20).
