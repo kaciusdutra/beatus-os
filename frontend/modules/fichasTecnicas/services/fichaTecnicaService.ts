@@ -53,6 +53,52 @@ function validarFicha(
     );
   }
 
+  // Campos que o funcionário lê (bloco 8E): todos opcionais.
+  for (const [rotulo, valor] of [
+    ["O modo de preparo", ficha.modoPreparo],
+    ["A montagem", ficha.montagem],
+    ["As observações", ficha.observacoes],
+  ] as [string, string | undefined][]) {
+    if (valor && valor.length > 20000) {
+      throw new Error(
+        `${rotulo} é grande demais (máximo de 20.000 caracteres).`
+      );
+    }
+  }
+
+  for (const [rotulo, valor] of [
+    ["A validade", ficha.validadeDias],
+    ["O tempo de preparo", ficha.tempoPreparoMin],
+  ] as [string, number | undefined][]) {
+    if (
+      valor !== undefined &&
+      (!Number.isInteger(valor) || valor < 0)
+    ) {
+      throw new Error(
+        `${rotulo} deve ser um número inteiro, zero ou maior.`
+      );
+    }
+  }
+
+  // Porção padrão: quantidade e unidade andam juntas.
+  if (
+    (ficha.porcaoQuantidade !== undefined) !==
+    Boolean(ficha.porcaoUnidade?.trim())
+  ) {
+    throw new Error(
+      "Informe a quantidade e a unidade da porção padrão, ou deixe as duas em branco."
+    );
+  }
+
+  if (
+    ficha.porcaoQuantidade !== undefined &&
+    !(ficha.porcaoQuantidade > 0)
+  ) {
+    throw new Error(
+      "A porção padrão deve ser maior que zero."
+    );
+  }
+
   // Preparação precisa de rendimento: é com ele que se calcula o custo por grama.
   if (ficha.tipo === "PREPARACAO") {
     if (

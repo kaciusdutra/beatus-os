@@ -9,6 +9,19 @@ function texto(valor: unknown): string | undefined {
     : undefined;
 }
 
+// Número opcional: vazio ou ausente vira undefined.
+function numeroOpcional(valor: unknown): number | undefined {
+  if (valor === undefined || valor === null || valor === "") {
+    return undefined;
+  }
+
+  const convertido = Number(valor);
+
+  return Number.isFinite(convertido)
+    ? convertido
+    : undefined;
+}
+
 function numero(valor: unknown, padrao = 0): number {
   const convertido = Number(valor);
 
@@ -31,7 +44,7 @@ export function lerFichaDoCorpo(
     : [];
 
   const itens: FichaTecnicaItem[] = itensBrutos.map(
-    (item) => {
+    (item, indice) => {
       const tipo =
         item.tipo === "PREPARACAO"
           ? "PREPARACAO"
@@ -53,6 +66,7 @@ export function lerFichaDoCorpo(
         percentualPerda: numero(item.percentualPerda),
         custoCalculado: 0,
         observacao: texto(item.observacao),
+        ordem: indice,
       };
     }
   );
@@ -82,6 +96,13 @@ export function lerFichaDoCorpo(
         ? texto(corpo.unidadeRendimento)
         : undefined,
     embalagem: numero(corpo.embalagem),
+    modoPreparo: texto(corpo.modoPreparo),
+    montagem: texto(corpo.montagem),
+    observacoes: texto(corpo.observacoes),
+    validadeDias: numeroOpcional(corpo.validadeDias),
+    tempoPreparoMin: numeroOpcional(corpo.tempoPreparoMin),
+    porcaoQuantidade: numeroOpcional(corpo.porcaoQuantidade),
+    porcaoUnidade: texto(corpo.porcaoUnidade),
     ativo:
       typeof corpo.ativo === "boolean"
         ? corpo.ativo

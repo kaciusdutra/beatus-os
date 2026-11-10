@@ -16,6 +16,8 @@ export interface FichaTecnicaItem {
   custoCalculado: number;
 
   observacao?: string;
+  // Posição do item na ficha (a ordem em que foi digitado).
+  ordem?: number;
 }
 
 export interface FichaTecnica {
@@ -32,7 +34,16 @@ export interface FichaTecnica {
   unidadeRendimento?: string;
 
   embalagem: number;
-
+  // O que o funcionário lê na cozinha (bloco 8E). Um passo por linha.
+  modoPreparo?: string;
+  montagem?: string;
+  observacoes?: string;
+  // Quanto dura depois de pronta, em dias.
+  validadeDias?: number;
+  tempoPreparoMin?: number;
+  // Porção padrão (ex.: 30 g de molho por burger).
+  porcaoQuantidade?: number;
+  porcaoUnidade?: string;
   ativo: boolean;
 
   itens: FichaTecnicaItem[];

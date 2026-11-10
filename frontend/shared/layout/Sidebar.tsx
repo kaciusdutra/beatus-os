@@ -58,7 +58,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex min-h-screen w-64 shrink-0 flex-col bg-slate-950 text-white">
+    <aside className="flex min-h-screen w-64 shrink-0 flex-col bg-slate-950 text-white print:hidden">
       {/* Identidade */}
       <div className="border-b border-slate-800 p-6">
         <div className="text-xl font-bold">

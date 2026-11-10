@@ -22,6 +22,13 @@ function mapearFichaTecnica(
     rendimento: unknown;
     unidadeRendimento: string | null;
     embalagem: unknown;
+    modoPreparo?: string | null;
+    montagem?: string | null;
+    observacoes?: string | null;
+    validadeDias?: number | null;
+    tempoPreparoMin?: number | null;
+    porcaoQuantidade?: unknown;
+    porcaoUnidade?: string | null;
     ativo: boolean;
     criadoEm: Date;
     atualizadoEm: Date;
@@ -38,8 +45,8 @@ function mapearFichaTecnica(
 
       percentualPerda: unknown;
       custoCalculado: unknown;
-
       observacao: string | null;
+      ordem?: number;
     }>;
   }
 ): FichaTecnica {
@@ -95,6 +102,7 @@ function mapearFichaTecnica(
         observacao:
           item.observacao ??
           undefined,
+        ordem: item.ordem,
       };
     });
 
@@ -123,7 +131,22 @@ function mapearFichaTecnica(
 
     embalagem:
       Number(ficha.embalagem),
-
+    modoPreparo:
+      ficha.modoPreparo ?? undefined,
+    montagem:
+      ficha.montagem ?? undefined,
+    observacoes:
+      ficha.observacoes ?? undefined,
+    validadeDias:
+      ficha.validadeDias ?? undefined,
+    tempoPreparoMin:
+      ficha.tempoPreparoMin ?? undefined,
+    porcaoQuantidade:
+      ficha.porcaoQuantidade == null
+        ? undefined
+        : Number(ficha.porcaoQuantidade),
+    porcaoUnidade:
+      ficha.porcaoUnidade ?? undefined,
     ativo:
       ficha.ativo,
 
@@ -155,7 +178,12 @@ export class FichaTecnicaRepositoryPostgres
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
 
         orderBy: {
@@ -181,7 +209,12 @@ export class FichaTecnicaRepositoryPostgres
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
       });
 
@@ -210,7 +243,12 @@ export class FichaTecnicaRepositoryPostgres
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
       });
 
@@ -256,6 +294,20 @@ export class FichaTecnicaRepositoryPostgres
 
           embalagem:
             ficha.embalagem,
+          modoPreparo:
+            ficha.modoPreparo ?? null,
+          montagem:
+            ficha.montagem ?? null,
+          observacoes:
+            ficha.observacoes ?? null,
+          validadeDias:
+            ficha.validadeDias ?? null,
+          tempoPreparoMin:
+            ficha.tempoPreparoMin ?? null,
+          porcaoQuantidade:
+            ficha.porcaoQuantidade ?? null,
+          porcaoUnidade:
+            ficha.porcaoUnidade ?? null,
 
           ativo:
             ficha.ativo,
@@ -273,7 +325,7 @@ export class FichaTecnicaRepositoryPostgres
           itens: {
             create:
               ficha.itens.map(
-                (item) => ({
+                (item, indice) => ({
                   id:
                     item.id,
 
@@ -300,16 +352,22 @@ export class FichaTecnicaRepositoryPostgres
                   custoCalculado:
                     item.custoCalculado,
 
-                  observacao:
+observacao:
                     item.observacao ??
                     null,
+                  ordem: indice,
                 })
               ),
           },
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
       });
 
@@ -333,7 +391,12 @@ export class FichaTecnicaRepositoryPostgres
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
       });
 
@@ -360,7 +423,7 @@ export class FichaTecnicaRepositoryPostgres
       );
 
 
-    for (const item of ficha.itens) {
+for (const [indice, item] of ficha.itens.entries()) {
       if (
         idsExistentes.has(item.id)
       ) {
@@ -393,9 +456,10 @@ export class FichaTecnicaRepositoryPostgres
             custoCalculado:
               item.custoCalculado,
 
-            observacao:
-              item.observacao ??
-              null,
+observacao:
+                    item.observacao ??
+                    null,
+                  ordem: indice,
 
             atualizadoEm:
               new Date(),
@@ -434,9 +498,10 @@ export class FichaTecnicaRepositoryPostgres
           custoCalculado:
             item.custoCalculado,
 
-          observacao:
-            item.observacao ??
-            null,
+observacao:
+                    item.observacao ??
+                    null,
+                  ordem: indice,
         },
       });
     }
@@ -499,6 +564,20 @@ export class FichaTecnicaRepositoryPostgres
 
           embalagem:
             ficha.embalagem,
+          modoPreparo:
+            ficha.modoPreparo ?? null,
+          montagem:
+            ficha.montagem ?? null,
+          observacoes:
+            ficha.observacoes ?? null,
+          validadeDias:
+            ficha.validadeDias ?? null,
+          tempoPreparoMin:
+            ficha.tempoPreparoMin ?? null,
+          porcaoQuantidade:
+            ficha.porcaoQuantidade ?? null,
+          porcaoUnidade:
+            ficha.porcaoUnidade ?? null,
 
           ativo:
             ficha.ativo,
@@ -510,7 +589,12 @@ export class FichaTecnicaRepositoryPostgres
         },
 
         include: {
-          itens: true,
+          itens: {
+            orderBy: [
+              { ordem: "asc" },
+              { criadoEm: "asc" },
+            ],
+          },
         },
       });
 

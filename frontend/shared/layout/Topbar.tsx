@@ -14,7 +14,7 @@ export default function Topbar() {
         : "Usuário";
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm print:hidden">
       {/* Identificação do sistema */}
       <div>
         <h2 className="text-xl font-bold text-slate-800">

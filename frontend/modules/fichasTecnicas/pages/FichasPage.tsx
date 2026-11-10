@@ -16,6 +16,10 @@ import {
 } from "../services/calcularCustoFichaTecnica";
 
 import {
+  converterSeCompativel,
+} from "../services/conversaoUnidade";
+
+import {
   carregarDadosFichas,
   formatarCustoFino,
   formatarMoeda,
@@ -442,6 +446,9 @@ export default function FichasPage() {
                     aba === "PREPARACAO"
                       ? "Custo por unidade"
                       : "Situação do custo",
+                    ...(aba === "PREPARACAO"
+                      ? ["Custo da porção"]
+                      : []),
                     "",
                   ].map((titulo, indice) => (
                     <th
@@ -523,7 +530,45 @@ export default function FichasPage() {
                         )}
                       </td>
 
+                      {aba === "PREPARACAO" && (
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                          {(() => {
+                            if (
+                              !custo?.completo ||
+                              ficha.porcaoQuantidade ===
+                                undefined ||
+                              !ficha.porcaoUnidade ||
+                              custo.custoPorUnidade ===
+                                undefined
+                            ) {
+                              return "—";
+                            }
+
+                            const naUnidade =
+                              converterSeCompativel(
+                                ficha.porcaoQuantidade,
+                                ficha.porcaoUnidade,
+                                ficha.unidadeRendimento ?? ""
+                              );
+
+                            return naUnidade === undefined
+                              ? "—"
+                              : `${formatarCustoFino(
+                                  naUnidade *
+                                    custo.custoPorUnidade
+                                )} (${ficha.porcaoQuantidade} ${ficha.porcaoUnidade})`;
+                          })()}
+                        </td>
+                      )}
+
                       <td className="whitespace-nowrap px-5 py-4 text-right">
+                        <Link
+                          href={`/fichas/${ficha.id}/producao`}
+                          className="mr-4 cursor-pointer text-sm font-semibold text-sky-700 hover:text-sky-900"
+                        >
+                          Produção
+                        </Link>
+
                         <Link
                           href={`/fichas/${ficha.id}`}
                           className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-slate-900"

@@ -60,7 +60,7 @@ const CLASSE_CAMPO =
   "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200";
 
 const COLUNAS =
-  "md:grid-cols-[6.5rem_9.5rem_minmax(0,1fr)_6rem_6rem_5.5rem_7rem_1.5rem]";
+  "md:grid-cols-[6.5rem_9.5rem_minmax(0,1fr)_6rem_6rem_5.5rem_7rem_4.5rem]";
 
 function novaLinha(bloco: Bloco): Linha {
   return {
@@ -109,6 +109,24 @@ export default function FichaEditorPage({
 
   const [ativo, setAtivo] = useState(true);
 
+  // Bloco 8E: o que o funcionário lê na cozinha.
+  const [modoPreparo, setModoPreparo] = useState("");
+
+  const [montagem, setMontagem] = useState("");
+
+  const [observacoes, setObservacoes] = useState("");
+
+  const [validadeDias, setValidadeDias] = useState("");
+
+  const [tempoPreparoMin, setTempoPreparoMin] =
+    useState("");
+
+  const [porcaoQuantidade, setPorcaoQuantidade] =
+    useState("");
+
+  const [porcaoUnidade, setPorcaoUnidade] =
+    useState("");
+
   const [linhas, setLinhas] = useState<Linha[]>([
     novaLinha("RECEITA"),
   ]);
@@ -144,6 +162,26 @@ export default function FichaEditorPage({
       ficha.embalagem > 0 ? String(ficha.embalagem) : ""
     );
     setAtivo(ficha.ativo);
+    setModoPreparo(ficha.modoPreparo ?? "");
+    setMontagem(ficha.montagem ?? "");
+    setObservacoes(ficha.observacoes ?? "");
+    setValidadeDias(
+      ficha.validadeDias !== undefined
+        ? String(ficha.validadeDias)
+        : ""
+    );
+    setTempoPreparoMin(
+      ficha.tempoPreparoMin !== undefined
+        ? String(ficha.tempoPreparoMin)
+        : ""
+    );
+    setPorcaoQuantidade(
+      ficha.porcaoQuantidade !== undefined
+        ? String(ficha.porcaoQuantidade)
+        : ""
+    );
+    setPorcaoUnidade(ficha.porcaoUnidade ?? "");
+
 
     const convertidas: Linha[] = ficha.itens.map(
       (item) => {
@@ -418,6 +456,44 @@ export default function FichaEditorPage({
     );
   }
 
+  // Sobe ou desce o item dentro do mesmo bloco (a ordem vale na ficha de produção).
+  function moverLinha(id: string, direcao: -1 | 1) {
+    setLinhas((anteriores) => {
+      const indice = anteriores.findIndex(
+        (linha) => linha.id === id
+      );
+
+      if (indice === -1) {
+        return anteriores;
+      }
+
+      const bloco = anteriores[indice].bloco;
+
+      let vizinho = indice + direcao;
+
+      while (
+        vizinho >= 0 &&
+        vizinho < anteriores.length &&
+        anteriores[vizinho].bloco !== bloco
+      ) {
+        vizinho += direcao;
+      }
+
+      if (vizinho < 0 || vizinho >= anteriores.length) {
+        return anteriores;
+      }
+
+      const novas = [...anteriores];
+
+      [novas[indice], novas[vizinho]] = [
+        novas[vizinho],
+        novas[indice],
+      ];
+
+      return novas;
+    });
+  }
+
   function removerLinha(id: string) {
     setLinhas((anteriores) =>
       anteriores.filter((linha) => linha.id !== id)
@@ -668,6 +744,19 @@ export default function FichaEditorPage({
             ? Number(embalagemFixa) || 0
             : 0,
         ativo,
+        modoPreparo: modoPreparo.trim(),
+        montagem: montagem.trim(),
+        observacoes: observacoes.trim(),
+        validadeDias: validadeDias.trim()
+          ? Number(validadeDias)
+          : undefined,
+        tempoPreparoMin: tempoPreparoMin.trim()
+          ? Number(tempoPreparoMin)
+          : undefined,
+        porcaoQuantidade: porcaoQuantidade.trim()
+          ? Number(porcaoQuantidade)
+          : undefined,
+        porcaoUnidade: porcaoUnidade.trim() || undefined,
         itens: preenchidas.map((linha) => ({
           id: linha.id,
           tipo: linha.tipo,
@@ -899,14 +988,34 @@ export default function FichaEditorPage({
                     : "—"}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => removerLinha(linha.id)}
-                  title="Remover o item"
-                  className="cursor-pointer pt-2 text-lg text-slate-400 hover:text-red-600"
-                >
-                  ×
-                </button>
+                <div className="flex items-start gap-1 pt-2 text-lg text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => moverLinha(linha.id, -1)}
+                    title="Subir o item"
+                    className="cursor-pointer leading-none hover:text-slate-900"
+                  >
+                    ↑
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => moverLinha(linha.id, 1)}
+                    title="Descer o item"
+                    className="cursor-pointer leading-none hover:text-slate-900"
+                  >
+                    ↓
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => removerLinha(linha.id)}
+                    title="Remover o item"
+                    className="cursor-pointer leading-none hover:text-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
 
               {resultado?.custoPorUnidade !== undefined && (
@@ -1228,6 +1337,159 @@ export default function FichaEditorPage({
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-6">
           <h2 className="text-lg font-bold text-slate-900">
+            {ehProduto
+              ? "Montagem do produto"
+              : "Modo de preparo"}
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            {ehProduto
+              ? "A ordem de montar, um passo por linha (ex.: pão tostado, maionese verde, blend, queijo coalho, melaço, abacaxi, tampa). A tela de produção numera sozinha."
+              : "Os passos da receita, um por linha. A tela de produção numera sozinha. O funcionário lê isto na cozinha."}
+          </p>
+        </div>
+
+        <div className="p-6">
+          <textarea
+            rows={7}
+            value={ehProduto ? montagem : modoPreparo}
+            onChange={(evento) =>
+              ehProduto
+                ? setMontagem(evento.target.value)
+                : setModoPreparo(evento.target.value)
+            }
+            placeholder={
+              ehProduto
+                ? "Um passo por linha..."
+                : "Derreta a manteiga em fogo baixo\nJunte a farinha e mexa por 2 minutos\n..."
+            }
+            className={CLASSE_CAMPO}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 p-6">
+          <h2 className="text-lg font-bold text-slate-900">
+            Observações e informações da produção
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Tudo opcional. Aparece na ficha de produção, sem
+            custos.
+          </p>
+        </div>
+
+        <div className="grid gap-5 p-6 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <label
+              htmlFor="observacoes"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Observações
+            </label>
+
+            <textarea
+              id="observacoes"
+              rows={3}
+              value={observacoes}
+              onChange={(evento) =>
+                setObservacoes(evento.target.value)
+              }
+              placeholder="Conservação, temperatura, cuidados..."
+              className={CLASSE_CAMPO}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="validade"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Validade depois de pronto (dias)
+            </label>
+
+            <input
+              id="validade"
+              type="number"
+              min="0"
+              step="1"
+              value={validadeDias}
+              onChange={(evento) =>
+                setValidadeDias(evento.target.value)
+              }
+              className={CLASSE_CAMPO}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="tempo"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Tempo de preparo (minutos)
+            </label>
+
+            <input
+              id="tempo"
+              type="number"
+              min="0"
+              step="1"
+              value={tempoPreparoMin}
+              onChange={(evento) =>
+                setTempoPreparoMin(evento.target.value)
+              }
+              className={CLASSE_CAMPO}
+            />
+          </div>
+
+          {!ehProduto && (
+            <div className="md:col-span-2">
+              <label
+                htmlFor="porcao"
+                className="mb-2 block text-sm font-semibold text-slate-700"
+              >
+                Porção padrão
+              </label>
+
+              <div className="flex flex-wrap gap-3">
+                <input
+                  id="porcao"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={porcaoQuantidade}
+                  onChange={(evento) =>
+                    setPorcaoQuantidade(evento.target.value)
+                  }
+                  placeholder="Ex.: 30"
+                  className={`${CLASSE_CAMPO} max-w-40`}
+                />
+
+                <input
+                  list="lista-unidades"
+                  value={porcaoUnidade}
+                  onChange={(evento) =>
+                    setPorcaoUnidade(evento.target.value)
+                  }
+                  placeholder="g, ml, un"
+                  className={`${CLASSE_CAMPO} max-w-32`}
+                />
+              </div>
+
+              <p className="mt-2 text-xs text-slate-500">
+                Quanto desta preparação vai em cada porção (30 g
+                de molho por burger). A lista de fichas mostra o
+                custo da porção.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 p-6">
+          <h2 className="text-lg font-bold text-slate-900">
             Custo
           </h2>
         </div>
@@ -1345,6 +1607,15 @@ export default function FichaEditorPage({
       </section>
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        {existente && (
+          <Link
+            href={`/fichas/${existente.id}/producao`}
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Ficha de produção (sem custos)
+          </Link>
+        )}
+
         <Link
           href="/fichas"
           className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"

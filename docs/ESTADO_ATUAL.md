@@ -9,14 +9,14 @@
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
 - **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
-- **G08 (fichas, custo automático e precificação):** plano aprovado em 12/11/2026 (regras 7.5 e 7.12 a 7.16). Bloco **8A** (vínculo item da compra → insumo) concluído (commit `8576697`). Bloco **8B** (equivalência de unidade, perda de limpeza e edição de insumo) concluído (commit `0a51110`). Bloco **8D** (tela de fichas técnicas) concluído (commit `c23f610`). Seguem **8E** (modo de preparo, montagem e ficha de produção para o funcionário; migração), **8C** (custo automático pelo último preço e histórico de preços, migração; guarda também a quantidade convertida, que servirá ao estoque) e 8E a 8G (precificação).
+- **G08 (fichas, custo automático e precificação):** plano aprovado em 12/11/2026 (regras 7.5 e 7.12 a 7.16). Bloco **8A** (vínculo item da compra → insumo) concluído (commit `8576697`). Bloco **8B** (equivalência de unidade, perda de limpeza e edição de insumo) concluído (commit `0a51110`). Bloco **8D** (tela de fichas técnicas) concluído (commit `c23f610`). Bloco **8E** (modo de preparo, montagem e ficha de produção) pronto para aprovação. Seguem **8E** (modo de preparo, montagem e ficha de produção para o funcionário; migração), **8C** (custo automático pelo último preço e histórico de preços, migração; guarda também a quantidade convertida, que servirá ao estoque) e 8E a 8G (precificação).
 - **Próximo passo:** terminar a **G08**, e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
 
 ## Ambiente
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 16 migrações aplicadas, de 19/08 a 10/11/2026. As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor` e `add_equivalencia_e_perda_limpeza_insumo`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e` e `checkpoint-antes-8b` antes delas.
+- 17 migrações aplicadas, de 19/08 a 10/11/2026. As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
