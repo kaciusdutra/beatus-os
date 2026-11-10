@@ -1,13 +1,13 @@
 # Beatus OS: Estado Atual
 
-> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 06/11/2026.
+> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 10/11/2026.
 
 ## Onde estamos
 
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
-- **Bloco concluído:** 7B, destino dos itens e identificação do item do fornecedor (commit `126ea63`). Antes dele, a 7A (commit `43ce3f8`).
-- **Próximo bloco:** 7C, a definir com o Kacius entre a tela de cadastro de fornecedores (com o destino padrão), a importação do XML da NF-e e a leitura dos itens pela foto.
+- **Bloco concluído:** 7C, cadastro de fornecedores com busca dos dados pelo CNPJ (commit `274f1a7`). Antes dele, a 7B (commit `126ea63`) e a 7A (commit `43ce3f8`).
+- **Próximo bloco:** 7D, a definir com o Kacius entre a importação do XML da NF-e (com endereço e inscrição estadual do fornecedor, que exigem migração) e a leitura dos itens pela foto.
 
 ## Ambiente
 
@@ -22,6 +22,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 10/11/2026 | `274f1a7` | G07 7C: tela de fornecedores em Compras (CNPJ ou CPF, busca dos dados pelo CNPJ na Receita via BrasilAPI, dígitos conferidos, destino padrão, inativar e reativar sem excluir); atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada; regras 9.14 a 9.17 |
 | 06/11/2026 | `126ea63` | G07 7B: destino de cada item da entrada (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), obrigatório para confirmar; chave do item em caixa alta e etiqueta "Item já conhecido" ou "Item novo"; memória do destino por fornecedor, gravada na confirmação; ligação com o insumo fica para a G08; botão "Adicionar item" abaixo do último item; regras 9.8 a 9.13 |
 | 04/11/2026 | `43ce3f8` | G07 7A: nome do fornecedor na lista; card "Valor das entradas" sem as canceladas; tela de detalhe com fornecedor, itens, totais, documentos e botões Confirmar e Cancelar (com motivo); a nova entrada volta para a lista depois de salvar; série e chave de acesso só em nota fiscal; decisões de Compras registradas nas regras 9.8 a 9.12 |
 | 04/11/2026 | `a120bd5` | Documentos do projeto em `docs/` (regras de negócio, backlog, plano de sprints e estado atual) |
@@ -34,4 +35,5 @@
 - Estoque, financeiro, produção, receitas e ingredientes ainda não têm tabela no banco (legado em memória ou localStorage). Diagnóstico previsto na S5.
 - Clientes e pedidos têm dois repositórios cada (`repositories/` e `services/`): provável legado convivendo com o PostgreSQL. Diagnóstico previsto na S5.
 - Ainda não há login: o sistema não deve ir para a internet antes da S3.
+- A consulta do CNPJ usa a BrasilAPI (serviço público externo): só o CNPJ sai do sistema; sem internet, o cadastro é feito à mão.
 - Feche no VS Code os arquivos que o Claude estiver alterando, para que uma versão antiga não seja salva por cima.
