@@ -78,3 +78,6 @@ desktop.ini
 
 # Saídas do Claude (nunca entram no Git)
 Claude outputs/
+
+# Configuração local do Claude (servidor de desenvolvimento)
+.claude/
