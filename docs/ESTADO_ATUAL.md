@@ -6,14 +6,14 @@
 
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
-- **Bloco concluído:** 7D, importação do XML da NF-e e bloqueio de nota em duplicidade (commit `2c9eb0e`). Antes dele, a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
-- **Próximo bloco:** a definir com o Kacius entre o 7E (endereço e inscrição estadual do fornecedor, que exigem migração, e "Cadastrar com os dados da nota") e a leitura dos itens pela foto.
+- **Bloco concluído:** 7E, endereço e inscrição estadual do fornecedor, busca por CEP e cadastro pela nota (commit `f77d31c`). Antes dele, a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
+- **Próximo bloco:** a definir com o Kacius entre a leitura dos itens pela foto (IA) e a busca de endereço por CEP no cadastro de clientes.
 
 ## Ambiente
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 14 migrações aplicadas, de 19/08 a 04/11/2026. A última (`add_destino_itens_compra`) tem o checkpoint `checkpoint-antes-7b` antes dela.
+- 15 migrações aplicadas, de 19/08 a 10/11/2026. As duas últimas (`add_destino_itens_compra` e `add_endereco_inscricao_fornecedor`) têm os checkpoints `checkpoint-antes-7b` e `checkpoint-antes-7e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
@@ -22,6 +22,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 11/11/2026 | `f77d31c` | G07 7E: inscrição estadual e endereço do fornecedor (migração aditiva); busca do endereço pelo CEP (rota `/api/cep/[cep]`, compartilhada); endereço também vindo da busca pelo CNPJ; botão "Cadastrar com os dados da nota" na nova entrada; regra 9.21 |
 | 11/11/2026 | `2c9eb0e` | G07 7D: importação do XML da NF-e/NFC-e na nova entrada (documento, fornecedor pelo CNPJ, itens com lote e validade, frete; XML anexado como documento original); avisos de XML sem autorização e de diferença no total por ICMS-ST, IPI, seguro e outras despesas; a mesma nota (chave de acesso) não entra duas vezes; regras 9.18 a 9.20 |
 | 10/11/2026 | `274f1a7` | G07 7C: tela de fornecedores em Compras (CNPJ ou CPF, busca dos dados pelo CNPJ na Receita via BrasilAPI, dígitos conferidos, destino padrão, inativar e reativar sem excluir); atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada; regras 9.14 a 9.17 |
 | 06/11/2026 | `126ea63` | G07 7B: destino de cada item da entrada (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), obrigatório para confirmar; chave do item em caixa alta e etiqueta "Item já conhecido" ou "Item novo"; memória do destino por fornecedor, gravada na confirmação; ligação com o insumo fica para a G08; botão "Adicionar item" abaixo do último item; regras 9.8 a 9.13 |
@@ -36,5 +37,5 @@
 - Estoque, financeiro, produção, receitas e ingredientes ainda não têm tabela no banco (legado em memória ou localStorage). Diagnóstico previsto na S5.
 - Clientes e pedidos têm dois repositórios cada (`repositories/` e `services/`): provável legado convivendo com o PostgreSQL. Diagnóstico previsto na S5.
 - Ainda não há login: o sistema não deve ir para a internet antes da S3.
-- A consulta do CNPJ usa a BrasilAPI (serviço público externo): só o CNPJ sai do sistema; sem internet, o cadastro é feito à mão.
+- As consultas de CNPJ e de CEP usam a BrasilAPI (serviço público externo): só o CNPJ ou o CEP sai do sistema; sem internet, o cadastro é feito à mão.
 - Feche no VS Code os arquivos que o Claude estiver alterando, para que uma versão antiga não seja salva por cima.
