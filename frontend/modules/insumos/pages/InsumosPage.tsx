@@ -33,13 +33,12 @@ interface Insumo {
   quantidadeCompra: number;
   precoCompra: number;
   custoUnitario: number;
-
+  equivalenciaQuantidade?: number;
+  equivalenciaUnidade?: string;
+  perdaLimpeza?: number;
   fornecedorId?: string;
-
   ativo: boolean;
-
   observacao?: string;
-
   criadoEm: string;
   atualizadoEm: string;
 }
@@ -52,7 +51,23 @@ interface FormularioInsumo {
   precoCompra: string;
   fornecedorId: string;
   observacao: string;
+  equivalenciaQuantidade: string;
+  equivalenciaUnidade: string;
+  perdaLimpeza: string;
+  ativo: boolean;
 }
+
+// Unidades de uso mais comuns nas fichas (o campo aceita qualquer outra).
+const UNIDADES_DE_USO = [
+  "g",
+  "kg",
+  "ml",
+  "L",
+  "un",
+  "fatia",
+  "pump",
+  "colher",
+];
 
 const formularioInicial: FormularioInsumo = {
   nome: "",
@@ -62,6 +77,10 @@ const formularioInicial: FormularioInsumo = {
   precoCompra: "",
   fornecedorId: "",
   observacao: "",
+  equivalenciaQuantidade: "",
+  equivalenciaUnidade: "",
+  perdaLimpeza: "0",
+  ativo: true,
 };
 
 function formatarMoeda(
@@ -101,6 +120,10 @@ export default function InsumosPage() {
 
   const [modalAberto, setModalAberto] =
     useState(false);
+
+  // Id do insumo em edição; null = novo insumo.
+  const [editandoId, setEditandoId] =
+    useState<string | null>(null);
 
   const [carregando, setCarregando] =
     useState(true);
@@ -286,7 +309,38 @@ export default function InsumosPage() {
     );
   };
 
+  const abrirEdicao = (insumo: Insumo) => {
+    setEditandoId(insumo.id);
+
+    setFormulario({
+      nome: insumo.nome,
+      categoriaId: insumo.categoriaId,
+      unidadeCompraId: insumo.unidadeCompraId,
+      quantidadeCompra: String(
+        insumo.quantidadeCompra
+      ),
+      precoCompra: String(insumo.precoCompra),
+      fornecedorId: insumo.fornecedorId ?? "",
+      observacao: insumo.observacao ?? "",
+      equivalenciaQuantidade:
+        insumo.equivalenciaQuantidade !== undefined
+          ? String(insumo.equivalenciaQuantidade)
+          : "",
+      equivalenciaUnidade:
+        insumo.equivalenciaUnidade ?? "",
+      perdaLimpeza: String(
+        insumo.perdaLimpeza ?? 0
+      ),
+      ativo: insumo.ativo,
+    });
+
+    setErro("");
+    setModalAberto(true);
+  };
+
   const abrirNovoInsumo = () => {
+    setEditandoId(null);
+
     setFormulario({
       ...formularioInicial,
       categoriaId:
@@ -326,8 +380,56 @@ export default function InsumosPage() {
           formulario.precoCompra
         );
 
+      const perdaLimpeza = Number(
+        formulario.perdaLimpeza || 0
+      );
+
+      const temEquivalenciaQuantidade =
+        formulario.equivalenciaQuantidade.trim() !==
+        "";
+
+      const temEquivalenciaUnidade =
+        formulario.equivalenciaUnidade.trim() !==
+        "";
+
+      if (
+        temEquivalenciaQuantidade !==
+        temEquivalenciaUnidade
+      ) {
+        throw new Error(
+          "Informe a quantidade e a unidade da equivalência, ou deixe as duas em branco."
+        );
+      }
+
+      if (
+        temEquivalenciaQuantidade &&
+        (!Number.isFinite(
+          Number(
+            formulario.equivalenciaQuantidade
+          )
+        ) ||
+          Number(
+            formulario.equivalenciaQuantidade
+          ) <= 0)
+      ) {
+        throw new Error(
+          "A quantidade da equivalência deve ser maior que zero."
+        );
+      }
+
+      if (
+        !Number.isFinite(perdaLimpeza) ||
+        perdaLimpeza < 0 ||
+        perdaLimpeza >= 100
+      ) {
+        throw new Error(
+          "A perda de limpeza deve estar entre 0 e 99,99."
+        );
+      }
+
       if (
         !formulario.nome.trim()
+
       ) {
         throw new Error(
           "Informe o nome do insumo."
@@ -374,9 +476,13 @@ export default function InsumosPage() {
 
       const resposta =
         await fetch(
-          "/api/insumos",
+          editandoId
+            ? `/api/insumos/${editandoId}`
+            : "/api/insumos",
           {
-            method: "POST",
+            method: editandoId
+              ? "PATCH"
+              : "POST",
             headers: {
               "Content-Type":
                 "application/json; charset=utf-8",
@@ -399,6 +505,25 @@ export default function InsumosPage() {
                 observacao:
                   formulario.observacao ||
                   undefined,
+                // Em branco limpa a equivalência (na edição).
+                equivalenciaQuantidade:
+                  temEquivalenciaQuantidade
+                    ? Number(
+                        formulario.equivalenciaQuantidade
+                      )
+                    : editandoId
+                      ? null
+                      : undefined,
+                equivalenciaUnidade:
+                  temEquivalenciaUnidade
+                    ? formulario.equivalenciaUnidade.trim()
+                    : editandoId
+                      ? null
+                      : undefined,
+                perdaLimpeza,
+                ativo: editandoId
+                  ? formulario.ativo
+                  : undefined,
               }),
           }
         );
@@ -416,7 +541,10 @@ export default function InsumosPage() {
       setInsumos(
         (anteriores) =>
           [
-            ...anteriores,
+            ...anteriores.filter(
+              (item) =>
+                item.id !== dados.insumo.id
+            ),
             dados.insumo,
           ].sort(
             (a, b) =>
@@ -643,6 +771,10 @@ export default function InsumosPage() {
                   <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Status
                   </th>
+
+                  <th className="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Ações
+                  </th>
                 </tr>
               </thead>
 
@@ -717,6 +849,18 @@ export default function InsumosPage() {
                               : "Inativo"}
                           </span>
                         </td>
+
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              abrirEdicao(insumo)
+                            }
+                            className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-slate-900"
+                          >
+                            Editar
+                          </button>
+                        </td>
                       </tr>
                     );
                   }
@@ -733,7 +877,9 @@ export default function InsumosPage() {
             <div className="flex items-start justify-between border-b border-slate-200 p-6">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
-                  Novo insumo
+                  {editandoId
+                    ? "Editar insumo"
+                    : "Novo insumo"}
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
@@ -999,6 +1145,137 @@ export default function InsumosPage() {
                     className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                   />
                 </div>
+
+                                <div className="md:col-span-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
+                    Equivalência e perda (para as fichas técnicas)
+                  </h3>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="equivalenciaQuantidade"
+                    className="mb-2 block text-sm font-semibold text-slate-700"
+                  >
+                    1 unidade de compra equivale a
+                  </label>
+
+                  <div className="flex gap-3">
+                    <input
+                      id="equivalenciaQuantidade"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={
+                        formulario.equivalenciaQuantidade
+                      }
+                      onChange={(evento) =>
+                        alterarCampo(
+                          "equivalenciaQuantidade",
+                          evento.target.value
+                        )
+                      }
+                      placeholder="Ex.: 150"
+                      className="w-1/2 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                    />
+
+                    <input
+                      id="equivalenciaUnidade"
+                      list="unidades-de-uso"
+                      value={
+                        formulario.equivalenciaUnidade
+                      }
+                      onChange={(evento) =>
+                        alterarCampo(
+                          "equivalenciaUnidade",
+                          evento.target.value
+                        )
+                      }
+                      placeholder="g, un, pump..."
+                      className="w-1/2 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                    />
+
+                    <datalist id="unidades-de-uso">
+                      {UNIDADES_DE_USO.map(
+                        (unidade) => (
+                          <option
+                            key={unidade}
+                            value={unidade}
+                          />
+                        )
+                      )}
+                    </datalist>
+                  </div>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    Só quando a ficha usa outra unidade.
+                    Exemplos: 1 pct = 6 un; 1 maço = 150
+                    g; 1 frasco = 300 pump.
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="perdaLimpeza"
+                    className="mb-2 block text-sm font-semibold text-slate-700"
+                  >
+                    Perda de limpeza (%)
+                  </label>
+
+                  <input
+                    id="perdaLimpeza"
+                    type="number"
+                    min="0"
+                    max="99.99"
+                    step="any"
+                    value={formulario.perdaLimpeza}
+                    onChange={(evento) =>
+                      alterarCampo(
+                        "perdaLimpeza",
+                        evento.target.value
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  />
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    Casca, osso, aparas: o que se perde
+                    ao limpar o insumo (abacaxi, por
+                    exemplo). Deixe 0 se não houver.
+                  </p>
+                </div>
+
+                {editandoId && (
+                  <div className="flex items-start gap-3 md:col-span-2">
+                    <input
+                      id="ativo"
+                      type="checkbox"
+                      checked={formulario.ativo}
+                      onChange={(evento) =>
+                        setFormulario((anterior) => ({
+                          ...anterior,
+                          ativo:
+                            evento.target.checked,
+                        }))
+                      }
+                      className="mt-0.5 h-5 w-5 cursor-pointer"
+                    />
+
+                    <label
+                      htmlFor="ativo"
+                      className="cursor-pointer text-sm text-slate-700"
+                    >
+                      <span className="font-semibold">
+                        Insumo ativo
+                      </span>
+                      <br />
+                      <span className="text-slate-500">
+                        Inativo não aparece nos vínculos
+                        de compra nem nas fichas novas.
+                      </span>
+                    </label>
+                  </div>
+                )}
 
                 <div className="md:col-span-2">
                   <label

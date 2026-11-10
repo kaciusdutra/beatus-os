@@ -23,6 +23,10 @@ function mapearInsumo(
     precoCompra: unknown;
     custoUnitario: unknown;
 
+    equivalenciaQuantidade?: unknown;
+    equivalenciaUnidade?: string | null;
+    perdaLimpeza?: unknown;
+
     fornecedorId: string | null;
 
     ativo: boolean;
@@ -74,6 +78,19 @@ unidadeMedida: {
 
     custoUnitario:
       Number(insumo.custoUnitario),
+
+    equivalenciaQuantidade:
+      insumo.equivalenciaQuantidade !== null &&
+      insumo.equivalenciaQuantidade !== undefined
+        ? Number(insumo.equivalenciaQuantidade)
+        : undefined,
+
+    equivalenciaUnidade:
+      insumo.equivalenciaUnidade ??
+      undefined,
+
+    perdaLimpeza:
+      Number(insumo.perdaLimpeza ?? 0),
 
     fornecedorId:
       insumo.fornecedorId ??
@@ -128,6 +145,17 @@ export class InsumoRepositoryPostgres
 
           custoUnitario:
             insumo.custoUnitario,
+
+          equivalenciaQuantidade:
+            insumo.equivalenciaQuantidade ??
+            null,
+
+          equivalenciaUnidade:
+            insumo.equivalenciaUnidade ??
+            null,
+
+          perdaLimpeza:
+            insumo.perdaLimpeza,
 
           fornecedorId:
             insumo.fornecedorId ??
@@ -276,6 +304,17 @@ export class InsumoRepositoryPostgres
 
           custoUnitario:
             insumo.custoUnitario,
+
+          equivalenciaQuantidade:
+            insumo.equivalenciaQuantidade ??
+            null,
+
+          equivalenciaUnidade:
+            insumo.equivalenciaUnidade ??
+            null,
+
+          perdaLimpeza:
+            insumo.perdaLimpeza,
 
           fornecedorId:
             insumo.fornecedorId ??

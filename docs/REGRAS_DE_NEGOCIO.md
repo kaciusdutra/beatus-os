@@ -101,6 +101,7 @@
 14. **Unidades e peso:** quando a unidade da nota se converte na do insumo (kg e g, L e ml), a conversão é automática. Quando não se converte (manta, caixa, pacote), a quantidade real na unidade do insumo é informada na entrada (exemplo: o peso em kg das mantas), e o fator fixo (exemplo: 1 caixa = 12 unidades) é lembrado por fornecedor e item. *(12/11/2026)*
 15. **O que entra no preço:** o preço líquido do item (já com o desconto do item). Frete e impostos da nota ficam de fora por enquanto (regra 9.20). *(12/11/2026)*
 16. **Cancelar a entrada devolve o custo** do insumo ao preço da compra anterior, por meio de um histórico de preços do insumo, que também mostra a variação. *(12/11/2026)*
+17. **Equivalência de unidade e perdas no insumo (bloco 8B):** cada insumo pode ter uma **equivalência** ("1 pct = 6 un", "1 maço = 150 g", "1 frasco = 300 pump") para a ficha usar a unidade que quiser, e uma **perda de limpeza** em % (casca, osso, aparas; vale em qualquer ficha). A **perda de cocção** é do item da ficha. O custo é dividido pelo aproveitamento combinado: (1 − limpeza) × (1 − cocção). Os dois campos de perda são opcionais e começam em 0. *(12/11/2026)*
 
 ## 8. Operação
 

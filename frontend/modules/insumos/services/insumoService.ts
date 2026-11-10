@@ -45,6 +45,41 @@ function validarInsumo(
     );
   }
 
+  if (
+    !Number.isFinite(insumo.perdaLimpeza) ||
+    insumo.perdaLimpeza < 0 ||
+    insumo.perdaLimpeza >= 100
+  ) {
+    throw new Error(
+      "Perda de limpeza deve estar entre 0 e 99,99."
+    );
+  }
+
+  // A equivalência é "1 unidade de compra = N unidade de uso": os dois
+  // campos andam juntos.
+  const equivalenciaUnidade =
+    insumo.equivalenciaUnidade?.trim() ||
+    undefined;
+
+  if (
+    (insumo.equivalenciaQuantidade !== undefined) !==
+    (equivalenciaUnidade !== undefined)
+  ) {
+    throw new Error(
+      "Informe a quantidade e a unidade da equivalência, ou deixe as duas em branco."
+    );
+  }
+
+  if (
+    insumo.equivalenciaQuantidade !== undefined &&
+    (!Number.isFinite(insumo.equivalenciaQuantidade) ||
+      insumo.equivalenciaQuantidade <= 0)
+  ) {
+    throw new Error(
+      "A equivalência do insumo deve ser maior que zero."
+    );
+  }
+
   const custoUnitario =
     insumo.precoCompra /
     insumo.quantidadeCompra;
@@ -68,6 +103,8 @@ function validarInsumo(
     observacao:
       insumo.observacao?.trim() ||
       undefined,
+
+    equivalenciaUnidade,
 
     custoUnitario,
   };

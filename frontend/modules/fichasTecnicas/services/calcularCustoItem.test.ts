@@ -104,14 +104,13 @@ verificar(
 );
 
 /*
- * Perda operacional de 5%.
+ * Perda de 5%: o custo é dividido pelo aproveitamento (regra 7.5).
  *
- * 30 g × 1,05 = 31,5 g equivalentes.
- * 31,5 × 0,115 = 3,6225
+ * 30 g × 0,115 = 3,45 ÷ 0,95 = 3,63157894...
  */
 verificar(
   "kg → g com 5% de perda",
-  3.6225,
+  3.45 / 0.95,
   calcularCustoItem({
     quantidadeCompra: 1,
     precoCompra: 115,
@@ -123,6 +122,144 @@ verificar(
     percentualPerda: 5,
   })
 );
+
+/*
+ * Perda de 20%: o custo sobe 25%, não 20% (aproveita-se 80%).
+ */
+verificar(
+  "20% de perda sobe o custo em 25%",
+  3.45 / 0.8,
+  calcularCustoItem({
+    quantidadeCompra: 1,
+    precoCompra: 115,
+    unidadeCompra: "kg",
+    quantidadeFicha: 30,
+    unidadeFicha: "g",
+    percentualPerda: 20,
+  })
+);
+
+/*
+ * Duas perdas: limpeza 15% e cocção 29,4% (exemplo do bacon: 1.000 g
+ * viram 850 g e depois 600 g). Aproveitamento = 0,85 × 0,706.
+ */
+verificar(
+  "perda de limpeza e de cocção juntas",
+  3.45 / (0.85 * 0.706),
+  calcularCustoItem({
+    quantidadeCompra: 1,
+    precoCompra: 115,
+    unidadeCompra: "kg",
+    quantidadeFicha: 30,
+    unidadeFicha: "g",
+    perdaLimpeza: 15,
+    percentualPerda: 29.4,
+  })
+);
+
+/*
+ * Só a perda de limpeza (abacaxi: casca). R$ 5,00 a unidade, 1 un = 900 g,
+ * 40% de casca, a ficha usa 35 g aproveitáveis.
+ */
+verificar(
+  "abacaxi: unidade com equivalência em g e perda de limpeza",
+  ((35 / 900) * 5) / 0.6,
+  calcularCustoItem({
+    quantidadeCompra: 1,
+    precoCompra: 5,
+    unidadeCompra: "un",
+    equivalenciaQuantidade: 900,
+    equivalenciaUnidade: "g",
+    quantidadeFicha: 35,
+    unidadeFicha: "g",
+    perdaLimpeza: 40,
+    percentualPerda: 0,
+  })
+);
+
+/*
+ * Pacote de pães: 6 pacotes por R$ 11, cada pacote com 6 un.
+ */
+verificar(
+  "pão: pct com equivalência em un",
+  11 / 6 / 6,
+  calcularCustoItem({
+    quantidadeCompra: 6,
+    precoCompra: 11,
+    unidadeCompra: "pct",
+    equivalenciaQuantidade: 6,
+    equivalenciaUnidade: "un",
+    quantidadeFicha: 1,
+    unidadeFicha: "un",
+    percentualPerda: 0,
+  })
+);
+
+/*
+ * Equivalência em kg usada em g (maço de rúcula: 1 un = 0,15 kg).
+ */
+verificar(
+  "rúcula: equivalência em kg usada em g",
+  (0.01 / 0.15) * 7.9,
+  calcularCustoItem({
+    quantidadeCompra: 1,
+    precoCompra: 7.9,
+    unidadeCompra: "un",
+    equivalenciaQuantidade: 0.15,
+    equivalenciaUnidade: "kg",
+    quantidadeFicha: 10,
+    unidadeFicha: "g",
+    percentualPerda: 0,
+  })
+);
+
+/*
+ * Sem equivalência, pct para un não converte e a mensagem orienta o usuário.
+ */
+esperarErro(
+  () =>
+    calcularCustoItem({
+      quantidadeCompra: 6,
+      precoCompra: 11,
+      unidadeCompra: "pct",
+      quantidadeFicha: 1,
+      unidadeFicha: "un",
+      percentualPerda: 0,
+    }),
+  "Informe a equivalência do insumo"
+);
+console.log("✅ Sem equivalência, orienta o usuário");
+
+esperarErro(
+  () =>
+    calcularCustoItem({
+      quantidadeCompra: 1,
+      precoCompra: 5,
+      unidadeCompra: "un",
+      equivalenciaQuantidade: 0,
+      equivalenciaUnidade: "g",
+      quantidadeFicha: 35,
+      unidadeFicha: "g",
+      percentualPerda: 0,
+    }),
+  "equivalência do insumo deve ser maior que zero"
+);
+console.log("✅ Equivalência zerada");
+
+esperarErro(
+  () =>
+    calcularCustoItem({
+      quantidadeCompra: 1,
+      precoCompra: 5,
+      unidadeCompra: "kg",
+      quantidadeFicha: 35,
+      unidadeFicha: "g",
+      perdaLimpeza: 100,
+      percentualPerda: 0,
+    }),
+  "Perda de limpeza deve estar entre 0 e 99,99."
+);
+console.log("✅ Perda de limpeza inválida");
 
 /*
  * Quantidade de compra inválida.

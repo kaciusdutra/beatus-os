@@ -207,6 +207,23 @@ export async function POST(
         custoUnitario:
           precoCompra /
           quantidadeCompra,
+        equivalenciaQuantidade:
+          body.equivalenciaQuantidade !== undefined &&
+          body.equivalenciaQuantidade !== null &&
+          body.equivalenciaQuantidade !== ""
+            ? Number(body.equivalenciaQuantidade)
+            : undefined,
+        equivalenciaUnidade:
+          typeof body.equivalenciaUnidade === "string"
+            ? body.equivalenciaUnidade.trim() ||
+              undefined
+            : undefined,
+        perdaLimpeza:
+          body.perdaLimpeza !== undefined &&
+          body.perdaLimpeza !== null &&
+          body.perdaLimpeza !== ""
+            ? Number(body.perdaLimpeza)
+            : 0,
         fornecedorId,
         ativo: true,
         observacao,

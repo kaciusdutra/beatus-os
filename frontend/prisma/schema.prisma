@@ -356,6 +356,14 @@ model Insumo {
   precoCompra      Decimal @db.Decimal(12, 4)
   custoUnitario    Decimal @db.Decimal(12, 4)
 
+  // Equivalência da unidade de compra em outra unidade de uso (bloco 8B).
+  // Exemplos: 1 pct = 6 un; 1 maço = 150 g; 1 frasco = 300 pump.
+  equivalenciaQuantidade Decimal? @db.Decimal(12, 4)
+  equivalenciaUnidade    String?
+
+  // Perda de limpeza do insumo (casca, osso, aparas), em %. Vale em qualquer ficha.
+  perdaLimpeza Decimal @default(0) @db.Decimal(8, 4)
+
   fornecedorId String?
 
   ativo Boolean @default(true)

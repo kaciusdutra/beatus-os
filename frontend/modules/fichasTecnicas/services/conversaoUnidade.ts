@@ -49,3 +49,31 @@ export function converterQuantidade(
     (fatorOrigem / fatorDestino)
   );
 }
+
+// Converte só quando as duas unidades são da mesma família (kg/g, L/ml) ou
+// iguais. Devolve undefined quando não há conversão possível (exemplo: pct
+// para un), para o cálculo tentar a equivalência cadastrada no insumo.
+export function converterSeCompativel(
+  quantidade: number,
+  unidadeOrigem: string,
+  unidadeDestino: string
+): number | undefined {
+  try {
+    return converterQuantidade(
+      quantidade,
+      unidadeOrigem,
+      unidadeDestino
+    );
+  } catch (erro) {
+    if (
+      erro instanceof Error &&
+      erro.message.startsWith(
+        "Não é possível converter"
+      )
+    ) {
+      return undefined;
+    }
+
+    throw erro;
+  }
+}

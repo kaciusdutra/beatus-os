@@ -681,6 +681,7 @@ function criarInsumo(
     quantidadeCompra: 1,
     precoCompra: 10,
     custoUnitario: 10,
+    perdaLimpeza: 0,
     ativo,
     criadoEm: agora,
     atualizadoEm: agora,

@@ -19,6 +19,13 @@ export interface ItemInsumoParaCusto {
   precoCompra: number;
 
   unidadeCompra: string;
+
+  // Bloco 8B: equivalência e perda de limpeza do insumo (opcionais).
+  equivalenciaQuantidade?: number;
+
+  equivalenciaUnidade?: string;
+
+  perdaLimpeza?: number;
 }
 
 export interface ResultadoCustoItem {
@@ -64,6 +71,15 @@ export function calcularCustoFicha(
 
         unidadeCompra:
           item.unidadeCompra,
+
+        equivalenciaQuantidade:
+          item.equivalenciaQuantidade,
+
+        equivalenciaUnidade:
+          item.equivalenciaUnidade,
+
+        perdaLimpeza:
+          item.perdaLimpeza,
 
         quantidadeFicha:
           item.quantidade,

@@ -82,6 +82,8 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G05 e G06: Produção e estoque
 
+- [ ] **Compra, insumo, ficha e estoque conversam entre si** (pergunta do Kacius em 12/11/2026). A entrada de compra **confirmada** é a conferência do recebimento: cada item ligado a um insumo dá **entrada no estoque**, já convertida para a unidade do insumo pela equivalência (exemplo: 2 pacotes de pão a 6 un = +12 un). Cancelar a entrada estorna. A venda baixa o estoque pela ficha técnica do produto (considerando as perdas). A unidade do estoque é a unidade de uso do insumo (g, ml, un). O bloco 8C já guarda no item da entrada a quantidade convertida, para servir ao custo e ao estoque.
+
 - [ ] Fila de produção com prioridades, tempos e capacidade (45 burgers por dia: capacidade planejada e restante).
 - [ ] Estoque com movimentação real: entradas, saídas, saldo, lote, validade, inventário, perdas e ajustes.
 - [ ] Estoque em formato kanban.
@@ -95,6 +97,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 - [ ] **Custo automático do insumo pela última compra** (regra 7.12, decisão de 12/11/2026): ao confirmar a entrada, o custo do insumo passa a ser o último preço por unidade de medida (quilo etc.), e as fichas são recalculadas. A definir na sprint: conversão de unidades (a nota pode vir por "manta" ou "caixa" sem o peso: o peso real seria informado na entrada); se o desconto do item entra no preço; o que acontece com o custo quando a entrada é cancelada (volta ao preço da compra anterior); histórico de preços do insumo para ver a variação; frete e impostos da nota (hoje só aviso, regra 9.20).
 - [ ] Custo da porção pela gramatura (preço do quilo × peso da porção), com a perda de cada insumo (regra 7.5).
+- [x] **Bloco 8B concluído** (migração `add_equivalencia_e_perda_limpeza_insumo`): equivalência de unidade e perda de limpeza no insumo, tela **Editar insumo** (antes só havia cadastro), cálculo do custo pelo aproveitamento (limpeza × cocção) e conversão por equivalência. Falta, para a ficha usar o "pump", cadastrar a equivalência do insumo (ex.: fumaça líquida).
 - [x] **Bloco 8A concluído:** tela "Itens de compras" em Insumos (`/insumos/vinculos`) liga cada item do fornecedor ao insumo, uma única vez; as compras seguintes já vêm ligadas ao confirmar. Sem migração.
 
 - [ ] Módulo de precificação separado do cadastro de produtos.
