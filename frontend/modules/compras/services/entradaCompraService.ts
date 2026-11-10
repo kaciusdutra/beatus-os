@@ -537,9 +537,46 @@ export class EntradaCompraService {
         entrada
       );
 
+    await this.garantirNotaNaoLancada(
+      entradaValidada.chaveAcesso
+    );
+
     return this.repository.criar(
       entradaValidada
     );
+  }
+
+  // Regra 9.18: a mesma nota (chave de acesso) não pode ser lançada duas
+  // vezes; só vale de novo se a entrada anterior tiver sido cancelada.
+  private async garantirNotaNaoLancada(
+    chaveAcesso: string | undefined,
+    ignorarEntradaId?: string
+  ): Promise<void> {
+    if (!chaveAcesso) {
+      return;
+    }
+
+    const existentes =
+      await this.repository.buscarPorChaveAcesso(
+        chaveAcesso
+      );
+
+    const lancada = existentes.find(
+      (entrada) =>
+        entrada.id !== ignorarEntradaId &&
+        entrada.status !== "CANCELADA"
+    );
+
+    if (lancada) {
+      const documento =
+        lancada.numeroDocumento ?? "sem número";
+
+      throw new Error(
+        lancada.status === "CONFIRMADA"
+          ? `Esta nota já foi lançada (documento ${documento}, entrada confirmada). Para lançar de novo, cancele a entrada existente.`
+          : `Esta nota já foi lançada (documento ${documento}, entrada em rascunho). Abra a entrada existente para continuar o lançamento.`
+      );
+    }
   }
 
   async atualizarEntradaCompra(
@@ -590,6 +627,11 @@ export class EntradaCompraService {
       validarEntrada(
         entrada
       );
+
+    await this.garantirNotaNaoLancada(
+      entradaValidada.chaveAcesso,
+      entradaValidada.id
+    );
 
     return this.repository.atualizar(
       entradaValidada

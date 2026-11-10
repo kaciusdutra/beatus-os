@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChangeEvent,
   FormEvent,
   useEffect,
   useMemo,
@@ -13,6 +14,11 @@ import {
   interpretarQrNfce,
   type InterpretacaoQrNfce,
 } from "@/modules/compras/services/documentos/interpretarQrNfce";
+import {
+  diferencaTotalNota,
+  interpretarXmlNfe,
+  type NotaXmlNfe,
+} from "@/modules/compras/services/documentos/interpretarXmlNfe";
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
 import { cnpjValido } from "@/modules/fornecedores/domain/documentoFornecedor";
 
@@ -34,6 +40,9 @@ interface ItemFormulario {
   unidade: string;
   valorUnitario: string;
   desconto: string;
+  // Vêm do XML da NF-e, quando a nota informa (rastreabilidade).
+  lote?: string;
+  validade?: string;
 }
 
 interface FormularioEntrada {
@@ -140,6 +149,16 @@ function somenteDigitos(
   return (valor ?? "").replace(
     /\D/g,
     ""
+  );
+}
+
+// CNPJ do emitente do XML; CPF vira 14 dígitos, como na chave de acesso.
+function documentoEmitenteXml(
+  nota: NotaXmlNfe
+): string {
+  return (
+    nota.emitente.cnpj ??
+    (nota.emitente.cpf ?? "").padStart(14, "0")
   );
 }
 
@@ -276,6 +295,26 @@ export default function NovaEntradaCompraPage() {
     null
   );
 
+  // XML da NF-e importado (bloco 7D).
+  const [
+    notaXml,
+    setNotaXml,
+  ] = useState<NotaXmlNfe | null>(
+    null
+  );
+
+  const [
+    fornecedorDoXml,
+    setFornecedorDoXml,
+  ] = useState<Fornecedor | null>(
+    null
+  );
+
+  const [
+    lendoXml,
+    setLendoXml,
+  ] = useState(false);
+
   const [
     carregandoFornecedores,
     setCarregandoFornecedores,
@@ -336,6 +375,25 @@ export default function NovaEntradaCompraPage() {
           ? interpretacaoQr.dadosChave
               ?.documentoEmitente
           : undefined;
+
+      if (notaXml && !fornecedorDoXml) {
+        const encontradoXml =
+          encontrarFornecedorPorDocumento(
+            ativos,
+            documentoEmitenteXml(notaXml)
+          );
+
+        if (encontradoXml) {
+          setFornecedorDoXml(encontradoXml);
+
+          setFormulario((anterior) => ({
+            ...anterior,
+            fornecedorId:
+              anterior.fornecedorId ||
+              encontradoXml.id,
+          }));
+        }
+      }
 
       if (documentoQr && !fornecedorDoQr) {
         const encontrado =
@@ -592,6 +650,8 @@ export default function NovaEntradaCompraPage() {
     arquivo: File
   ): Promise<boolean> {
     setArquivoDocumento(arquivo);
+    setNotaXml(null);
+    setFornecedorDoXml(null);
     setErro("");
 
     /*
@@ -679,7 +739,109 @@ export default function NovaEntradaCompraPage() {
     return true;
   }
 
+  /*
+   * Importa o XML da NF-e/NFC-e: preenche o
+   * documento, o fornecedor (pelo CNPJ), os itens
+   * e o frete. O XML fica anexado à entrada como
+   * documento original quando ela for salva.
+   */
+  async function receberXml(
+    evento: ChangeEvent<HTMLInputElement>
+  ) {
+    const arquivo =
+      evento.target.files?.[0];
+
+    // Permite escolher o mesmo arquivo de novo.
+    evento.target.value = "";
+
+    if (!arquivo) {
+      return;
+    }
+
+    setErro("");
+    setLendoXml(true);
+
+    try {
+      const interpretacao =
+        interpretarXmlNfe(
+          await arquivo.text()
+        );
+
+      if (!interpretacao.sucesso) {
+        setErro(
+          `Não foi possível importar o XML: ${interpretacao.motivo}`
+        );
+
+        return;
+      }
+
+      const nota = interpretacao.nota;
+
+      const fornecedor =
+        encontrarFornecedorPorDocumento(
+          fornecedores,
+          documentoEmitenteXml(nota)
+        );
+
+      setArquivoDocumento(arquivo);
+      setQrConteudo(null);
+      setInterpretacaoQr(null);
+      setFornecedorDoQr(null);
+      setNotaXml(nota);
+      setFornecedorDoXml(fornecedor ?? null);
+
+      setFormulario((anterior) => ({
+        ...anterior,
+        fornecedorId:
+          fornecedor?.id ?? "",
+        tipoDocumento: "NOTA_FISCAL",
+        numeroDocumento: nota.numero,
+        serie: nota.serie,
+        chaveAcesso: nota.chaveAcesso,
+        dataDocumento:
+          nota.dataHoraEmissao ??
+          (nota.dataEmissao
+            ? `${nota.dataEmissao}T00:00`
+            : ""),
+        // Os descontos da nota já vêm por item.
+        desconto: "0",
+        frete: String(nota.totais.frete),
+      }));
+
+      setItens(
+        nota.itens.map((item) => ({
+          id: `xml-${item.numeroItem}`,
+          descricaoOriginal: item.descricao,
+          codigoFornecedor:
+            item.codigo ?? "",
+          quantidade: String(
+            item.quantidade
+          ),
+          unidade: item.unidade,
+          valorUnitario: String(
+            item.valorUnitario
+          ),
+          desconto: String(item.desconto),
+          lote: item.lote,
+          validade: item.validade,
+        }))
+      );
+
+      setModoNovaEntrada("MANUAL");
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? `Não foi possível ler o arquivo: ${error.message}`
+          : "Não foi possível ler o arquivo."
+      );
+    } finally {
+      setLendoXml(false);
+    }
+  }
+
   function limparCapturaDocumento() {
+    setNotaXml(null);
+    setFornecedorDoXml(null);
     setArquivoDocumento(null);
     setQrConteudo(null);
     setInterpretacaoQr(null);
@@ -823,6 +985,12 @@ export default function NovaEntradaCompraPage() {
 
               desconto,
 
+              lote:
+                item.lote || undefined,
+
+              validade:
+                item.validade || undefined,
+
               valorTotal:
                 Number(
                   valorTotal.toFixed(
@@ -947,7 +1115,14 @@ export default function NovaEntradaCompraPage() {
 
         formData.append(
           "arquivo",
-          arquivoDocumento
+          notaXml
+            ? // O Windows às vezes não informa o tipo do .xml.
+              new File(
+                [arquivoDocumento],
+                arquivoDocumento.name,
+                { type: "application/xml" }
+              )
+            : arquivoDocumento
         );
 
         formData.append(
@@ -957,7 +1132,7 @@ export default function NovaEntradaCompraPage() {
 
         formData.append(
           "origem",
-          "FOTOGRAFIA"
+          notaXml ? "XML" : "FOTOGRAFIA"
         );
 
         const respostaDocumento =
@@ -1060,6 +1235,47 @@ export default function NovaEntradaCompraPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">
+                  Importar XML da NF-e
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Recebeu o XML do fornecedor (por
+                  e-mail ou pelo portal)? Os dados da
+                  nota, o fornecedor e todos os itens
+                  vêm preenchidos para conferência.
+                </p>
+              </div>
+
+              <label
+                className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 ${
+                  lendoXml || salvando
+                    ? "pointer-events-none opacity-60"
+                    : ""
+                }`}
+              >
+                {lendoXml
+                  ? "Lendo o XML..."
+                  : "📄 Escolher arquivo XML"}
+
+                <input
+                  type="file"
+                  accept=".xml,application/xml,text/xml"
+                  onChange={(evento) =>
+                    void receberXml(evento)
+                  }
+                  disabled={
+                    lendoXml || salvando
+                  }
+                  className="sr-only"
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
                   Digitação manual
                 </h2>
 
@@ -1141,6 +1357,141 @@ export default function NovaEntradaCompraPage() {
                   >
                     Trocar documento
                   </button>
+                </div>
+              )}
+
+              {notaXml && (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+                  <p className="font-semibold">
+                    ✓ XML da{" "}
+                    {notaXml.modelo === "65"
+                      ? "NFC-e"
+                      : "NF-e"}{" "}
+                    lido
+                    {notaXml.ambiente ===
+                      "HOMOLOGACAO" &&
+                      " (ambiente de HOMOLOGAÇÃO — nota sem valor fiscal)"}
+                  </p>
+
+                  <div className="mt-2 space-y-1 text-xs">
+                    <p>
+                      Série {notaXml.serie}
+                      {" · "}Número{" "}
+                      {notaXml.numero}
+                      {notaXml.dataEmissao &&
+                        ` · Emissão ${notaXml.dataEmissao
+                          .split("-")
+                          .reverse()
+                          .join("/")}`}
+                      {" · "}
+                      {notaXml.itens.length}{" "}
+                      item(ns)
+                      {" · "}Total da nota{" "}
+                      {formatarMoeda(
+                        notaXml.totais.total
+                      )}
+                    </p>
+
+                    <p>
+                      Emitente:{" "}
+                      <strong>
+                        {notaXml.emitente
+                          .nomeFantasia ||
+                          notaXml.emitente
+                            .razaoSocial}
+                      </strong>
+                      {notaXml.emitente.cnpj &&
+                        ` · CNPJ ${formatarCnpj(
+                          notaXml.emitente.cnpj
+                        )}`}
+                    </p>
+
+                    {fornecedorDoXml ? (
+                      <p>
+                        Fornecedor encontrado:{" "}
+                        <strong>
+                          {fornecedorDoXml.nomeFantasia ||
+                            fornecedorDoXml.razaoSocial}
+                        </strong>
+                      </p>
+                    ) : (
+                      <p className="font-semibold text-amber-700">
+                        O emitente não está
+                        cadastrado como
+                        fornecedor.{" "}
+                        <a
+                          href={
+                            notaXml.emitente.cnpj
+                              ? `/compras/fornecedores?cnpj=${notaXml.emitente.cnpj}`
+                              : "/compras/fornecedores"
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2 hover:text-amber-900"
+                        >
+                          Cadastrar este fornecedor
+                        </a>{" "}
+                        e depois clique em
+                        &quot;Atualizar lista&quot;.
+                      </p>
+                    )}
+                  </div>
+
+                  {!notaXml.autorizada && (
+                    <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                      {notaXml.situacaoProtocolo
+                        ? `Atenção: a SEFAZ não autorizou esta nota (${notaXml.situacaoProtocolo}). Confira com o fornecedor antes de lançar.`
+                        : "Atenção: este XML não traz o protocolo de autorização da SEFAZ. Peça ao fornecedor o XML autorizado ou confira a nota no portal da SEFAZ."}
+                    </p>
+                  )}
+
+                  {diferencaTotalNota(
+                    notaXml.totais
+                  ) !== 0 && (
+                    <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      <strong>
+                        O total da nota é{" "}
+                        {formatarMoeda(
+                          notaXml.totais.total
+                        )}
+                        , e a entrada registra{" "}
+                        {formatarMoeda(
+                          notaXml.totais.total -
+                            diferencaTotalNota(
+                              notaXml.totais
+                            )
+                        )}{" "}
+                        (produtos − descontos +
+                        frete).
+                      </strong>{" "}
+                      A diferença de{" "}
+                      {formatarMoeda(
+                        diferencaTotalNota(
+                          notaXml.totais
+                        )
+                      )}{" "}
+                      vem de:{" "}
+                      {(
+                        [
+                          ["ICMS-ST", notaXml.totais.icmsSt],
+                          ["IPI", notaXml.totais.ipi],
+                          ["seguro", notaXml.totais.seguro],
+                          ["outras despesas", notaXml.totais.outrasDespesas],
+                        ] as [string, number][]
+                      )
+                        .filter(
+                          ([, valor]) => valor > 0
+                        )
+                        .map(
+                          ([nome, valor]) =>
+                            `${nome} ${formatarMoeda(valor)}`
+                        )
+                        .join(", ") ||
+                        "valores não detalhados no XML"}
+                      . Por enquanto, esses valores
+                      não entram no total da entrada.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -1649,7 +2000,7 @@ export default function NovaEntradaCompraPage() {
                         <input
                           type="number"
                           min="0.001"
-                          step="0.001"
+                          step="any"
                           value={
                             item.quantidade
                           }
@@ -1703,7 +2054,7 @@ export default function NovaEntradaCompraPage() {
                         <input
                           type="number"
                           min="0"
-                          step="0.01"
+                          step="any"
                           value={
                             item.valorUnitario
                           }
@@ -1750,6 +2101,23 @@ export default function NovaEntradaCompraPage() {
                           className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                         />
                       </div>
+
+                      {(item.lote ||
+                        item.validade) && (
+                        <p className="text-xs text-slate-500 md:col-span-2 xl:col-span-4">
+                          Da nota:
+                          {item.lote &&
+                            ` lote ${item.lote}`}
+                          {item.lote &&
+                            item.validade &&
+                            " ·"}
+                          {item.validade &&
+                            ` validade ${item.validade
+                              .split("-")
+                              .reverse()
+                              .join("/")}`}
+                        </p>
+                      )}
 
                       <div className="rounded-xl bg-white p-4 md:col-span-2">
                         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">

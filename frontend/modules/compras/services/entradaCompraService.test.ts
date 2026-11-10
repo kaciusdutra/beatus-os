@@ -130,6 +130,15 @@ class EntradaCompraRepositoryFake
     return this.entradas;
   }
 
+  async buscarPorChaveAcesso(
+    chaveAcesso: string
+  ): Promise<EntradaCompra[]> {
+    return this.entradas.filter(
+      (entrada) =>
+        entrada.chaveAcesso === chaveAcesso
+    );
+  }
+
   async atualizar(
     entrada: EntradaCompra
   ): Promise<EntradaCompra> {
@@ -1376,6 +1385,96 @@ async function executarTestes() {
   ) {
     throw new Error(
       "Falha: identidade do documento foi alterada."
+    );
+  }
+
+  // --------------------------------------------------
+  // NOTA EM DUPLICIDADE (regra 9.18)
+  // --------------------------------------------------
+
+  const CHAVE_DUPLICADA =
+    "13261111222333000181550010000123451123456780";
+
+  const primeiraNota =
+    await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        numeroDocumento: "12345",
+        chaveAcesso: CHAVE_DUPLICADA,
+      }),
+    });
+
+  await esperarErro(
+    () =>
+      service.criarEntradaCompra({
+        entrada: criarEntrada(fornecedor.id, {
+          numeroDocumento: "12345",
+          chaveAcesso: CHAVE_DUPLICADA,
+        }),
+      }),
+    "Esta nota já foi lançada (documento 12345, entrada em rascunho). Abra a entrada existente para continuar o lançamento."
+  );
+
+  // A própria entrada pode ser alterada sem acusar duplicidade.
+  await service.atualizarEntradaCompra({
+    entrada: {
+      ...primeiraNota,
+      observacao: "Conferida",
+    },
+  });
+
+  // Outra entrada não pode receber a chave de uma nota já lançada.
+  const outraNota =
+    await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        numeroDocumento: "999",
+      }),
+    });
+
+  await esperarErro(
+    () =>
+      service.atualizarEntradaCompra({
+        entrada: {
+          ...outraNota,
+          chaveAcesso: CHAVE_DUPLICADA,
+        },
+      }),
+    "Esta nota já foi lançada (documento 12345, entrada em rascunho). Abra a entrada existente para continuar o lançamento."
+  );
+
+  // Nota confirmada: a mensagem pede para cancelar antes.
+  await entradaRepository.atualizar({
+    ...primeiraNota,
+    status: "CONFIRMADA",
+  });
+
+  await esperarErro(
+    () =>
+      service.criarEntradaCompra({
+        entrada: criarEntrada(fornecedor.id, {
+          numeroDocumento: "12345",
+          chaveAcesso: CHAVE_DUPLICADA,
+        }),
+      }),
+    "Esta nota já foi lançada (documento 12345, entrada confirmada). Para lançar de novo, cancele a entrada existente."
+  );
+
+  // Depois de cancelada, a nota pode ser lançada de novo.
+  await service.cancelarEntradaCompra(
+    primeiraNota.id,
+    "Lançada com erro."
+  );
+
+  const relancada =
+    await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        numeroDocumento: "12345",
+        chaveAcesso: CHAVE_DUPLICADA,
+      }),
+    });
+
+  if (relancada.chaveAcesso !== CHAVE_DUPLICADA) {
+    throw new Error(
+      "Falha: nota cancelada não pôde ser lançada de novo."
     );
   }
 

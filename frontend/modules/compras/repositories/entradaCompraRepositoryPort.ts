@@ -23,6 +23,11 @@ export interface EntradaCompraRepositoryPort {
     EntradaCompra[]
   >;
 
+  // Entradas (de qualquer status) com a mesma chave de acesso.
+  buscarPorChaveAcesso(
+    chaveAcesso: string
+  ): Promise<EntradaCompra[]>;
+
   atualizar(
     entrada: EntradaCompra
   ): Promise<EntradaCompra>;

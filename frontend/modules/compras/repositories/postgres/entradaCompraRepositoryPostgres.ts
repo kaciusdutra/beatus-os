@@ -483,6 +483,29 @@ export class EntradaCompraRepositoryPostgres
       : undefined;
   }
 
+  async buscarPorChaveAcesso(
+    chaveAcesso: string
+  ): Promise<EntradaCompra[]> {
+    const entradas =
+      await prisma.entradaCompra.findMany({
+        where: {
+          chaveAcesso,
+
+          empresaId:
+            this.contexto.empresaId,
+        },
+
+        include: {
+          itens: true,
+          documentos: true,
+        },
+      });
+
+    return entradas.map(
+      mapearEntrada
+    );
+  }
+
   async listar(): Promise<
     EntradaCompra[]
   > {

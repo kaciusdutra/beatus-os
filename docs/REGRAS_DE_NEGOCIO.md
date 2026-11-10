@@ -136,6 +136,9 @@
 15. O CNPJ e o CPF do fornecedor têm os **dígitos verificadores conferidos** no cadastro. Cadastros antigos com documento inválido continuam editáveis enquanto o documento não for alterado. *(06/11/2026)*
 16. **Aproveitar ao máximo os dados que chegam:** com o CNPJ, o cadastro busca na consulta pública da Receita Federal a razão social, o nome fantasia, o telefone e o e-mail, e avisa se a situação do CNPJ não for "ativa". O usuário sempre confere antes de salvar, e o cadastro funciona sem a consulta. Fornecedor por CPF é preenchido à mão (não há consulta pública de CPF). Quando o XML e a foto da nota entrarem, os dados do emitente também virão deles. *(06/11/2026)*
 17. O **destino padrão** do fornecedor é opcional e só serve de sugestão para os itens novos dele; a memória do item (regra 13) tem prioridade. *(06/11/2026)*
+18. **A mesma nota não entra duas vezes:** se já existir uma entrada não cancelada com a mesma chave de acesso, a nova entrada não é salva. Se a existente estiver em rascunho, continua-se por ela; se estiver confirmada, só cancelando-a para lançar de novo. Vale para XML, QR e digitação. *(10/11/2026)*
+19. **Importação do XML da NF-e/NFC-e:** o XML preenche o documento (número, série, chave e data), o fornecedor (pelo CNPJ do emitente), todos os itens (código, descrição, unidade, quantidade, valor, desconto, lote e validade) e o frete. O XML fica anexado à entrada como documento original. Se o XML não trouxer a autorização da SEFAZ, aparece um aviso. *(10/11/2026)*
+20. **Impostos e outras despesas da nota** (ICMS-ST, IPI, seguro, outras despesas) ainda não entram no total da entrada, que registra produtos − descontos + frete. Quando o total da nota for diferente, a tela mostra a diferença e de onde ela vem. Onde esses valores entram no custo será decidido depois. *(10/11/2026)*
 
 ## 10. Beatriz (atendente de IA)
 

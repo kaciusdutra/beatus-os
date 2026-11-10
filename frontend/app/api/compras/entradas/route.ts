@@ -321,7 +321,12 @@ export async function POST(
         mensagem,
       },
       {
-        status: 400,
+        // Nota já lançada (regra 9.18) é conflito.
+        status: mensagem.startsWith(
+          "Esta nota já foi lançada"
+        )
+          ? 409
+          : 400,
       }
     );
   }

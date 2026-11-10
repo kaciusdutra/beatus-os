@@ -44,10 +44,13 @@ Concluído no bloco 7B: destino de cada item (Insumo, Embalagem, Limpeza e higie
 
 Concluído no bloco 7C: tela de fornecedores em Compras (cadastro por CNPJ ou CPF, busca dos dados pelo CNPJ na Receita Federal, conferência dos dígitos, destino padrão, inativar e reativar) e atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada.
 
-- [ ] Guardar endereço e inscrição estadual do fornecedor (exige migração); a consulta do CNPJ e o XML já trazem esses dados. Decidido em 06/11/2026: fica para o bloco do XML.
+Concluído no bloco 7D: importação do XML da NF-e/NFC-e na nova entrada (documento, fornecedor, itens, lote, validade e frete preenchidos; XML anexado como documento original), aviso de XML sem autorização da SEFAZ, aviso de diferença no total por impostos e outras despesas, e bloqueio de nota em duplicidade pela chave de acesso.
+
+- [ ] **Bloco 7E:** guardar endereço e inscrição estadual do fornecedor (exige migração) e botão "Cadastrar com os dados da nota", que cria o fornecedor direto do XML.
+- [ ] Decidir onde entram no custo o ICMS-ST, o IPI, o seguro e as outras despesas da nota (hoje só aparecem como aviso, regra 9.20).
+- [ ] Usar o código do produto do fornecedor (cProd do XML) para reconhecer o "Item já conhecido", além da descrição.
 - [ ] Atualizar o custo do insumo quando a entrada for confirmada, com conversão entre a unidade da nota e a unidade de compra do insumo (decidido em 04/11/2026: fica para depois da 7B).
 - [ ] Leitura dos itens pela **foto** do cupom ou da nota (IA), com conferência humana.
-- [ ] Importação de **XML** da NF-e.
 - [ ] Quando o CNPJ e o certificado digital saírem: baixa automática das NF-e da SEFAZ.
 - [ ] Documentação do módulo Compras no fim da G07.
 
