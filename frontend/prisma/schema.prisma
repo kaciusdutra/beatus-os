@@ -131,8 +131,14 @@ model EntradaCompraItem {
   destino  String?
   insumoId String?
 
+  // Quanto a compra vale na unidade de compra do insumo (bloco 8C). Serve ao estoque.
+  quantidadeConvertida Decimal? @db.Decimal(14, 4)
+  unidadeConvertida    String?
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
+
+  historicoPreco HistoricoPrecoInsumo?
 
   entradaCompra EntradaCompra @relation(fields: [entradaCompraId], references: [id], onDelete: Cascade)
 
@@ -382,6 +388,7 @@ model Insumo {
   unidadeMedida UnidadeMedida? @relation(fields: [unidadeCompraId], references: [id])
 
   fichaTecnicaItens FichaTecnicaItem[]
+  historicoPrecos   HistoricoPrecoInsumo[]
 
   itensEntradaCompra       EntradaCompraItem[]
   classificacoesItemCompra ClassificacaoItemCompra[]
@@ -390,6 +397,32 @@ model Insumo {
   @@index([empresaId])
   @@index([empresaId, ativo])
   @@index([empresaId, fornecedorId])
+}
+
+// Histórico do custo do insumo: uma linha por item de compra confirmado (bloco 8C).
+model HistoricoPrecoInsumo {
+  id String @id @default(uuid())
+
+  empresaId String
+  insumoId  String
+
+  entradaCompraItemId String @unique
+
+  dataCompra DateTime
+
+  // Preço pago por 1 unidade de compra do insumo (desconto do item incluído).
+  precoPorUnidade Decimal @db.Decimal(14, 4)
+
+  // Custo do insumo antes desta compra (para voltar ao cancelar).
+  custoAnterior Decimal @db.Decimal(14, 4)
+
+  criadoEm DateTime @default(now())
+
+  insumo            Insumo            @relation(fields: [insumoId], references: [id])
+  entradaCompraItem EntradaCompraItem @relation(fields: [entradaCompraItemId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@index([insumoId, dataCompra])
 }
 
 model FichaTecnica {

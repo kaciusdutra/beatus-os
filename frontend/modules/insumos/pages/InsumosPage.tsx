@@ -125,6 +125,41 @@ export default function InsumosPage() {
   const [editandoId, setEditandoId] =
     useState<string | null>(null);
 
+  // Bloco 8C: compras que formaram o custo do insumo em edição.
+  const [historicoPrecos, setHistoricoPrecos] = useState<
+    { id: string; dataCompra: string; precoPorUnidade: number }[]
+  >([]);
+
+  useEffect(() => {
+    if (!editandoId || !modalAberto) {
+      return;
+    }
+
+    let ativo = true;
+
+    void fetch(
+      `/api/compras/historico-precos?insumoId=${encodeURIComponent(editandoId)}`,
+      { cache: "no-store" }
+    )
+      .then((resposta) => resposta.json())
+      .then((dados) => {
+        if (ativo) {
+          setHistoricoPrecos(
+            dados.sucesso ? (dados.historico ?? []) : []
+          );
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setHistoricoPrecos([]);
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [editandoId, modalAberto]);
+
   const [carregando, setCarregando] =
     useState(true);
 
@@ -1251,6 +1286,41 @@ export default function InsumosPage() {
                     exemplo). Deixe 0 se não houver.
                   </p>
                 </div>
+
+                {editandoId && (
+                  <div className="md:col-span-2">
+                    <p className="mb-2 text-sm font-semibold text-slate-700">
+                      Histórico de preços
+                    </p>
+
+                    {historicoPrecos.length === 0 ? (
+                      <p className="text-xs text-slate-500">
+                        Nenhuma compra confirmada alterou o custo
+                        deste insumo ainda.
+                      </p>
+                    ) : (
+                      <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 text-sm">
+                        {historicoPrecos.slice(0, 8).map((registro) => (
+                          <li
+                            key={registro.id}
+                            className="flex justify-between px-4 py-2"
+                          >
+                            <span className="text-slate-600">
+                              {new Date(
+                                registro.dataCompra
+                              ).toLocaleDateString("pt-BR")}
+                            </span>
+
+                            <span className="font-semibold text-slate-900">
+                              {formatarMoeda(registro.precoPorUnidade)}{" "}
+                              por unidade de compra
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
 
                 {editandoId && (
                   <div className="flex items-start gap-3 md:col-span-2">

@@ -6,6 +6,8 @@ export interface Insumo {
   categoriaId: string;
   
   unidadeCompraId: string;
+  // Sigla da unidade de compra (ex.: kg), preenchida na leitura (bloco 8C).
+  unidadeCompraAbreviacao?: string;
   
   quantidadeCompra: number;
   precoCompra: number;

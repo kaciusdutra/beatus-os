@@ -49,6 +49,11 @@ export interface EntradaCompraItem {
   // Ligação com o insumo da ficha técnica: será feita na G08 (vazia por enquanto).
   insumoId?: string;
 
+  // Quanto a compra vale na unidade de compra do insumo (bloco 8C).
+  quantidadeConvertida?: number;
+
+  unidadeConvertida?: string;
+
   criadoEm: string;
 
   atualizadoEm: string;
@@ -175,4 +180,24 @@ export interface EntradaCompra {
 
   documentos:
   EntradaCompraDocumento[];
+
+  // Só na resposta de confirmar, cancelar e recalcular (não é gravado).
+  avisosCusto?: string[];
+}
+
+// Uma compra confirmada na história do custo do insumo (bloco 8C).
+export interface HistoricoPrecoInsumoRegistro {
+  id: string;
+
+  insumoId: string;
+
+  entradaCompraItemId: string;
+
+  dataCompra: string;
+
+  precoPorUnidade: number;
+
+  custoAnterior: number;
+
+  criadoEm: string;
 }

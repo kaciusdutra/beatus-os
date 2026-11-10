@@ -530,9 +530,19 @@ export default function EntradaCompraPage({
         setClassificacaoAlterada(false);
       }
 
+      const avisosCusto: string[] =
+        acao === "confirmar" &&
+        Array.isArray(dados.entrada?.avisosCusto)
+          ? dados.entrada.avisosCusto
+          : [];
+
       setMensagem(
         acao === "confirmar"
-          ? "Entrada confirmada com sucesso."
+          ? `Entrada confirmada com sucesso.${
+              avisosCusto.length > 0
+                ? ` Atenção ao custo: ${avisosCusto.join(" | ")}`
+                : ""
+            }`
           : "Entrada cancelada.",
       );
 

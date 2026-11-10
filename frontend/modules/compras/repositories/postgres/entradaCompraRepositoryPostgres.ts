@@ -13,6 +13,7 @@ import {
 import {
   ClassificacaoItemInput,
   EntradaCompra,
+  HistoricoPrecoInsumoRegistro,
   EntradaCompraItem,
   MemoriaClassificacaoItemCompra,
   MemoriaClassificacaoRegistro,
@@ -68,6 +69,8 @@ function mapearItem(
     observacao: string | null;
     destino: string | null;
     insumoId: string | null;
+    quantidadeConvertida?: unknown;
+    unidadeConvertida?: string | null;
     criadoEm: Date;
     atualizadoEm: Date;
   }
@@ -120,6 +123,16 @@ function mapearItem(
 
     insumoId:
       item.insumoId ??
+      undefined,
+
+    quantidadeConvertida:
+      item.quantidadeConvertida !== null &&
+      item.quantidadeConvertida !== undefined
+        ? Number(item.quantidadeConvertida)
+        : undefined,
+
+    unidadeConvertida:
+      item.unidadeConvertida ??
       undefined,
 
     criadoEm:
@@ -225,6 +238,8 @@ function mapearEntrada(
       observacao: string | null;
       destino: string | null;
       insumoId: string | null;
+      quantidadeConvertida?: unknown;
+      unidadeConvertida?: string | null;
       criadoEm: Date;
       atualizadoEm: Date;
     }[];
@@ -1188,5 +1203,100 @@ export class EntradaCompraRepositoryPostgres
         })
       )
     );
+  }
+
+  // Bloco 8C: quanto o item vale na unidade de compra do insumo.
+  async gravarConversaoItem(
+    itemId: string,
+    quantidadeConvertida: number,
+    unidadeConvertida: string
+  ): Promise<void> {
+    await prisma.entradaCompraItem.updateMany({
+      where: {
+        id: itemId,
+        entradaCompra: {
+          empresaId: this.contexto.empresaId,
+        },
+      },
+      data: { quantidadeConvertida, unidadeConvertida },
+    });
+  }
+
+  async registrarHistoricoPreco(
+    registro: Omit<HistoricoPrecoInsumoRegistro, "id" | "criadoEm">
+  ): Promise<void> {
+    await prisma.historicoPrecoInsumo.create({
+      data: {
+        empresaId: this.contexto.empresaId,
+        insumoId: registro.insumoId,
+        entradaCompraItemId: registro.entradaCompraItemId,
+        dataCompra: new Date(registro.dataCompra),
+        precoPorUnidade: registro.precoPorUnidade,
+        custoAnterior: registro.custoAnterior,
+      },
+    });
+  }
+
+  private mapearHistorico(linha: {
+    id: string;
+    insumoId: string;
+    entradaCompraItemId: string;
+    dataCompra: Date;
+    precoPorUnidade: unknown;
+    custoAnterior: unknown;
+    criadoEm: Date;
+  }): HistoricoPrecoInsumoRegistro {
+    return {
+      id: linha.id,
+      insumoId: linha.insumoId,
+      entradaCompraItemId: linha.entradaCompraItemId,
+      dataCompra: linha.dataCompra.toISOString(),
+      precoPorUnidade: Number(linha.precoPorUnidade),
+      custoAnterior: Number(linha.custoAnterior),
+      criadoEm: linha.criadoEm.toISOString(),
+    };
+  }
+
+  async listarHistoricoPorInsumo(
+    insumoId: string
+  ): Promise<HistoricoPrecoInsumoRegistro[]> {
+    const linhas = await prisma.historicoPrecoInsumo.findMany({
+      where: { insumoId, empresaId: this.contexto.empresaId },
+      orderBy: [{ dataCompra: "asc" }, { criadoEm: "asc" }],
+    });
+
+    return linhas.map((linha) => this.mapearHistorico(linha));
+  }
+
+  async buscarHistoricoDosItens(
+    itemIds: string[]
+  ): Promise<HistoricoPrecoInsumoRegistro[]> {
+    const linhas = await prisma.historicoPrecoInsumo.findMany({
+      where: {
+        entradaCompraItemId: { in: itemIds },
+        empresaId: this.contexto.empresaId,
+      },
+    });
+
+    return linhas.map((linha) => this.mapearHistorico(linha));
+  }
+
+  async removerHistoricoDosItens(itemIds: string[]): Promise<void> {
+    await prisma.historicoPrecoInsumo.deleteMany({
+      where: {
+        entradaCompraItemId: { in: itemIds },
+        empresaId: this.contexto.empresaId,
+      },
+    });
+  }
+
+  async atualizarCustoAnteriorHistorico(
+    id: string,
+    custoAnterior: number
+  ): Promise<void> {
+    await prisma.historicoPrecoInsumo.updateMany({
+      where: { id, empresaId: this.contexto.empresaId },
+      data: { custoAnterior },
+    });
   }
 }

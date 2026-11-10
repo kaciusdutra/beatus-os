@@ -2,6 +2,7 @@ import {
   ClassificacaoItemInput,
   EntradaCompra,
   EntradaCompraItem,
+  HistoricoPrecoInsumoRegistro,
   MemoriaClassificacaoItemCompra,
   MemoriaClassificacaoRegistro,
   TipoDocumentoEntradaCompra,
@@ -39,6 +40,72 @@ class EntradaCompraRepositoryFake
   implements EntradaCompraRepositoryPort
 {
   private entradas: EntradaCompra[] = [];
+
+  historico: HistoricoPrecoInsumoRegistro[] = [];
+
+  private contadorHistorico = 0;
+
+  async gravarConversaoItem(
+    itemId: string,
+    quantidadeConvertida: number,
+    unidadeConvertida: string
+  ): Promise<void> {
+    for (const entrada of this.entradas) {
+      for (const item of entrada.itens) {
+        if (item.id === itemId) {
+          item.quantidadeConvertida = quantidadeConvertida;
+          item.unidadeConvertida = unidadeConvertida;
+        }
+      }
+    }
+  }
+
+  async registrarHistoricoPreco(
+    registro: Omit<HistoricoPrecoInsumoRegistro, "id" | "criadoEm">
+  ): Promise<void> {
+    this.contadorHistorico++;
+
+    this.historico.push({
+      ...registro,
+      id: crypto.randomUUID(),
+      criadoEm: new Date(
+        Date.now() + this.contadorHistorico * 1000
+      ).toISOString(),
+    });
+  }
+
+  async listarHistoricoPorInsumo(
+    insumoId: string
+  ): Promise<HistoricoPrecoInsumoRegistro[]> {
+    return this.historico.filter(
+      (registro) => registro.insumoId === insumoId
+    );
+  }
+
+  async buscarHistoricoDosItens(
+    itemIds: string[]
+  ): Promise<HistoricoPrecoInsumoRegistro[]> {
+    return this.historico.filter((registro) =>
+      itemIds.includes(registro.entradaCompraItemId)
+    );
+  }
+
+  async atualizarCustoAnteriorHistorico(
+    id: string,
+    custoAnterior: number
+  ): Promise<void> {
+    const registro = this.historico.find((item) => item.id === id);
+
+    if (registro) {
+      registro.custoAnterior = custoAnterior;
+    }
+  }
+
+  async removerHistoricoDosItens(itemIds: string[]): Promise<void> {
+    this.historico = this.historico.filter(
+      (registro) => !itemIds.includes(registro.entradaCompraItemId)
+    );
+  }
 
   memorias: (MemoriaClassificacaoItemCompra & {
     id: string;
@@ -663,6 +730,14 @@ class InsumoRepositoryFake
   }
 
   async atualizar(insumo: Insumo): Promise<Insumo> {
+    const indice = this.insumos.findIndex(
+      (candidato) => candidato.id === insumo.id
+    );
+
+    if (indice >= 0) {
+      this.insumos[indice] = insumo;
+    }
+
     return insumo;
   }
 }
@@ -710,6 +785,204 @@ function esperarErro(
       }
     }
   );
+}
+
+// Bloco 8C (regra 7.12): custo automático pelo último preço.
+async function testarCustoAutomatico() {
+  const fornecedor = criarFornecedor();
+
+  const entradaRepository = new EntradaCompraRepositoryFake();
+
+  const insumo: Insumo = {
+    ...criarInsumo("insumo-custo"),
+    unidadeCompraAbreviacao: "kg",
+  };
+
+  const insumos = [insumo];
+
+  const service = new EntradaCompraService(
+    entradaRepository,
+    new FornecedorRepositoryFake([fornecedor]),
+    new InsumoRepositoryFake(insumos)
+  );
+
+  async function comprar(
+    descricao: string,
+    quantidade: number,
+    unidade: string,
+    valorTotal: number,
+    dataEntrada: string,
+    ligar = true
+  ) {
+    const entradaId = crypto.randomUUID();
+
+    const lancada = await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        id: entradaId,
+        numeroDocumento: `8C-${entradaId}`,
+        dataEntrada,
+        dataDocumento: dataEntrada,
+        itens: [
+          criarItem(entradaId, {
+            descricaoOriginal: descricao,
+            quantidade,
+            unidade,
+            valorUnitario: valorTotal / quantidade,
+            valorTotal,
+          }),
+        ],
+        valorProdutos: valorTotal,
+        valorTotal,
+      }),
+    });
+
+    await service.classificarItens(entradaId, [
+      { itemId: lancada.itens[0].id, destino: "INSUMO" },
+    ]);
+
+    if (ligar) {
+      await entradaRepository.vincularItensAoInsumo(
+        [lancada.itens[0].id],
+        insumo.id
+      );
+    }
+
+    return service.confirmarEntradaCompra(entradaId);
+  }
+
+  const custo = () => insumos[0].custoUnitario;
+
+  // A: 2 kg por R$ 80 = R$ 40 o quilo
+  const a = await comprar("Insumo custo", 2, "KG", 80, "2026-03-01T12:00:00.000Z");
+
+  if (custo() !== 40 || insumos[0].precoCompra !== 40) {
+    throw new Error("Falha 8C: custo não virou R$ 40 o quilo.");
+  }
+
+  if (
+    (await entradaRepository.buscarPorId(a.id))?.itens[0]
+      .quantidadeConvertida !== 2
+  ) {
+    throw new Error("Falha 8C: quantidade convertida não foi gravada.");
+  }
+
+  // B: 1000 g por R$ 45 = R$ 45 o quilo (conversão g -> kg)
+  const b = await comprar("Insumo custo", 1000, "g", 45, "2026-04-01T12:00:00.000Z");
+
+  if (custo() !== 45) {
+    throw new Error("Falha 8C: g não converteu para kg.");
+  }
+
+  // C: compra mais antiga não muda o custo (e avisa)
+  const c = await comprar("Insumo custo", 1, "KG", 30, "2026-02-01T12:00:00.000Z");
+
+  if (custo() !== 45 || !c.avisosCusto?.length) {
+    throw new Error("Falha 8C: compra antiga mudou o custo ou não avisou.");
+  }
+
+  // Unidade que não converte: confirma, avisa e não muda o custo
+  const cx = await comprar("Insumo custo", 1, "CX", 50, "2026-05-01T12:00:00.000Z");
+
+  if (
+    cx.status !== "CONFIRMADA" ||
+    custo() !== 45 ||
+    !cx.avisosCusto?.[0]?.includes("equivalência")
+  ) {
+    throw new Error("Falha 8C: unidade incompatível não foi tratada.");
+  }
+
+  // Item sem insumo ligado não mexe no custo
+  await comprar("Outro item", 1, "KG", 999, "2026-06-01T12:00:00.000Z", false);
+
+  if (custo() !== 45) {
+    throw new Error("Falha 8C: item sem insumo mudou o custo.");
+  }
+
+  // Histórico: 3 compras registradas (A, B, C), da mais nova para a mais antiga
+  const historico = await service.listarHistoricoPrecosInsumo(insumo.id);
+
+  if (
+    historico.length !== 3 ||
+    historico[0].precoPorUnidade !== 45 ||
+    historico[2].precoPorUnidade !== 30
+  ) {
+    throw new Error("Falha 8C: histórico de preços incorreto.");
+  }
+
+  // Cancelar B: volta para A (R$ 40)
+  await service.cancelarEntradaCompra(b.id, "Teste.");
+
+  if (custo() !== 40) {
+    throw new Error("Falha 8C: cancelar B não voltou para R$ 40.");
+  }
+
+  // Cancelar A: volta para C (R$ 30)
+  await service.cancelarEntradaCompra(a.id, "Teste.");
+
+  if (custo() !== 30) {
+    throw new Error("Falha 8C: cancelar A não voltou para R$ 30.");
+  }
+
+  // Cancelar C: volta ao custo de antes da primeira compra automática
+  await service.cancelarEntradaCompra(c.id, "Teste.");
+
+  if (custo() !== 10) {
+    throw new Error("Falha 8C: cancelar tudo não voltou ao custo original.");
+  }
+
+  // Recalcular: entrada confirmada antes do 8C (sem histórico)
+  const antiga = crypto.randomUUID();
+
+  const lancadaAntiga = await service.criarEntradaCompra({
+    entrada: criarEntrada(fornecedor.id, {
+      id: antiga,
+      numeroDocumento: "8C-ANTIGA",
+      dataEntrada: "2026-01-01T12:00:00.000Z",
+      dataDocumento: "2026-01-01T12:00:00.000Z",
+      itens: [
+        criarItem(antiga, {
+          descricaoOriginal: "Insumo custo",
+          quantidade: 4,
+          unidade: "KG",
+          valorUnitario: 12,
+          valorTotal: 48,
+        }),
+      ],
+      valorProdutos: 48,
+      valorTotal: 48,
+    }),
+  });
+
+  await service.classificarItens(antiga, [
+    { itemId: lancadaAntiga.itens[0].id, destino: "INSUMO" },
+  ]);
+
+  await entradaRepository.vincularItensAoInsumo(
+    [lancadaAntiga.itens[0].id],
+    insumo.id
+  );
+
+  const emBanco = await entradaRepository.buscarPorId(antiga);
+
+  await entradaRepository.atualizar({
+    ...emBanco!,
+    status: "CONFIRMADA",
+  });
+
+  const recalculo = await service.recalcularCustosDasCompras();
+
+  if (recalculo.itensProcessados < 1 || custo() !== 12) {
+    throw new Error("Falha 8C: recálculo não aplicou a compra antiga.");
+  }
+
+  // Rodar de novo não refaz o que já tem histórico
+  const segundo = await service.recalcularCustosDasCompras();
+
+  if (segundo.itensProcessados !== 0) {
+    throw new Error("Falha 8C: recálculo refez itens já registrados.");
+  }
+
+  console.log("✅ Custo automático (8C) passou.");
 }
 
 async function executarTestes() {
@@ -1783,6 +2056,8 @@ async function executarTestes() {
       "Falha: nota cancelada não pôde ser lançada de novo."
     );
   }
+
+  await testarCustoAutomatico();
 
   console.log(
     "✅ Todos os testes do EntradaCompraService passaram."

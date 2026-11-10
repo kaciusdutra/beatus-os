@@ -86,6 +86,49 @@ export default function VinculosCompraPage() {
     Record<string, string>
   >({});
 
+  const [recalculando, setRecalculando] = useState(false);
+
+  // Bloco 8C: refaz o custo dos insumos a partir das compras já confirmadas.
+  async function recalcularCustos() {
+    try {
+      setRecalculando(true);
+      setErro("");
+      setAviso("");
+
+      const resposta = await fetch(
+        "/api/compras/recalcular-custos",
+        { method: "POST" }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados.sucesso) {
+        throw new Error(
+          dados.mensagem ||
+            "Não foi possível recalcular os custos."
+        );
+      }
+
+      const avisos: string[] = dados.avisos ?? [];
+
+      setAviso(
+        `${dados.itensProcessados} item(ns) de compra aplicado(s) ao custo dos insumos.${
+          avisos.length > 0
+            ? ` Atenção: ${avisos.join(" | ")}`
+            : ""
+        }`
+      );
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível recalcular os custos."
+      );
+    } finally {
+      setRecalculando(false);
+    }
+  }
+
   const carregarInsumos = useCallback(async () => {
     const resposta = await fetch(
       "/api/insumos",
@@ -332,10 +375,7 @@ export default function VinculosCompraPage() {
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
             Ligue cada item que o fornecedor vende ao
             insumo certo, uma única vez. As próximas
-            compras do mesmo item já vêm ligadas. O
-            custo automático pelo último preço entra
-            no próximo bloco: por enquanto o vínculo
-            só fica registrado.
+            compras do mesmo item já vêm ligadas. O custo do insumo passa a ser o preço da última compra confirmada. Para as compras que você já tinha confirmado, use o botão Recalcular custos.
           </p>
         </div>
 
@@ -348,6 +388,17 @@ export default function VinculosCompraPage() {
           >
             + Cadastrar insumo
           </a>
+
+          <button
+            type="button"
+            onClick={() => void recalcularCustos()}
+            disabled={recalculando}
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {recalculando
+              ? "Recalculando..."
+              : "Recalcular custos das compras"}
+          </button>
 
           <button
             type="button"

@@ -1,6 +1,7 @@
 import {
   ClassificacaoItemInput,
   EntradaCompra,
+  HistoricoPrecoInsumoRegistro,
   MemoriaClassificacaoItemCompra,
   MemoriaClassificacaoRegistro,
 } from "../types/entradaCompra";
@@ -84,5 +85,31 @@ export interface EntradaCompraRepositoryPort {
   // Cria ou atualiza a memória e soma 1 em vezesUsada.
   registrarMemoriasClassificacao(
     memorias: MemoriaClassificacaoItemCompra[]
+  ): Promise<void>;
+
+  // Bloco 8C: conversão do item e histórico de preços do insumo.
+  gravarConversaoItem(
+    itemId: string,
+    quantidadeConvertida: number,
+    unidadeConvertida: string
+  ): Promise<void>;
+
+  registrarHistoricoPreco(
+    registro: Omit<HistoricoPrecoInsumoRegistro, "id" | "criadoEm">
+  ): Promise<void>;
+
+  listarHistoricoPorInsumo(
+    insumoId: string
+  ): Promise<HistoricoPrecoInsumoRegistro[]>;
+
+  buscarHistoricoDosItens(
+    itemIds: string[]
+  ): Promise<HistoricoPrecoInsumoRegistro[]>;
+
+  removerHistoricoDosItens(itemIds: string[]): Promise<void>;
+
+  atualizarCustoAnteriorHistorico(
+    id: string,
+    custoAnterior: number
   ): Promise<void>;
 }

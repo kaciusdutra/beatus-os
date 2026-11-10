@@ -70,6 +70,9 @@ unidadeMedida: {
     unidadeCompraId:
       insumo.unidadeCompraId,
 
+    unidadeCompraAbreviacao:
+      insumo.unidadeMedida.abreviacao,
+
     quantidadeCompra:
       Number(insumo.quantidadeCompra),
 

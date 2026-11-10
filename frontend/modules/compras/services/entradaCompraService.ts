@@ -35,6 +35,16 @@ import {
   InsumoRepositoryPort,
 } from "@/modules/insumos/repositories/insumoRepositoryPort";
 
+import {
+  aplicarPrecoNoInsumo,
+  calcularCustoDaCompra,
+  ordenarHistorico,
+} from "./custoDaCompra";
+
+import type {
+  HistoricoPrecoInsumoRegistro,
+} from "../types/entradaCompra";
+
 export interface CriarEntradaCompraInput {
   entrada: EntradaCompra;
 }
@@ -858,11 +868,14 @@ export class EntradaCompraService {
       resultado
     );
 
-    return (
-      (await this.repository.buscarPorId(
-        resultado.id
-      )) ?? resultado
-    );
+    // Bloco 8C: o custo do insumo passa a ser o preço desta compra.
+    const final =
+      (await this.repository.buscarPorId(resultado.id)) ??
+      resultado;
+
+    const { avisos } = await this.aplicarCustosDaEntrada(final);
+
+    return { ...final, avisosCusto: avisos };
   }
 
   // Regra 7.13: o item do fornecedor ligado a um insumo passa o vínculo
@@ -929,6 +942,254 @@ export class EntradaCompraService {
         insumoId
       );
     }
+  }
+
+  // Bloco 8C (regra 7.12): o custo do insumo passa a ser o preço da compra
+  // confirmada, por unidade de compra do insumo. Frete e impostos ficam fora.
+  // Compra mais antiga que a última não muda o custo. Item que não converte
+  // para a unidade do insumo vira aviso e não bloqueia a entrada.
+  private async aplicarCustosDaEntrada(
+    entrada: EntradaCompra
+  ): Promise<{ avisos: string[]; processados: number }> {
+    const avisos: string[] = [];
+
+    let processados = 0;
+
+    const itens = entrada.itens.filter(
+      (item) =>
+        ehDestinoComInsumo(item.destino) && item.insumoId
+    );
+
+    if (itens.length === 0) {
+      return { avisos, processados };
+    }
+
+    const jaRegistrados = new Set(
+      (
+        await this.repository.buscarHistoricoDosItens(
+          itens.map((item) => item.id)
+        )
+      ).map((registro) => registro.entradaCompraItemId)
+    );
+
+    const dataCompra =
+      entrada.dataDocumento ?? entrada.dataEntrada;
+
+    for (const item of itens) {
+      if (jaRegistrados.has(item.id) || !item.insumoId) {
+        continue;
+      }
+
+      try {
+        const insumo =
+          await this.insumoRepository.buscarPorId(
+            item.insumoId
+          );
+
+        if (!insumo || !insumo.unidadeCompraAbreviacao) {
+          avisos.push(
+            `${item.descricaoOriginal}: insumo não encontrado; o custo não mudou.`
+          );
+
+          continue;
+        }
+
+        const resultado = calcularCustoDaCompra(
+          {
+            quantidade: item.quantidade,
+            unidade: item.unidade,
+            valorTotal: item.valorTotal,
+          },
+          {
+            unidadeCompra: insumo.unidadeCompraAbreviacao,
+            equivalenciaQuantidade:
+              insumo.equivalenciaQuantidade,
+            equivalenciaUnidade: insumo.equivalenciaUnidade,
+          }
+        );
+
+        if (!resultado.ok) {
+          avisos.push(
+            `${item.descricaoOriginal} (${insumo.nome}): ${resultado.motivo} O custo não mudou.`
+          );
+
+          continue;
+        }
+
+        await this.repository.gravarConversaoItem(
+          item.id,
+          resultado.quantidadeConvertida,
+          resultado.unidadeConvertida
+        );
+
+        const historico = ordenarHistorico(
+          await this.repository.listarHistoricoPorInsumo(
+            insumo.id
+          )
+        );
+
+        const ultima = historico[historico.length - 1];
+
+        await this.repository.registrarHistoricoPreco({
+          insumoId: insumo.id,
+          entradaCompraItemId: item.id,
+          dataCompra,
+          precoPorUnidade: resultado.precoPorUnidade,
+          custoAnterior: insumo.custoUnitario,
+        });
+
+        processados++;
+
+        const maisRecente =
+          !ultima ||
+          new Date(dataCompra).getTime() >=
+            new Date(ultima.dataCompra).getTime();
+
+        if (!maisRecente) {
+          avisos.push(
+            `${item.descricaoOriginal} (${insumo.nome}): a compra é anterior à última; o custo não mudou.`
+          );
+
+          continue;
+        }
+
+        await this.insumoRepository.atualizar({
+          ...insumo,
+          ...aplicarPrecoNoInsumo(
+            insumo.quantidadeCompra,
+            resultado.precoPorUnidade
+          ),
+          atualizadoEm: new Date().toISOString(),
+        });
+      } catch (erro) {
+        avisos.push(
+          `${item.descricaoOriginal}: não foi possível atualizar o custo (${erro instanceof Error ? erro.message : "erro desconhecido"}).`
+        );
+      }
+    }
+
+    return { avisos, processados };
+  }
+
+  // Ao cancelar a entrada, o custo volta para a última compra que sobrou
+  // (ou para o custo que existia antes da primeira compra automática).
+  private async reverterCustosDaEntrada(
+    entrada: EntradaCompra
+  ): Promise<void> {
+    const ids = entrada.itens.map((item) => item.id);
+
+    const dosItens =
+      await this.repository.buscarHistoricoDosItens(ids);
+
+    if (dosItens.length === 0) {
+      return;
+    }
+
+    const idsRemovidos = new Set(
+      dosItens.map((registro) => registro.id)
+    );
+
+    const insumoIds = [
+      ...new Set(dosItens.map((registro) => registro.insumoId)),
+    ];
+
+    for (const insumoId of insumoIds) {
+      const todos = ordenarHistorico(
+        await this.repository.listarHistoricoPorInsumo(insumoId)
+      );
+
+      const restantes = todos.filter(
+        (registro) => !idsRemovidos.has(registro.id)
+      );
+
+      // O custo de antes da primeira compra automática fica guardado na
+      // primeira linha gravada; se ela sair, passa para a próxima.
+      const porGravacao = [...todos].sort(
+        (a, b) =>
+          new Date(a.criadoEm).getTime() -
+          new Date(b.criadoEm).getTime()
+      );
+
+      const primeira = porGravacao[0];
+
+      const proximaGravada = porGravacao.find(
+        (registro) => !idsRemovidos.has(registro.id)
+      );
+
+      if (idsRemovidos.has(primeira.id) && proximaGravada) {
+        await this.repository.atualizarCustoAnteriorHistorico(
+          proximaGravada.id,
+          primeira.custoAnterior
+        );
+      }
+
+      const eraAUltima = idsRemovidos.has(
+        todos[todos.length - 1].id
+      );
+
+      if (!eraAUltima) {
+        continue;
+      }
+
+      const insumo =
+        await this.insumoRepository.buscarPorId(insumoId);
+
+      if (!insumo) {
+        continue;
+      }
+
+      const preco =
+        restantes.length > 0
+          ? restantes[restantes.length - 1].precoPorUnidade
+          : primeira.custoAnterior;
+
+      await this.insumoRepository.atualizar({
+        ...insumo,
+        ...aplicarPrecoNoInsumo(insumo.quantidadeCompra, preco),
+        atualizadoEm: new Date().toISOString(),
+      });
+    }
+
+    await this.repository.removerHistoricoDosItens(ids);
+  }
+
+  // Recalcula o custo a partir das compras já confirmadas, da mais antiga
+  // para a mais nova. Itens que já têm histórico não são refeitos.
+  async recalcularCustosDasCompras(): Promise<{
+    itensProcessados: number;
+    avisos: string[];
+  }> {
+    const entradas = (await this.repository.listar())
+      .filter((entrada) => entrada.status === "CONFIRMADA")
+      .sort(
+        (a, b) =>
+          new Date(a.dataDocumento ?? a.dataEntrada).getTime() -
+          new Date(b.dataDocumento ?? b.dataEntrada).getTime()
+      );
+
+    const avisos: string[] = [];
+
+    let itensProcessados = 0;
+
+    for (const entrada of entradas) {
+      const resultado =
+        await this.aplicarCustosDaEntrada(entrada);
+
+      avisos.push(...resultado.avisos);
+
+      itensProcessados += resultado.processados;
+    }
+
+    return { itensProcessados, avisos };
+  }
+
+  // Histórico de preços do insumo, da compra mais nova para a mais antiga.
+  async listarHistoricoPrecosInsumo(
+    insumoId: string
+  ): Promise<HistoricoPrecoInsumoRegistro[]> {
+    return ordenarHistorico(
+      await this.repository.listarHistoricoPorInsumo(insumoId)
+    ).reverse();
   }
 
   // Bloco 8A: itens de compras confirmadas, com o insumo ligado (ou não).
@@ -1235,9 +1496,13 @@ export class EntradaCompraService {
           new Date().toISOString(),
       };
 
-    return this.repository.atualizar(
-      cancelada
-    );
+    const resultadoCancelamento =
+      await this.repository.atualizar(cancelada);
+
+    // Bloco 8C: o custo volta para a compra anterior.
+    await this.reverterCustosDaEntrada(existente);
+
+    return resultadoCancelamento;
   }
 
   async removerEntradaCompra(
