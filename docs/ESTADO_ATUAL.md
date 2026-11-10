@@ -1,13 +1,13 @@
 # Beatus OS: Estado Atual
 
-> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 11/11/2026.
+> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 12/11/2026.
 
 ## Onde estamos
 
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
-- **Bloco concluído:** 7E, endereço e inscrição estadual do fornecedor, busca por CEP e cadastro pela nota (commit `f77d31c`). Antes dele, a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
-- **Próximo bloco:** a definir com o Kacius entre a leitura dos itens pela foto (IA) e a busca de endereço por CEP no cadastro de clientes.
+- **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
+- **Próximo passo:** o Kacius avalia o custo por foto e coloca a chave da Anthropic no `frontend/.env`; depois, testar a leitura com fotos reais. Para fechar a G07 faltam a atualização do custo do insumo na confirmação da entrada, a baixa automática da SEFAZ (depende do certificado digital) e a documentação do módulo Compras.
 
 ## Ambiente
 
@@ -22,6 +22,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 12/11/2026 | `3483b9e` | G07 7F: leitura dos itens por foto com IA (Claude, SDK `@anthropic-ai/sdk`) para nota, cupom e recibo manuscrito; itens em amarelo para conferir, avisos de soma e de CPF/CNPJ, fornecedor achado pelo documento ou sugerido pelo nome, cadastro com os dados lidos, tokens e custo por leitura; sem a chave, a leitura fica "não configurada"; regras 9.22 a 9.24 |
 | 11/11/2026 | `f77d31c` | G07 7E: inscrição estadual e endereço do fornecedor (migração aditiva); busca do endereço pelo CEP (rota `/api/cep/[cep]`, compartilhada); endereço também vindo da busca pelo CNPJ; botão "Cadastrar com os dados da nota" na nova entrada; regra 9.21 |
 | 11/11/2026 | `2c9eb0e` | G07 7D: importação do XML da NF-e/NFC-e na nova entrada (documento, fornecedor pelo CNPJ, itens com lote e validade, frete; XML anexado como documento original); avisos de XML sem autorização e de diferença no total por ICMS-ST, IPI, seguro e outras despesas; a mesma nota (chave de acesso) não entra duas vezes; regras 9.18 a 9.20 |
 | 10/11/2026 | `274f1a7` | G07 7C: tela de fornecedores em Compras (CNPJ ou CPF, busca dos dados pelo CNPJ na Receita via BrasilAPI, dígitos conferidos, destino padrão, inativar e reativar sem excluir); atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada; regras 9.14 a 9.17 |
@@ -37,5 +38,6 @@
 - Estoque, financeiro, produção, receitas e ingredientes ainda não têm tabela no banco (legado em memória ou localStorage). Diagnóstico previsto na S5.
 - Clientes e pedidos têm dois repositórios cada (`repositories/` e `services/`): provável legado convivendo com o PostgreSQL. Diagnóstico previsto na S5.
 - Ainda não há login: o sistema não deve ir para a internet antes da S3.
+- A leitura por foto usa a API da Anthropic. Variáveis do `frontend/.env` (nunca vão para o Git): `ANTHROPIC_API_KEY` (a chave; sem ela a leitura fica desligada) e, opcionais, `ANTHROPIC_PRECO_ENTRADA_REAIS_MILHAO`, `ANTHROPIC_PRECO_SAIDA_REAIS_MILHAO` (reais por milhão de tokens, para a tela mostrar o custo em reais) e `ANTHROPIC_MODELO` (padrão `claude-sonnet-5-5`). A foto da nota é enviada à Anthropic só quando se clica em "Ler itens da foto".
 - As consultas de CNPJ e de CEP usam a BrasilAPI (serviço público externo): só o CNPJ ou o CEP sai do sistema; sem internet, o cadastro é feito à mão.
 - Feche no VS Code os arquivos que o Claude estiver alterando, para que uma versão antiga não seja salva por cima.
