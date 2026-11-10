@@ -7,10 +7,6 @@ import {
 } from "../repositories/fornecedorRepositoryPort";
 
 import {
-  getFornecedorRepository,
-} from "../repositories/fornecedorRepository";
-
-import {
   cnpjValido,
   cpfValido,
 } from "../domain/documentoFornecedor";
@@ -347,22 +343,4 @@ export class FornecedorService {
       fornecedorId
     );
   }
-}
-
-let service:
-  FornecedorService | null =
-  null;
-
-export function getFornecedorService(
-  repository?: FornecedorRepositoryPort
-): FornecedorService {
-  if (!service) {
-    service =
-      new FornecedorService(
-        repository ??
-          getFornecedorRepository()
-      );
-  }
-
-  return service;
 }

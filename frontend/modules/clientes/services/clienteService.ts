@@ -7,10 +7,6 @@ import {
   ClienteRepositoryPort,
 } from "../repositories/clienteRepositoryPort";
 
-import {
-  getClienteRepository,
-} from "../repositories/clienteRepository";
-
 export interface CriarClienteInput {
   cliente: Cliente;
 }
@@ -280,22 +276,4 @@ export class ClienteService {
       atualizado
     );
   }
-}
-
-let service:
-  ClienteService | null =
-  null;
-
-export function getClienteService(
-  repository?: ClienteRepositoryPort
-): ClienteService {
-  if (!service) {
-    service =
-      new ClienteService(
-        repository ??
-          getClienteRepository()
-      );
-  }
-
-  return service;
 }
