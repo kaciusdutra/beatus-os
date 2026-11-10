@@ -132,6 +132,10 @@
 11. A atualização do custo do insumo a partir da compra confirmada fica para um bloco seguinte, porque exige a conversão de unidades e a ligação item → insumo. *(04/11/2026)*
 12. Série e chave de acesso só existem em **nota fiscal**. Nos outros tipos de documento (recibo, comprovante, outro), esses campos ficam desabilitados. *(04/11/2026)*
 13. **Identificação do item do fornecedor:** toda descrição lida (QR, foto, XML ou digitação) gera uma chave única em CAIXA ALTA, sem acentos, sem caracteres especiais e sem espaços repetidos (exemplo: "Pão brioche c/ 6" → `PAO BRIOCHE C 6`). A descrição original da nota também é guardada, fiel ao documento. Com a chave, cada item aparece como **"Item já conhecido"** (o fornecedor já vendeu esse item numa entrada confirmada, e o destino vem preenchido para conferência) ou **"Item novo"**. *(06/11/2026)*
+14. **Fornecedor não é excluído, só inativado.** O inativo some da lista da nova entrada, mas continua aparecendo nas entradas antigas e pode ser reativado. *(06/11/2026)*
+15. O CNPJ e o CPF do fornecedor têm os **dígitos verificadores conferidos** no cadastro. Cadastros antigos com documento inválido continuam editáveis enquanto o documento não for alterado. *(06/11/2026)*
+16. **Aproveitar ao máximo os dados que chegam:** com o CNPJ, o cadastro busca na consulta pública da Receita Federal a razão social, o nome fantasia, o telefone e o e-mail, e avisa se a situação do CNPJ não for "ativa". O usuário sempre confere antes de salvar, e o cadastro funciona sem a consulta. Fornecedor por CPF é preenchido à mão (não há consulta pública de CPF). Quando o XML e a foto da nota entrarem, os dados do emitente também virão deles. *(06/11/2026)*
+17. O **destino padrão** do fornecedor é opcional e só serve de sugestão para os itens novos dele; a memória do item (regra 13) tem prioridade. *(06/11/2026)*
 
 ## 10. Beatriz (atendente de IA)
 

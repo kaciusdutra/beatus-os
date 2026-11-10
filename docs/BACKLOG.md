@@ -41,12 +41,14 @@ Concluído: leitura do QR da NFC-e (v2 e v3), preenchimento automático e fornec
 Concluído no bloco 7A: nome do fornecedor na lista, card sem as canceladas, tela de detalhe com itens, valores e botões de confirmar e cancelar, volta para a lista depois de salvar, e série e chave de acesso só para nota fiscal.
 
 Concluído no bloco 7B: destino de cada item (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), confirmação só com todos os itens classificados, identificação de "Item já conhecido" ou "Item novo" pela chave em caixa alta e memória do destino por fornecedor; na nova entrada, o botão "Adicionar item" fica abaixo do último item e o campo passou a se chamar "Código do produto na nota".
-- [ ] Tela para definir o destino padrão do fornecedor (o campo já existe no banco e já é usado nas sugestões); entra com a tela de cadastro de fornecedores.
+
+Concluído no bloco 7C: tela de fornecedores em Compras (cadastro por CNPJ ou CPF, busca dos dados pelo CNPJ na Receita Federal, conferência dos dígitos, destino padrão, inativar e reativar) e atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada.
+
+- [ ] Guardar endereço e inscrição estadual do fornecedor (exige migração); a consulta do CNPJ e o XML já trazem esses dados. Decidido em 06/11/2026: fica para o bloco do XML.
 - [ ] Atualizar o custo do insumo quando a entrada for confirmada, com conversão entre a unidade da nota e a unidade de compra do insumo (decidido em 04/11/2026: fica para depois da 7B).
 - [ ] Leitura dos itens pela **foto** do cupom ou da nota (IA), com conferência humana.
 - [ ] Importação de **XML** da NF-e.
 - [ ] Quando o CNPJ e o certificado digital saírem: baixa automática das NF-e da SEFAZ.
-- [ ] Tela de cadastro de fornecedores (hoje só existe a API).
 - [ ] Documentação do módulo Compras no fim da G07.
 
 ## G03: Vendas e clientes

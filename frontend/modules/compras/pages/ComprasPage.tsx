@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import { EntradaCompra } from "../types/entradaCompra";
 
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
@@ -267,16 +269,25 @@ export default function ComprasPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href =
-              "/compras/entradas/nova";
-          }}
-          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-        >
-          + Nova entrada
-        </button>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/compras/fornecedores"
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Fornecedores
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href =
+                "/compras/entradas/nova";
+            }}
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          >
+            + Nova entrada
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

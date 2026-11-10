@@ -134,6 +134,9 @@ function criarFornecedor(
     observacao:
       dados?.observacao,
 
+    destinoPadrao:
+      dados?.destinoPadrao,
+
     criadoEm:
       dados?.criadoEm ??
       new Date().toISOString(),
@@ -159,7 +162,7 @@ async function executarTestes() {
 
   const fornecedorCnpj =
     criarFornecedor({
-      cnpj: "12.345.678/0001-90",
+      cnpj: "12.345.678/0001-95",
     });
 
   const criadoCnpj =
@@ -170,7 +173,7 @@ async function executarTestes() {
 
   if (
     criadoCnpj.cnpj !==
-    "12345678000190"
+    "12345678000195"
   ) {
     throw new Error(
       "Falha: CNPJ não foi normalizado."
@@ -255,7 +258,7 @@ async function executarTestes() {
             crypto.randomUUID(),
 
           cnpj:
-            "12.345.678/0001-90",
+            "12.345.678/0001-95",
         }),
     });
 
@@ -314,7 +317,7 @@ async function executarTestes() {
 
   const encontradoPorCnpj =
     await service.buscarPorCnpj(
-      "12.345.678/0001-90"
+      "12.345.678/0001-95"
     );
 
   if (
@@ -346,6 +349,123 @@ async function executarTestes() {
   ) {
     throw new Error(
       "Falha: atualização."
+    );
+  }
+
+  async function esperarErro(
+    acao: () => Promise<unknown>,
+    mensagem: string,
+    falha: string
+  ) {
+    try {
+      await acao();
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === mensagem
+      ) {
+        return;
+      }
+
+      throw error;
+    }
+
+    throw new Error(falha);
+  }
+
+  // Bloco 7C: dígitos verificadores.
+  await esperarErro(
+    () =>
+      service.criarFornecedor({
+        fornecedor: criarFornecedor({
+          id: crypto.randomUUID(),
+          cnpj: "12.345.678/0001-90",
+        }),
+      }),
+    "CNPJ do fornecedor inválido. Confira os números.",
+    "Falha: aceitou CNPJ com dígito errado."
+  );
+
+  await esperarErro(
+    () =>
+      service.criarFornecedor({
+        fornecedor: criarFornecedor({
+          id: crypto.randomUUID(),
+          cpf: "123.456.789-00",
+        }),
+      }),
+    "CPF do fornecedor inválido. Confira os números.",
+    "Falha: aceitou CPF com dígito errado."
+  );
+
+  // Bloco 7C: destino padrão.
+  await esperarErro(
+    () =>
+      service.criarFornecedor({
+        fornecedor: criarFornecedor({
+          id: crypto.randomUUID(),
+          cnpj: "11.222.333/0001-81",
+          destinoPadrao: "BEBIDA",
+        }),
+      }),
+    "Destino padrão do fornecedor inválido.",
+    "Falha: aceitou destino padrão fora da lista."
+  );
+
+  const comDestino =
+    await service.criarFornecedor({
+      fornecedor: criarFornecedor({
+        id: crypto.randomUUID(),
+        cnpj: "11.222.333/0001-81",
+        destinoPadrao: "EMBALAGEM",
+      }),
+    });
+
+  if (comDestino.destinoPadrao !== "EMBALAGEM") {
+    throw new Error(
+      "Falha: destino padrão não foi gravado."
+    );
+  }
+
+  const semDestino =
+    await service.atualizarFornecedor({
+      fornecedor: {
+        ...comDestino,
+        destinoPadrao: "",
+      },
+    });
+
+  if (semDestino.destinoPadrao !== undefined) {
+    throw new Error(
+      "Falha: destino padrão vazio não foi limpo."
+    );
+  }
+
+  // Cadastro antigo com CNPJ de dígito errado continua editável
+  // (só o documento novo ou alterado é conferido).
+  const antigo = criarFornecedor({
+    id: crypto.randomUUID(),
+    cnpj: "99999999000100",
+  });
+
+  await repository.criar(antigo);
+
+  const antigoEditado =
+    await service.atualizarFornecedor({
+      fornecedor: {
+        ...antigo,
+        razaoSocial: "Antigo Editado",
+        ativo: false,
+      },
+    });
+
+  if (
+    antigoEditado.razaoSocial !==
+      "Antigo Editado" ||
+    antigoEditado.ativo
+  ) {
+    throw new Error(
+      "Falha: edição/inativação de cadastro antigo."
     );
   }
 

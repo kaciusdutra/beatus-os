@@ -138,6 +138,11 @@ export async function PUT(
             body.observacao?.trim() ||
             undefined,
 
+          destinoPadrao:
+            typeof body.destinoPadrao === "string"
+              ? body.destinoPadrao.trim() || undefined
+              : undefined,
+
           criadoEm:
             existente.criadoEm,
 
@@ -170,6 +175,9 @@ export async function PUT(
         "Já existe um fornecedor"
       );
 
+    const invalido =
+      mensagem.includes("inválido");
+
     return NextResponse.json(
       {
         sucesso: false,
@@ -179,7 +187,9 @@ export async function PUT(
         status:
           conflito
             ? 409
-            : 500,
+            : invalido
+              ? 400
+              : 500,
       }
     );
   }

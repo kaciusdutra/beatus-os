@@ -10,6 +10,15 @@ import {
   getFornecedorRepository,
 } from "../repositories/fornecedorRepository";
 
+import {
+  cnpjValido,
+  cpfValido,
+} from "../domain/documentoFornecedor";
+
+import {
+  ehDestinoItemCompra,
+} from "@/modules/compras/domain/destinoItemCompra";
+
 export interface CriarFornecedorInput {
   fornecedor: Fornecedor;
 }
@@ -46,6 +55,51 @@ function normalizarCnpj(
   );
 
   return normalizado || undefined;
+}
+
+// Dígitos verificadores: confere só documentos novos ou alterados,
+// para não travar a edição de cadastros antigos.
+function validarDocumento(
+  cpf: string | undefined,
+  cnpj: string | undefined,
+  anterior?: Fornecedor
+): void {
+  if (
+    cnpj &&
+    cnpj !== anterior?.cnpj &&
+    !cnpjValido(cnpj)
+  ) {
+    throw new Error(
+      "CNPJ do fornecedor inválido. Confira os números."
+    );
+  }
+
+  if (
+    cpf &&
+    cpf !== anterior?.cpf &&
+    !cpfValido(cpf)
+  ) {
+    throw new Error(
+      "CPF do fornecedor inválido. Confira os números."
+    );
+  }
+}
+
+// Destino padrão é opcional; quando vier, precisa ser da lista.
+function normalizarDestinoPadrao(
+  destinoPadrao?: string
+): string | undefined {
+  if (!destinoPadrao) {
+    return undefined;
+  }
+
+  if (!ehDestinoItemCompra(destinoPadrao)) {
+    throw new Error(
+      "Destino padrão do fornecedor inválido."
+    );
+  }
+
+  return destinoPadrao;
 }
 
 export class FornecedorService {
@@ -113,6 +167,13 @@ export class FornecedorService {
       );
     }
 
+    validarDocumento(cpf, cnpj);
+
+    const destinoPadrao =
+      normalizarDestinoPadrao(
+        input.fornecedor.destinoPadrao
+      );
+
     if (cpf) {
       const existente =
         await this.repository.buscarPorCpf(
@@ -145,6 +206,8 @@ export class FornecedorService {
       cpf,
 
       cnpj,
+
+      destinoPadrao,
     };
 
     return this.repository.criar(
@@ -187,6 +250,17 @@ export class FornecedorService {
         "Informe apenas CPF ou CNPJ do fornecedor."
       );
     }
+
+    validarDocumento(
+      cpf,
+      cnpj,
+      existente
+    );
+
+    const destinoPadrao =
+      normalizarDestinoPadrao(
+        input.fornecedor.destinoPadrao
+      );
 
     if (
       cpf &&
@@ -234,6 +308,8 @@ export class FornecedorService {
       cpf,
 
       cnpj,
+
+      destinoPadrao,
     };
 
     return this.repository.atualizar(

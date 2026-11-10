@@ -208,6 +208,11 @@ export async function POST(
             body.observacao?.trim() ||
             undefined,
 
+          destinoPadrao:
+            typeof body.destinoPadrao === "string"
+              ? body.destinoPadrao.trim() || undefined
+              : undefined,
+
           criadoEm:
             agora,
 
@@ -244,6 +249,9 @@ export async function POST(
         "Já existe um fornecedor"
       );
 
+    const invalido =
+      mensagem.includes("inválido");
+
     return NextResponse.json(
       {
         sucesso: false,
@@ -253,7 +261,9 @@ export async function POST(
         status:
           conflito
             ? 409
-            : 500,
+            : invalido
+              ? 400
+              : 500,
       }
     );
   }

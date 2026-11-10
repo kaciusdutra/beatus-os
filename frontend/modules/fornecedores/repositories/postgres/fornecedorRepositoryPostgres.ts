@@ -146,6 +146,10 @@ export class FornecedorRepositoryPostgres
             fornecedor.observacao ??
             null,
 
+          destinoPadrao:
+            fornecedor.destinoPadrao ??
+            null,
+
           ativo:
             fornecedor.ativo,
 
@@ -318,6 +322,10 @@ export class FornecedorRepositoryPostgres
 
           observacao:
             fornecedor.observacao ??
+            null,
+
+          destinoPadrao:
+            fornecedor.destinoPadrao ??
             null,
 
           ativo:

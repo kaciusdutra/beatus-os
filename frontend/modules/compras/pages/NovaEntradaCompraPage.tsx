@@ -14,6 +14,7 @@ import {
   type InterpretacaoQrNfce,
 } from "@/modules/compras/services/documentos/interpretarQrNfce";
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
+import { cnpjValido } from "@/modules/fornecedores/domain/documentoFornecedor";
 
 type TipoDocumento =
   | "NOTA_FISCAL"
@@ -299,6 +300,71 @@ export default function NovaEntradaCompraPage() {
         ),
     }));
   }, []);
+
+  // Recarrega os fornecedores depois de um cadastro feito em outra aba
+  // e, se veio de um QR, seleciona o fornecedor que acabou de ser cadastrado.
+  async function atualizarListaFornecedores() {
+    try {
+      setCarregandoFornecedores(true);
+      setErro("");
+
+      const resposta = await fetch(
+        "/api/fornecedores",
+        { cache: "no-store" }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados?.sucesso) {
+        throw new Error(
+          dados?.mensagem ??
+            "Não foi possível carregar os fornecedores."
+        );
+      }
+
+      const ativos: Fornecedor[] = (
+        dados.fornecedores ?? []
+      ).filter(
+        (fornecedor: Fornecedor) =>
+          fornecedor.ativo
+      );
+
+      setFornecedores(ativos);
+
+      const documentoQr =
+        interpretacaoQr?.ehNfce
+          ? interpretacaoQr.dadosChave
+              ?.documentoEmitente
+          : undefined;
+
+      if (documentoQr && !fornecedorDoQr) {
+        const encontrado =
+          encontrarFornecedorPorDocumento(
+            ativos,
+            documentoQr
+          );
+
+        if (encontrado) {
+          setFornecedorDoQr(encontrado);
+
+          setFormulario((anterior) => ({
+            ...anterior,
+            fornecedorId:
+              anterior.fornecedorId ||
+              encontrado.id,
+          }));
+        }
+      }
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Erro ao carregar os fornecedores."
+      );
+    } finally {
+      setCarregandoFornecedores(false);
+    }
+  }
 
   useEffect(() => {
     async function carregarFornecedores() {
@@ -1148,7 +1214,23 @@ export default function NovaEntradaCompraPage() {
                             )}{" "}
                             não está cadastrado.
                             Cadastre o fornecedor ou
-                            selecione manualmente.
+                            selecione manualmente.{" "}
+                            <a
+                              href={
+                                cnpjValido(
+                                  interpretacaoQr
+                                    .dadosChave
+                                    .documentoEmitente
+                                )
+                                  ? `/compras/fornecedores?cnpj=${interpretacaoQr.dadosChave.documentoEmitente}`
+                                  : "/compras/fornecedores"
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline underline-offset-2 hover:text-amber-900"
+                            >
+                              Cadastrar este fornecedor
+                            </a>
                           </p>
                         )}
 
@@ -1204,9 +1286,36 @@ export default function NovaEntradaCompraPage() {
 
             <div className="grid gap-5 p-6 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Fornecedor *
-                </label>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Fornecedor *
+                  </label>
+
+                  <div className="flex items-center gap-4 text-sm font-semibold">
+                    <a
+                      href="/compras/fornecedores"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-600 hover:text-slate-900"
+                    >
+                      + Cadastrar fornecedor
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void atualizarListaFornecedores()
+                      }
+                      disabled={
+                        carregandoFornecedores ||
+                        salvando
+                      }
+                      className="cursor-pointer text-slate-600 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      ↻ Atualizar lista
+                    </button>
+                  </div>
+                </div>
 
                 <select
                   value={
