@@ -1,4 +1,8 @@
 import {
+  converterQuantidade,
+} from "./conversaoUnidade";
+
+import {
   FichaTecnica,
   FichaTecnicaItem,
 } from "../types/fichaTecnica";
@@ -97,8 +101,17 @@ export function calcularCustoPreparacao(
           novoCaminho
         );
 
+      // A quantidade do item pode estar em outra unidade da família
+      // (0,16 kg de uma preparação que rende em g).
+      const quantidade =
+        converterQuantidade(
+          item.quantidade,
+          item.unidade,
+          resultado.unidadeRendimento
+        );
+
       custoTotal +=
-        item.quantidade *
+        quantidade *
         resultado.custoPorUnidade;
 
       continue;

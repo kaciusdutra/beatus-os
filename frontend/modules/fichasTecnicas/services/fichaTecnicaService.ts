@@ -53,6 +53,25 @@ function validarFicha(
     );
   }
 
+  // Preparação precisa de rendimento: é com ele que se calcula o custo por grama.
+  if (ficha.tipo === "PREPARACAO") {
+    if (
+      ficha.rendimento === undefined ||
+      !(ficha.rendimento > 0)
+    ) {
+      throw new Error(
+        "Informe o rendimento da preparação (maior que zero)."
+      );
+    }
+
+    if (!ficha.unidadeRendimento?.trim()) {
+      throw new Error(
+        "Informe a unidade do rendimento da preparação."
+      );
+    }
+  }
+
+
   const referencias = new Set<string>();
 
   for (const item of ficha.itens) {
@@ -70,6 +89,13 @@ function validarFicha(
         "A quantidade do item deve ser maior que zero."
       );
     }
+
+    if (!item.unidade?.trim()) {
+      throw new Error(
+        "Informe a unidade de todos os itens."
+      );
+    }
+
 
     if (
       item.percentualPerda < 0 ||
@@ -141,6 +167,10 @@ export class FichaTecnicaService {
     private readonly insumoRepository:
       InsumoRepositoryPort
   ) {}
+
+  async listar(): Promise<FichaTecnica[]> {
+    return this.repository.listar();
+  }
 
   async buscarPorId(
     id: string
@@ -214,6 +244,18 @@ export class FichaTecnicaService {
             "Uma ficha técnica não pode utilizar a si mesma como preparação."
           );
         }
+
+        // Preparação entra em produto, e produto entra em combo; a
+        // preparação não usa ficha de produto.
+        if (
+          ficha.tipo === "PREPARACAO" &&
+          preparacao.tipo === "PRODUTO"
+        ) {
+          throw new Error(
+            `A preparação "${ficha.nome}" não pode usar a ficha do produto "${preparacao.nome}".`
+          );
+        }
+
       }
     }
   }
@@ -264,6 +306,19 @@ export class FichaTecnicaService {
 ): Promise<FichaTecnica> {
   const fichaValidada =
     validarFicha(ficha);
+
+  // Um produto tem uma única ficha técnica.
+  if (
+    fichaValidada.tipo === "PRODUTO" &&
+    fichaValidada.produtoId &&
+    (await this.repository.buscarPorProdutoId(
+      fichaValidada.produtoId
+    ))
+  ) {
+    throw new Error(
+      "Este produto já tem ficha técnica."
+    );
+  }
 
   await this.validarReferencias(
     fichaValidada

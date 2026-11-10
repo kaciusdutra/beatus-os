@@ -600,6 +600,13 @@ export default function InsumosPage() {
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
+            href="/fichas"
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Fichas técnicas
+          </Link>
+
+          <Link
             href="/insumos/vinculos"
             className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >

@@ -1,6 +1,9 @@
 import { FichaTecnica } from "../types/fichaTecnica";
 
 export interface FichaTecnicaRepositoryPort {
+  listar(): Promise<FichaTecnica[]>;
+
+
   buscarPorId(
     id: string
   ): Promise<FichaTecnica | undefined>;

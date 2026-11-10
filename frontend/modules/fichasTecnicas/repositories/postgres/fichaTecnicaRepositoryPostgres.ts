@@ -146,6 +146,28 @@ export class FichaTecnicaRepositoryPostgres
   ) {}
 
 
+  async listar(): Promise<FichaTecnica[]> {
+    const fichas =
+      await prisma.fichaTecnica.findMany({
+        where: {
+          empresaId:
+            this.contexto.empresaId,
+        },
+
+        include: {
+          itens: true,
+        },
+
+        orderBy: {
+          nome: "asc",
+        },
+      });
+
+    return fichas.map(
+      mapearFichaTecnica
+    );
+  }
+
   async buscarPorId(
     id: string
   ): Promise<FichaTecnica | undefined> {
