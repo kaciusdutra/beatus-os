@@ -9,7 +9,8 @@
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
 - **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
-- **Próximo passo:** **G08** (fichas e custo automático), e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
+- **G08 (fichas, custo automático e precificação):** plano aprovado em 12/11/2026 (regras 7.5 e 7.12 a 7.16). Bloco **8A** (vínculo item da compra → insumo) concluído (commit `8576697`). Seguem 8B (unidades e peso, migração), 8C (custo automático e histórico de preços, migração), 8D (fichas técnicas e a fórmula da perda) e 8E a 8G (precificação).
+- **Próximo passo:** terminar a **G08**, e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
 
 ## Ambiente
 
@@ -24,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 12/11/2026 | `8576697` | G08 8A: tela "Itens de compras" em Insumos liga cada item do fornecedor ao insumo, uma única vez; as compras seguintes já nascem ligadas; regras 7.5 e 7.12 a 7.16 |
 | 12/11/2026 | `3483b9e` | G07 7F: leitura dos itens por foto com IA (Claude, SDK `@anthropic-ai/sdk`) para nota, cupom e recibo manuscrito; itens em amarelo para conferir, avisos de soma e de CPF/CNPJ, fornecedor achado pelo documento ou sugerido pelo nome, cadastro com os dados lidos, tokens e custo por leitura; sem a chave, a leitura fica "não configurada"; regras 9.22 a 9.24 |
 | 11/11/2026 | `f77d31c` | G07 7E: inscrição estadual e endereço do fornecedor (migração aditiva); busca do endereço pelo CEP (rota `/api/cep/[cep]`, compartilhada); endereço também vindo da busca pelo CNPJ; botão "Cadastrar com os dados da nota" na nova entrada; regra 9.21 |
 | 11/11/2026 | `2c9eb0e` | G07 7D: importação do XML da NF-e/NFC-e na nova entrada (documento, fornecedor pelo CNPJ, itens com lote e validade, frete; XML anexado como documento original); avisos de XML sem autorização e de diferença no total por ICMS-ST, IPI, seguro e outras despesas; a mesma nota (chave de acesso) não entra duas vezes; regras 9.18 a 9.20 |
