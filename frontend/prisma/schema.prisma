@@ -135,6 +135,10 @@ model EntradaCompraItem {
   quantidadeConvertida Decimal? @db.Decimal(14, 4)
   unidadeConvertida    String?
 
+  // Quantidade real informada na entrada (ex.: 6,8 kg de 3 mantas). Tem prioridade no custo.
+  quantidadeReal Decimal? @db.Decimal(14, 4)
+  unidadeReal    String?
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
@@ -160,6 +164,10 @@ model ClassificacaoItemCompra {
 
   destino  String
   insumoId String?
+
+  // Fator fixo lembrado: 1 unidade do item = fatorQuantidade fatorUnidade (ex.: 1 cx = 12 un).
+  fatorQuantidade Decimal? @db.Decimal(14, 4)
+  fatorUnidade    String?
 
   vezesUsada Int @default(1)
 

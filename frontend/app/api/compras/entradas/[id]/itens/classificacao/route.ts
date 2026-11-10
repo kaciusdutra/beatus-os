@@ -126,6 +126,19 @@ export async function PATCH(
             item.destino
               ? (item.destino as DestinoItemCompra)
               : null,
+          quantidadeReal:
+            item?.quantidadeReal === null
+              ? null
+              : typeof item?.quantidadeReal === "number"
+                ? item.quantidadeReal
+                : undefined,
+          unidadeReal:
+            item?.unidadeReal === null
+              ? null
+              : typeof item?.unidadeReal === "string"
+                ? item.unidadeReal
+                : undefined,
+          lembrarFator: item?.lembrarFator === true,
         })
       );
 

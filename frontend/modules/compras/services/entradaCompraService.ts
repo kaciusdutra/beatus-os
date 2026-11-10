@@ -975,6 +975,27 @@ export class EntradaCompraService {
     const dataCompra =
       entrada.dataDocumento ?? entrada.dataEntrada;
 
+    // Fator lembrado do fornecedor para os itens que não têm peso real.
+    const memoriaPorChave = new Map(
+      (
+        await this.repository.buscarMemoriasClassificacao(
+          entrada.fornecedorId,
+          [
+            ...new Set(
+              itens.map((item) =>
+                normalizarDescricaoItemCompra(
+                  item.descricaoOriginal
+                )
+              )
+            ),
+          ]
+        )
+      ).map((memoria) => [
+        memoria.descricaoNormalizada,
+        memoria,
+      ])
+    );
+
     for (const item of itens) {
       if (jaRegistrados.has(item.id) || !item.insumoId) {
         continue;
@@ -999,6 +1020,14 @@ export class EntradaCompraService {
             quantidade: item.quantidade,
             unidade: item.unidade,
             valorTotal: item.valorTotal,
+            quantidadeReal: item.quantidadeReal,
+            unidadeReal: item.unidadeReal,
+            fatorQuantidade: memoriaPorChave.get(
+              normalizarDescricaoItemCompra(item.descricaoOriginal)
+            )?.fatorQuantidade,
+            fatorUnidade: memoriaPorChave.get(
+              normalizarDescricaoItemCompra(item.descricaoOriginal)
+            )?.fatorUnidade,
           },
           {
             unidadeCompra: insumo.unidadeCompraAbreviacao,
@@ -1343,16 +1372,80 @@ export class EntradaCompraService {
           "Destino do item inválido."
         );
       }
+
+      const temQuantidade =
+        item.quantidadeReal !== undefined &&
+        item.quantidadeReal !== null;
+
+      const temUnidade = Boolean(item.unidadeReal?.trim());
+
+      if (temQuantidade !== temUnidade) {
+        throw new Error(
+          "Informe a quantidade real e a unidade juntas."
+        );
+      }
+
+      if (
+        temQuantidade &&
+        (!Number.isFinite(item.quantidadeReal) ||
+          (item.quantidadeReal as number) <= 0)
+      ) {
+        throw new Error(
+          "A quantidade real deve ser maior que zero."
+        );
+      }
+
+      if (item.lembrarFator && (!temQuantidade || !item.destino)) {
+        throw new Error(
+          "Para lembrar o fator, informe a quantidade real com a unidade e o destino do item."
+        );
+      }
     }
 
     // Regra 9.9: na entrada, o item recebe só o destino.
-    return this.repository.classificarItens(
+    const resultado = await this.repository.classificarItens(
       entradaId,
       itens.map((item) => ({
         itemId: item.itemId,
         destino: item.destino,
+        quantidadeReal: item.quantidadeReal,
+        unidadeReal:
+          item.quantidadeReal === null ? null : item.unidadeReal?.trim(),
       }))
     );
+
+    // Fator fixo: 1 unidade do item = quantidade real / quantidade da nota.
+    for (const entrada of itens) {
+      if (!entrada.lembrarFator || !entrada.destino) {
+        continue;
+      }
+
+      const item = existente.itens.find(
+        (candidato) => candidato.id === entrada.itemId
+      );
+
+      const chave = item
+        ? normalizarDescricaoItemCompra(item.descricaoOriginal)
+        : "";
+
+      if (!item || !chave || !(item.quantidade > 0)) {
+        continue;
+      }
+
+      await this.repository.salvarFatorMemoria({
+        fornecedorId: existente.fornecedorId,
+        descricaoNormalizada: chave,
+        destino: entrada.destino,
+        fatorQuantidade:
+          Math.round(
+            ((entrada.quantidadeReal as number) / item.quantidade) *
+              10000
+          ) / 10000,
+        fatorUnidade: (entrada.unidadeReal as string).trim(),
+      });
+    }
+
+    return resultado;
   }
 
   // Regra 9.13: diz, para cada item, se ele já é conhecido do fornecedor
@@ -1429,6 +1522,13 @@ export class EntradaCompraService {
           chave,
           conhecido: Boolean(memoria),
         };
+
+      if (memoria?.fatorQuantidade && memoria.fatorUnidade) {
+        identificacao.fator = {
+          quantidade: memoria.fatorQuantidade,
+          unidade: memoria.fatorUnidade,
+        };
+      }
 
       if (!item.destino) {
         if (memoria) {

@@ -1,3 +1,7 @@
+import type {
+  DestinoItemCompra,
+} from "../domain/destinoItemCompra";
+
 import {
   ClassificacaoItemInput,
   EntradaCompra,
@@ -88,6 +92,33 @@ class EntradaCompraRepositoryFake
     return this.historico.filter((registro) =>
       itemIds.includes(registro.entradaCompraItemId)
     );
+  }
+
+  async salvarFatorMemoria(memoria: {
+    fornecedorId: string;
+    descricaoNormalizada: string;
+    destino: DestinoItemCompra;
+    fatorQuantidade: number;
+    fatorUnidade: string;
+  }): Promise<void> {
+    const existente = this.memorias.find(
+      (item) =>
+        item.fornecedorId === memoria.fornecedorId &&
+        item.descricaoNormalizada === memoria.descricaoNormalizada
+    );
+
+    if (existente) {
+      existente.fatorQuantidade = memoria.fatorQuantidade;
+      existente.fatorUnidade = memoria.fatorUnidade;
+
+      return;
+    }
+
+    this.memorias.push({
+      ...memoria,
+      id: crypto.randomUUID(),
+      vezesUsada: 0,
+    });
   }
 
   async atualizarCustoAnteriorHistorico(
@@ -187,6 +218,18 @@ class EntradaCompraRepositoryFake
             ...item,
             destino:
               classificacao.destino ?? undefined,
+            ...(classificacao.quantidadeReal !== undefined
+              ? {
+                  quantidadeReal:
+                    classificacao.quantidadeReal ?? undefined,
+                }
+              : {}),
+            ...(classificacao.unidadeReal !== undefined
+              ? {
+                  unidadeReal:
+                    classificacao.unidadeReal ?? undefined,
+                }
+              : {}),
           }
         : item;
     });
@@ -983,6 +1026,182 @@ async function testarCustoAutomatico() {
   }
 
   console.log("✅ Custo automático (8C) passou.");
+}
+
+// Peso real na entrada (regra 7.14): quantidade real e fator lembrado.
+async function testarPesoReal() {
+  const fornecedor = criarFornecedor();
+
+  const entradaRepository = new EntradaCompraRepositoryFake();
+
+  const insumoKg: Insumo = {
+    ...criarInsumo("insumo-peso-kg"),
+    unidadeCompraAbreviacao: "kg",
+  };
+
+  const insumoUn: Insumo = {
+    ...criarInsumo("insumo-peso-un"),
+    unidadeCompraAbreviacao: "un",
+  };
+
+  const insumos = [insumoKg, insumoUn];
+const custoKg = (): number => insumos[0].custoUnitario;  const custoUn = (): number => insumos[1].custoUnitario;
+
+  const service = new EntradaCompraService(
+    entradaRepository,
+    new FornecedorRepositoryFake([fornecedor]),
+    new InsumoRepositoryFake(insumos)
+  );
+
+  async function comprar(
+    descricao: string,
+    quantidade: number,
+    unidade: string,
+    valorTotal: number,
+    insumoId: string,
+    extra?: Partial<ClassificacaoItemInput>
+  ) {
+    const entradaId = crypto.randomUUID();
+
+    const lancada = await service.criarEntradaCompra({
+      entrada: criarEntrada(fornecedor.id, {
+        id: entradaId,
+        numeroDocumento: `PR-${entradaId}`,
+        itens: [
+          criarItem(entradaId, {
+            descricaoOriginal: descricao,
+            quantidade,
+            unidade,
+            valorUnitario: valorTotal / quantidade,
+            valorTotal,
+          }),
+        ],
+        valorProdutos: valorTotal,
+        valorTotal,
+      }),
+    });
+
+    await service.classificarItens(entradaId, [
+      {
+        itemId: lancada.itens[0].id,
+        destino: "INSUMO",
+        ...extra,
+      },
+    ]);
+
+    await entradaRepository.vincularItensAoInsumo(
+      [lancada.itens[0].id],
+      insumoId
+    );
+
+    return service.confirmarEntradaCompra(entradaId);
+  }
+
+  // Manta sem peso: avisa e não muda o custo
+  const semPeso = await comprar(
+    "Bacon manta",
+    3,
+    "MANTA",
+    680,
+    insumoKg.id
+  );
+
+  if (custoKg() !== 10 || !semPeso.avisosCusto?.length) {
+    throw new Error("Falha peso real: manta sem peso devia avisar.");
+  }
+
+  // Manta com peso real: R$ 680 / 6,8 kg = R$ 100 o quilo
+  await comprar("Bacon manta", 3, "MANTA", 680, insumoKg.id, {
+    quantidadeReal: 6.8,
+    unidadeReal: "kg",
+  });
+
+  if (custoKg() !== 100) {
+    throw new Error("Falha peso real: custo não virou R$ 100 o quilo.");
+  }
+
+  // Fator lembrado: 1 cx = 12 un, R$ 24 a caixa => R$ 2 a unidade
+  const comFator = await comprar("Copo", 1, "CX", 24, insumoUn.id, {
+    quantidadeReal: 12,
+    unidadeReal: "un",
+    lembrarFator: true,
+  });
+
+  if (custoUn() !== 2 || comFator.status !== "CONFIRMADA") {
+    throw new Error("Falha peso real: 1 cx = 12 un não virou R$ 2.");
+  }
+
+  // Próxima compra, sem informar peso: o fator vale (2 cx = 24 un, R$ 60)
+  const proxima = await comprar("Copo", 2, "CX", 60, insumoUn.id);
+
+  if (custoUn() !== 2.5 || proxima.avisosCusto?.length) {
+    throw new Error("Falha peso real: o fator lembrado não foi usado.");
+  }
+
+  // A identificação mostra o fator lembrado
+  const rascunho = crypto.randomUUID();
+
+  await service.criarEntradaCompra({
+    entrada: criarEntrada(fornecedor.id, {
+      id: rascunho,
+      numeroDocumento: `PR-${rascunho}`,
+      itens: [
+        criarItem(rascunho, {
+          descricaoOriginal: "Copo",
+          quantidade: 1,
+          unidade: "CX",
+          valorUnitario: 30,
+          valorTotal: 30,
+        }),
+      ],
+      valorProdutos: 30,
+      valorTotal: 30,
+    }),
+  });
+
+  const identificacoes = await service.identificarItens(rascunho);
+
+  if (
+    identificacoes[0].fator?.quantidade !== 12 ||
+    identificacoes[0].fator.unidade !== "un"
+  ) {
+    throw new Error("Falha peso real: a identificação não trouxe o fator.");
+  }
+
+  // Quantidade sem unidade, quantidade zero e lembrar sem peso são recusados
+  const itemRascunho = (await entradaRepository.buscarPorId(rascunho))!
+    .itens[0].id;
+
+  await esperarErro(
+    () =>
+      service.classificarItens(rascunho, [
+        { itemId: itemRascunho, destino: "INSUMO", quantidadeReal: 5 },
+      ]),
+    "Informe a quantidade real e a unidade juntas."
+  );
+
+  await esperarErro(
+    () =>
+      service.classificarItens(rascunho, [
+        {
+          itemId: itemRascunho,
+          destino: "INSUMO",
+          quantidadeReal: 0,
+          unidadeReal: "kg",
+        },
+      ]),
+    "A quantidade real deve ser maior que zero."
+  );
+
+  await esperarErro(
+    () =>
+      service.classificarItens(rascunho, [
+        { itemId: itemRascunho, destino: "INSUMO", lembrarFator: true },
+      ]),
+    "Para lembrar o fator, informe a quantidade real com a unidade e o destino do item."
+  );
+
+  console.log("✅ Peso real na entrada passou.");
 }
 
 async function executarTestes() {
@@ -2058,6 +2277,8 @@ async function executarTestes() {
   }
 
   await testarCustoAutomatico();
+
+  await testarPesoReal();
 
   console.log(
     "✅ Todos os testes do EntradaCompraService passaram."

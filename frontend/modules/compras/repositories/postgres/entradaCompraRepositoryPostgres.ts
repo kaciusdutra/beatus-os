@@ -39,6 +39,8 @@ function mapearMemoria(memoria: {
   descricaoNormalizada: string;
   destino: string;
   insumoId: string | null;
+  fatorQuantidade?: unknown;
+  fatorUnidade?: string | null;
   vezesUsada: number;
 }): MemoriaClassificacaoRegistro {
   return {
@@ -49,6 +51,12 @@ function mapearMemoria(memoria: {
     destino:
       memoria.destino as DestinoItemCompra,
     insumoId: memoria.insumoId ?? undefined,
+    fatorQuantidade:
+      memoria.fatorQuantidade !== null &&
+      memoria.fatorQuantidade !== undefined
+        ? Number(memoria.fatorQuantidade)
+        : undefined,
+    fatorUnidade: memoria.fatorUnidade ?? undefined,
     vezesUsada: memoria.vezesUsada,
   };
 }
@@ -71,6 +79,8 @@ function mapearItem(
     insumoId: string | null;
     quantidadeConvertida?: unknown;
     unidadeConvertida?: string | null;
+    quantidadeReal?: unknown;
+    unidadeReal?: string | null;
     criadoEm: Date;
     atualizadoEm: Date;
   }
@@ -133,6 +143,16 @@ function mapearItem(
 
     unidadeConvertida:
       item.unidadeConvertida ??
+      undefined,
+
+    quantidadeReal:
+      item.quantidadeReal !== null &&
+      item.quantidadeReal !== undefined
+        ? Number(item.quantidadeReal)
+        : undefined,
+
+    unidadeReal:
+      item.unidadeReal ??
       undefined,
 
     criadoEm:
@@ -240,6 +260,8 @@ function mapearEntrada(
       insumoId: string | null;
       quantidadeConvertida?: unknown;
       unidadeConvertida?: string | null;
+      quantidadeReal?: unknown;
+      unidadeReal?: string | null;
       criadoEm: Date;
       atualizadoEm: Date;
     }[];
@@ -1018,6 +1040,14 @@ export class EntradaCompraRepositoryPostgres
           },
           data: {
             destino: item.destino,
+
+            ...(item.quantidadeReal !== undefined
+              ? { quantidadeReal: item.quantidadeReal }
+              : {}),
+
+            ...(item.unidadeReal !== undefined
+              ? { unidadeReal: item.unidadeReal }
+              : {}),
           },
         })
       )
@@ -1068,6 +1098,12 @@ export class EntradaCompraRepositoryPostgres
           memoria.destino as DestinoItemCompra,
         insumoId:
           memoria.insumoId ?? undefined,
+        fatorQuantidade:
+          memoria.fatorQuantidade !== null
+            ? Number(memoria.fatorQuantidade)
+            : undefined,
+        fatorUnidade:
+          memoria.fatorUnidade ?? undefined,
       }));
   }
 
@@ -1297,6 +1333,40 @@ export class EntradaCompraRepositoryPostgres
     await prisma.historicoPrecoInsumo.updateMany({
       where: { id, empresaId: this.contexto.empresaId },
       data: { custoAnterior },
+    });
+  }
+
+  // Lembra "1 unidade do item = N unidade" para as próximas compras do item.
+  async salvarFatorMemoria(memoria: {
+    fornecedorId: string;
+    descricaoNormalizada: string;
+    destino: DestinoItemCompra;
+    fatorQuantidade: number;
+    fatorUnidade: string;
+  }): Promise<void> {
+    const empresaId = this.contexto.empresaId;
+
+    await prisma.classificacaoItemCompra.upsert({
+      where: {
+        empresaId_fornecedorId_descricaoNormalizada: {
+          empresaId,
+          fornecedorId: memoria.fornecedorId,
+          descricaoNormalizada: memoria.descricaoNormalizada,
+        },
+      },
+      create: {
+        empresaId,
+        fornecedorId: memoria.fornecedorId,
+        descricaoNormalizada: memoria.descricaoNormalizada,
+        destino: memoria.destino,
+        fatorQuantidade: memoria.fatorQuantidade,
+        fatorUnidade: memoria.fatorUnidade,
+        vezesUsada: 0,
+      },
+      update: {
+        fatorQuantidade: memoria.fatorQuantidade,
+        fatorUnidade: memoria.fatorUnidade,
+      },
     });
   }
 }

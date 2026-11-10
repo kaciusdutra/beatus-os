@@ -54,6 +54,11 @@ export interface EntradaCompraItem {
 
   unidadeConvertida?: string;
 
+  // Quantidade real informada na entrada (ex.: 6,8 kg de 3 mantas). Tem prioridade no custo.
+  quantidadeReal?: number;
+
+  unidadeReal?: string;
+
   criadoEm: string;
 
   atualizadoEm: string;
@@ -64,6 +69,14 @@ export interface ClassificacaoItemInput {
 
   // null limpa a classificação do item.
   destino: DestinoItemCompra | null;
+
+  // Peso real (bloco do peso real): undefined não mexe; null limpa.
+  quantidadeReal?: number | null;
+
+  unidadeReal?: string | null;
+
+  // true = lembrar "1 unidade do item = quantidadeReal/quantidade unidadeReal".
+  lembrarFator?: boolean;
 }
 
 // Memória (regra 9.13): chave do item do fornecedor -> destino.
@@ -76,6 +89,11 @@ export interface MemoriaClassificacaoItemCompra {
 
   // Insumo ligado a este item do fornecedor (bloco 8A); vazio = ainda sem insumo.
   insumoId?: string;
+
+  // Fator fixo lembrado: 1 unidade do item = fatorQuantidade fatorUnidade.
+  fatorQuantidade?: number;
+
+  fatorUnidade?: string;
 }
 
 // Registro da memória como está no banco (usado na tela de vínculos).
@@ -139,6 +157,12 @@ export interface IdentificacaoItemCompra {
   destinoSugerido?: DestinoItemCompra;
 
   origem?: OrigemSugestaoClassificacao;
+
+  // Fator fixo lembrado para este item do fornecedor.
+  fator?: {
+    quantidade: number;
+    unidade: string;
+  };
 }
 
 export interface EntradaCompra {

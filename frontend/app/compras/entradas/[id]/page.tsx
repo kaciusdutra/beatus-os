@@ -29,6 +29,60 @@ const ROTULO_SUGESTAO: Record<
   PADRAO_FORNECEDOR: "Destino padrão do fornecedor",
 };
 
+// Peso real informado na entrada (regra 7.14), por item.
+interface PesoRealTela {
+  quantidade: string;
+  unidade: string;
+  lembrar: boolean;
+  // Veio do fator lembrado do fornecedor e ainda não foi salvo.
+  sugerido?: boolean;
+}
+
+function montarPesoReal(
+  entrada: EntradaCompra,
+  identificacoes: IdentificacaoItemCompra[] = [],
+): Record<string, PesoRealTela> {
+  const resultado: Record<string, PesoRealTela> = {};
+
+  for (const item of entrada.itens) {
+    const fator = identificacoes.find(
+      (i) => i.itemId === item.id,
+    )?.fator;
+
+    if (
+      item.quantidadeReal !== undefined &&
+      item.unidadeReal
+    ) {
+      resultado[item.id] = {
+        quantidade: String(item.quantidadeReal).replace(
+          ".",
+          ",",
+        ),
+        unidade: item.unidadeReal,
+        lembrar: false,
+      };
+    } else if (fator) {
+      resultado[item.id] = {
+        quantidade: String(
+          Math.round(item.quantidade * fator.quantidade * 10000) /
+            10000,
+        ).replace(".", ","),
+        unidade: fator.unidade,
+        lembrar: false,
+        sugerido: true,
+      };
+    } else {
+      resultado[item.id] = {
+        quantidade: "",
+        unidade: "",
+        lembrar: false,
+      };
+    }
+  }
+
+  return resultado;
+}
+
 function montarClassificacao(
   entrada: EntradaCompra,
   identificacoes: IdentificacaoItemCompra[] = [],
@@ -186,6 +240,30 @@ export default function EntradaCompraPage({
     useState(false);
   const [salvandoClassificacao, setSalvandoClassificacao] =
     useState(false);
+  const [pesoReal, setPesoReal] = useState<
+    Record<string, PesoRealTela>
+  >({});
+
+  function alterarPesoReal(
+    itemId: string,
+    parcial: Partial<PesoRealTela>,
+  ) {
+    setPesoReal((atual) => ({
+      ...atual,
+      [itemId]: {
+        ...(atual[itemId] ?? {
+          quantidade: "",
+          unidade: "",
+          lembrar: false,
+        }),
+        ...parcial,
+        sugerido: false,
+      },
+    }));
+
+    setClassificacaoAlterada(true);
+    setMensagem(null);
+  }
 
   useEffect(() => {
     let ativo = true;
@@ -284,12 +362,22 @@ export default function EntradaCompraPage({
 
         setClassificacao(classificacaoInicial);
 
+        const pesoInicial = montarPesoReal(
+          dados.entrada,
+          identificadas,
+        );
+
+        setPesoReal(pesoInicial);
+
         // Sugestões de rascunho ainda precisam ser salvas.
         setClassificacaoAlterada(
           dados.entrada.status === "RASCUNHO" &&
-            Object.values(classificacaoInicial).some(
+            (Object.values(classificacaoInicial).some(
               (c) => c.sugestao,
-            ),
+            ) ||
+              Object.values(pesoInicial).some(
+                (peso) => peso.sugerido,
+              )),
         );
       } catch (error) {
         if (!ativo) {
@@ -425,11 +513,34 @@ export default function EntradaCompraPage({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            itens: entrada.itens.map((item) => ({
-              itemId: item.id,
-              destino:
-                classificacao[item.id]?.destino || null,
-            })),
+            itens: entrada.itens.map((item) => {
+              const destino =
+                classificacao[item.id]?.destino || null;
+
+              const peso = pesoReal[item.id];
+
+              const usaPeso =
+                (destino === "INSUMO" ||
+                  destino === "EMBALAGEM") &&
+                peso &&
+                peso.quantidade.trim() !== "";
+
+              return {
+                itemId: item.id,
+                destino,
+                quantidadeReal: usaPeso
+                  ? Number(
+                      peso.quantidade.replace(",", "."),
+                    )
+                  : null,
+                unidadeReal: usaPeso
+                  ? peso.unidade.trim() || null
+                  : null,
+                lembrarFator: Boolean(
+                  usaPeso && peso.lembrar,
+                ),
+              };
+            }),
           }),
         },
       );
@@ -447,6 +558,7 @@ export default function EntradaCompraPage({
       setClassificacao(
         montarClassificacao(dados.entrada),
       );
+      setPesoReal(montarPesoReal(dados.entrada));
       setClassificacaoAlterada(false);
       setMensagem("Classificação salva.");
     } catch (error) {
@@ -892,13 +1004,119 @@ export default function EntradaCompraPage({
                               }
                             </p>
                           )}
+                          {(classificacao[item.id]?.destino ===
+                            "INSUMO" ||
+                            classificacao[item.id]?.destino ===
+                              "EMBALAGEM") && (
+                            <div className="mt-2 space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                              <p className="text-xs font-semibold text-slate-600">
+                                Quantidade real (opcional)
+                              </p>
+
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  aria-label={`Quantidade real de ${item.descricaoOriginal}`}
+                                  value={
+                                    pesoReal[item.id]
+                                      ?.quantidade ?? ""
+                                  }
+                                  onChange={(evento) =>
+                                    alterarPesoReal(item.id, {
+                                      quantidade:
+                                        evento.target.value,
+                                    })
+                                  }
+                                  placeholder="Ex.: 6,8"
+                                  disabled={
+                                    salvandoClassificacao ||
+                                    processando
+                                  }
+                                  className="w-24 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-slate-500"
+                                />
+
+                                <input
+                                  list={`unidades-${item.id}`}
+                                  aria-label={`Unidade da quantidade real de ${item.descricaoOriginal}`}
+                                  value={
+                                    pesoReal[item.id]?.unidade ??
+                                    ""
+                                  }
+                                  onChange={(evento) =>
+                                    alterarPesoReal(item.id, {
+                                      unidade:
+                                        evento.target.value,
+                                    })
+                                  }
+                                  placeholder="kg"
+                                  disabled={
+                                    salvandoClassificacao ||
+                                    processando
+                                  }
+                                  className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-slate-500"
+                                />
+
+                                <datalist
+                                  id={`unidades-${item.id}`}
+                                >
+                                  {["kg", "g", "L", "ml", "un"].map(
+                                    (unidade) => (
+                                      <option
+                                        key={unidade}
+                                        value={unidade}
+                                      />
+                                    ),
+                                  )}
+                                </datalist>
+                              </div>
+
+                              <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    pesoReal[item.id]?.lembrar ??
+                                    false
+                                  }
+                                  onChange={(evento) =>
+                                    alterarPesoReal(item.id, {
+                                      lembrar:
+                                        evento.target.checked,
+                                    })
+                                  }
+                                  className="cursor-pointer"
+                                />
+                                Lembrar como fixo para este item
+                              </label>
+
+                              {pesoReal[item.id]?.sugerido && (
+                                <p className="text-xs font-medium text-sky-700">
+                                  Fator lembrado das compras
+                                  anteriores
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <span className="font-medium text-slate-800">
-                          {rotuloDestinoItemCompra(
-                            item.destino,
-                          )}
-                        </span>
+                        <>
+                          <span className="font-medium text-slate-800">
+                            {rotuloDestinoItemCompra(
+                              item.destino,
+                            )}
+                          </span>
+
+                          {item.quantidadeReal !== undefined &&
+                            item.unidadeReal && (
+                              <p className="mt-1 text-xs text-slate-500">
+                                Quantidade real:{" "}
+                                {formatarNumero(
+                                  item.quantidadeReal,
+                                )}{" "}
+                                {item.unidadeReal}
+                              </p>
+                            )}
+                        </>
                       )}
                     </td>
                     <td className="px-5 py-3 text-right text-slate-700">

@@ -1,3 +1,7 @@
+import type {
+  DestinoItemCompra,
+} from "../domain/destinoItemCompra";
+
 import {
   ClassificacaoItemInput,
   EntradaCompra,
@@ -112,4 +116,13 @@ export interface EntradaCompraRepositoryPort {
     id: string,
     custoAnterior: number
   ): Promise<void>;
+
+  // Lembra "1 unidade do item = N unidade" por fornecedor e item.
+  salvarFatorMemoria(memoria: {
+    fornecedorId: string;
+    descricaoNormalizada: string;
+    destino: DestinoItemCompra;
+    fatorQuantidade: number;
+    fatorUnidade: string;
+  }): Promise<void>;
 }

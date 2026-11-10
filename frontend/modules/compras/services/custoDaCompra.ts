@@ -11,6 +11,14 @@ export interface ItemParaCusto {
   // Valor pago pelo item, já com o desconto do item. Frete e impostos
   // da nota ficam fora.
   valorTotal: number;
+
+  // Peso real informado na entrada: tem prioridade sobre tudo.
+  quantidadeReal?: number;
+  unidadeReal?: string;
+
+  // Fator lembrado do fornecedor: 1 unidade do item = N unidade.
+  fatorQuantidade?: number;
+  fatorUnidade?: string;
 }
 
 export interface InsumoParaCusto {
@@ -58,9 +66,29 @@ export function calcularCustoDaCompra(
     };
   }
 
+  // Prioridade: quantidade real informada, fator lembrado, quantidade da nota.
+  let quantidadeBase = item.quantidade;
+  let unidadeBase = item.unidade;
+
+  if (
+    item.quantidadeReal !== undefined &&
+    item.quantidadeReal > 0 &&
+    item.unidadeReal?.trim()
+  ) {
+    quantidadeBase = item.quantidadeReal;
+    unidadeBase = item.unidadeReal;
+  } else if (
+    item.fatorQuantidade !== undefined &&
+    item.fatorQuantidade > 0 &&
+    item.fatorUnidade?.trim()
+  ) {
+    quantidadeBase = item.quantidade * item.fatorQuantidade;
+    unidadeBase = item.fatorUnidade;
+  }
+
   let quantidadeConvertida = converterSeCompativel(
-    item.quantidade,
-    item.unidade,
+    quantidadeBase,
+    unidadeBase,
     insumo.unidadeCompra
   );
 
@@ -71,8 +99,8 @@ export function calcularCustoDaCompra(
     insumo.equivalenciaUnidade?.trim()
   ) {
     const naEquivalencia = converterSeCompativel(
-      item.quantidade,
-      item.unidade,
+      quantidadeBase,
+      unidadeBase,
       insumo.equivalenciaUnidade
     );
 
@@ -88,7 +116,7 @@ export function calcularCustoDaCompra(
   ) {
     return {
       ok: false,
-      motivo: `A unidade do item (${item.unidade}) não converte para a unidade do insumo (${insumo.unidadeCompra}). Cadastre a equivalência no insumo.`,
+      motivo: `A unidade do item (${unidadeBase}) não converte para a unidade do insumo (${insumo.unidadeCompra}). Cadastre a equivalência no insumo.`,
     };
   }
 
