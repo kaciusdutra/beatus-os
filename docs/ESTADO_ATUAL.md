@@ -1,13 +1,13 @@
 # Beatus OS: Estado Atual
 
-> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 10/11/2026.
+> Atualizado ao fim de cada bloco (definição de pronto do `docs/PLANO_DE_SPRINTS.md`). Última atualização: 11/11/2026.
 
 ## Onde estamos
 
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
-- **Bloco concluído:** 7C, cadastro de fornecedores com busca dos dados pelo CNPJ (commit `274f1a7`). Antes dele, a 7B (commit `126ea63`) e a 7A (commit `43ce3f8`).
-- **Próximo bloco:** 7D, a definir com o Kacius entre a importação do XML da NF-e (com endereço e inscrição estadual do fornecedor, que exigem migração) e a leitura dos itens pela foto.
+- **Bloco concluído:** 7D, importação do XML da NF-e e bloqueio de nota em duplicidade (commit `2c9eb0e`). Antes dele, a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
+- **Próximo bloco:** a definir com o Kacius entre o 7E (endereço e inscrição estadual do fornecedor, que exigem migração, e "Cadastrar com os dados da nota") e a leitura dos itens pela foto.
 
 ## Ambiente
 
@@ -22,6 +22,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 11/11/2026 | `2c9eb0e` | G07 7D: importação do XML da NF-e/NFC-e na nova entrada (documento, fornecedor pelo CNPJ, itens com lote e validade, frete; XML anexado como documento original); avisos de XML sem autorização e de diferença no total por ICMS-ST, IPI, seguro e outras despesas; a mesma nota (chave de acesso) não entra duas vezes; regras 9.18 a 9.20 |
 | 10/11/2026 | `274f1a7` | G07 7C: tela de fornecedores em Compras (CNPJ ou CPF, busca dos dados pelo CNPJ na Receita via BrasilAPI, dígitos conferidos, destino padrão, inativar e reativar sem excluir); atalhos "Cadastrar este fornecedor" e "Atualizar lista" na nova entrada; regras 9.14 a 9.17 |
 | 06/11/2026 | `126ea63` | G07 7B: destino de cada item da entrada (Insumo, Embalagem, Limpeza e higiene, Expediente, Equipamento e utensílio, Serviço), obrigatório para confirmar; chave do item em caixa alta e etiqueta "Item já conhecido" ou "Item novo"; memória do destino por fornecedor, gravada na confirmação; ligação com o insumo fica para a G08; botão "Adicionar item" abaixo do último item; regras 9.8 a 9.13 |
 | 04/11/2026 | `43ce3f8` | G07 7A: nome do fornecedor na lista; card "Valor das entradas" sem as canceladas; tela de detalhe com fornecedor, itens, totais, documentos e botões Confirmar e Cancelar (com motivo); a nova entrada volta para a lista depois de salvar; série e chave de acesso só em nota fiscal; decisões de Compras registradas nas regras 9.8 a 9.12 |
