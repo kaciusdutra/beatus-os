@@ -30,7 +30,7 @@
 | G11 | Beatriz e inteligência | Não iniciada |
 | G12 | Homologação e produção | Não iniciada |
 
-O plano de endurecimento S1 a S6 (`docs/PLANO_DE_SPRINTS.md`) corre por cima deste mapa, como caminho crítico para a abertura. A S1 está concluída. A S5 (diagnóstico do legado, `docs/DIAGNOSTICO_LEGADO.md`) está escrita e aguarda a aprovação do Kacius; as decisões e o que migrar ou remover estão lá.
+O plano de endurecimento S1 a S6 (`docs/PLANO_DE_SPRINTS.md`) corre por cima deste mapa, como caminho crítico para a abertura. A S1 está concluída. A S5 (diagnóstico do legado, `docs/DIAGNOSTICO_LEGADO.md`) está concluída: código morto removido e dashboard marcado como demonstração em 12/11/2026; as migrações (telas Pedidos, Clientes e PDV, horários e checklist, login) seguem nas sprints indicadas lá.
 
 ---
 

@@ -2,6 +2,10 @@
 
 > Diagnóstico de 12/11/2026, **somente leitura**: nada foi alterado, movido nem apagado. Cada item traz uma **decisão proposta** (manter, migrar ou remover), que só vale depois da aprovação do Kacius. Segue a regra 10 do `AGENTS.md`: inconsistências são diagnosticadas e apresentadas antes de qualquer correção.
 
+## Decisões do Kacius (12/11/2026)
+
+O Kacius respondeu **sim** às 5 decisões da seção 6: remover o código morto (grupos A a G), migrar as telas Pedidos e Clientes nas sprints indicadas, marcar o dashboard como demonstração (escolhida a opção de marcar, não de esconder), manter o `?sim=` só para desenvolvimento e escrever testes de pedido e de clientes antes de migrar. **Executado em 12/11/2026:** grupos A a G removidos (checkpoint `checkpoint-antes-limpeza-legado`) e aviso de demonstração no dashboard. Pendentes: o `?sim=` restrito (S3) e as migrações (S2, G03, G04).
+
 ## 1. Resumo
 
 1. **O fluxo de pedidos está partido.** O PDV grava o pedido no PostgreSQL (`POST /api/pedidos`), mas a tela **Pedidos** só lê o `localStorage` do navegador, e não existe rota para listar pedidos. Resultado: pedido lançado no PDV não aparece na fila de Pedidos (a tela estava vazia no teste de hoje).

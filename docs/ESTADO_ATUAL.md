@@ -5,11 +5,11 @@
 ## Onde estamos
 
 - **Sprint global:** G07 (Compras e abastecimento) concluída em 12/11/2026. Pendentes externos: a chave da Anthropic (do Kacius) e a baixa automática da SEFAZ (depende do CNPJ e do certificado digital). O custo do insumo pela última compra ficou para a G08 (regra 7.12).
-- **Sprint em andamento:** S5, diagnóstico do código legado (só leitura). Resultado em `docs/DIAGNOSTICO_LEGADO.md`, aguardando a aprovação do Kacius.
+- **S5 (diagnóstico do código legado):** concluída. Resultado em `docs/DIAGNOSTICO_LEGADO.md`. O Kacius aprovou as 5 decisões; o código morto (grupos A a G) foi removido e o dashboard marcado como demonstração. As migrações das telas Pedidos, Clientes e PDV seguem nas sprints S2 e G03.
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
 - **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
-- **Próximo passo:** o Kacius revisa o diagnóstico (S5) e responde às 5 decisões da seção 6; depois, a **G08** (fichas e custo automático), e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
+- **Próximo passo:** **G08** (fichas e custo automático), e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
 
 ## Ambiente
 
