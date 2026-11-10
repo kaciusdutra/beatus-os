@@ -96,6 +96,7 @@
 9. Promoções só depois de analisar a margem. O sistema deve mostrar se uma promoção dá lucro ou prejuízo.
 10. A precificação conversa com o financeiro e considera a margem dos marketplaces.
 11. **iFood:** comissão de cerca de 25,2% mais R$ 150 por mês, tratada como custo de aquisição de clientes.
+12. **Custo do insumo = último preço pago por unidade de medida** (exemplo: o preço do quilo do bacon na última compra confirmada), seja ele maior ou menor que o anterior. A atualização é **automática** quando a entrada de compra é confirmada, e as fichas são recalculadas. O que importa é o preço do quilo, não o preço da peça: a manta de bacon pode variar de peso, mas o quilo é a base. O custo da porção é o preço do quilo vezes o peso da porção em quilos (exemplo: R$ 40,00 o quilo e porção de 30 g = R$ 1,20), considerando o percentual de perda da regra 5. *(decisão de 12/11/2026; fica para a G08)*
 
 ## 8. Operação
 
@@ -129,7 +130,7 @@
 8. A entrada só pode ser **confirmada** quando todos os itens tiverem destino. *(04/11/2026)*
 9. Na entrada da nota, cada item recebe **só o destino**. A ligação com o insumo cadastrado (usado nas fichas técnicas e receitas) é feita depois, no módulo de fichas, para que a tela de compras não dependa da lista de insumos, que muda com o cardápio. Embalagens seguem a mesma regra. *(revisada em 06/11/2026; antes exigia o insumo ligado)*
 10. A classificação dos itens só pode ser feita ou alterada enquanto a entrada estiver em **rascunho**. *(04/11/2026)*
-11. A atualização do custo do insumo a partir da compra confirmada fica para um bloco seguinte, porque exige a conversão de unidades e a ligação item → insumo. *(04/11/2026)*
+11. A atualização do custo do insumo a partir da compra confirmada fica para a G08, porque exige a conversão de unidades e a ligação item → insumo; a regra do custo (último preço por quilo) está em 7.12. *(04/11/2026, atualizada em 12/11/2026)*
 12. Série e chave de acesso só existem em **nota fiscal**. Nos outros tipos de documento (recibo, comprovante, outro), esses campos ficam desabilitados. *(04/11/2026)*
 13. **Identificação do item do fornecedor:** toda descrição lida (QR, foto, XML ou digitação) gera uma chave única em CAIXA ALTA, sem acentos, sem caracteres especiais e sem espaços repetidos (exemplo: "Pão brioche c/ 6" → `PAO BRIOCHE C 6`). A descrição original da nota também é guardada, fiel ao documento. Com a chave, cada item aparece como **"Item já conhecido"** (o fornecedor já vendeu esse item numa entrada confirmada, e o destino vem preenchido para conferência) ou **"Item novo"**. *(06/11/2026)*
 14. **Fornecedor não é excluído, só inativado.** O inativo some da lista da nova entrada, mas continua aparecendo nas entradas antigas e pode ser reativado. *(06/11/2026)*

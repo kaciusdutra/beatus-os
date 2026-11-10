@@ -4,11 +4,12 @@
 
 ## Onde estamos
 
-- **Sprint global:** G07, Compras e abastecimento.
+- **Sprint global:** G07 (Compras e abastecimento) concluída em 12/11/2026. Pendentes externos: a chave da Anthropic (do Kacius) e a baixa automática da SEFAZ (depende do CNPJ e do certificado digital). O custo do insumo pela última compra ficou para a G08 (regra 7.12).
+- **Sprint em andamento:** S5, diagnóstico do código legado (só leitura). Resultado em `docs/DIAGNOSTICO_LEGADO.md`, aguardando a aprovação do Kacius.
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
 - **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
-- **Próximo passo:** o Kacius avalia o custo por foto e coloca a chave da Anthropic no `frontend/.env`; depois, testar a leitura com fotos reais. Para fechar a G07 faltam a atualização do custo do insumo na confirmação da entrada, a baixa automática da SEFAZ (depende do certificado digital) e a documentação do módulo Compras.
+- **Próximo passo:** o Kacius revisa o diagnóstico (S5) e responde às 5 decisões da seção 6; depois, a **G08** (fichas e custo automático), e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
 
 ## Ambiente
 
@@ -36,8 +37,8 @@
 
 ## Pontos de atenção
 
-- Estoque, financeiro, produção, receitas e ingredientes ainda não têm tabela no banco (legado em memória ou localStorage). Diagnóstico previsto na S5.
-- Clientes e pedidos têm dois repositórios cada (`repositories/` e `services/`): provável legado convivendo com o PostgreSQL. Diagnóstico previsto na S5.
+- **Legado diagnosticado na S5** (`docs/DIAGNOSTICO_LEGADO.md`): o PDV grava pedidos no banco, mas as telas Pedidos e Clientes ainda leem o `localStorage` (pedido lançado no PDV não aparece na fila de Pedidos); o catálogo do PDV é fixo no código; o dashboard tem números fixos; horários e checklist da operação ficam só em memória; há código morto em Pedidos, Clientes, Fornecedores e Compras. Não existem tabelas de estoque, financeiro, produção, horários/checklist e login. Já existem tabelas de produto, insumo e ficha técnica.
+- Clientes, Pedidos, PDV, Dashboard e Operação não têm teste automático: escrever testes antes de migrar essas telas.
 - Ainda não há login: o sistema não deve ir para a internet antes da S3.
 - A leitura por foto usa a API da Anthropic. Variáveis do `frontend/.env` (nunca vão para o Git): `ANTHROPIC_API_KEY` (a chave; sem ela a leitura fica desligada) e, opcionais, `ANTHROPIC_PRECO_ENTRADA_REAIS_MILHAO`, `ANTHROPIC_PRECO_SAIDA_REAIS_MILHAO` (reais por milhão de tokens, para a tela mostrar o custo em reais) e `ANTHROPIC_MODELO` (padrão `claude-sonnet-5-5`). A foto da nota é enviada à Anthropic só quando se clica em "Ler itens da foto".
 - As consultas de CNPJ e de CEP usam a BrasilAPI (serviço público externo): só o CNPJ ou o CEP sai do sistema; sem internet, o cadastro é feito à mão.

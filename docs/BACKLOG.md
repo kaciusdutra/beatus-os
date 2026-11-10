@@ -23,14 +23,14 @@
 | G04 | Operação do restaurante | Em boa parte pronta |
 | G05 | Produção | Inicial |
 | G06 | Estoque | Inicial |
-| **G07** | **Compras e abastecimento** | **Em andamento** |
+| G07 | Compras e abastecimento | Concluída (12/11/2026). Pendentes externos: chave da Anthropic e baixa da SEFAZ |
 | G08 | Fichas, preparações e precificação | Parcial (MVP do soft open) |
 | G09 | Financeiro | Inicial |
 | G10 | Entrega, integrações e automação | Inicial |
 | G11 | Beatriz e inteligência | Não iniciada |
 | G12 | Homologação e produção | Não iniciada |
 
-O plano de endurecimento S1 a S6 (`docs/PLANO_DE_SPRINTS.md`) corre por cima deste mapa, como caminho crítico para a abertura. A S1 está concluída.
+O plano de endurecimento S1 a S6 (`docs/PLANO_DE_SPRINTS.md`) corre por cima deste mapa, como caminho crítico para a abertura. A S1 está concluída. A S5 (diagnóstico do legado, `docs/DIAGNOSTICO_LEGADO.md`) está escrita e aguarda a aprovação do Kacius; as decisões e o que migrar ou remover estão lá.
 
 ---
 
@@ -91,6 +91,8 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G08: Fichas, preparações e precificação
 
+- [ ] **Custo automático do insumo pela última compra** (regra 7.12, decisão de 12/11/2026): ao confirmar a entrada, o custo do insumo passa a ser o último preço por unidade de medida (quilo etc.), e as fichas são recalculadas. A definir na sprint: conversão de unidades (a nota pode vir por "manta" ou "caixa" sem o peso: o peso real seria informado na entrada); se o desconto do item entra no preço; o que acontece com o custo quando a entrada é cancelada (volta ao preço da compra anterior); histórico de preços do insumo para ver a variação; frete e impostos da nota (hoje só aviso, regra 9.20).
+- [ ] Custo da porção pela gramatura (preço do quilo × peso da porção), com a perda de cada insumo (regra 7.5).
 - [ ] Ligar os itens de compra (pela chave do item do fornecedor) ao insumo cadastrado, sem duplicar o insumo, para que a ficha use o custo real da compra. Os campos `insumoId` já existem no item da entrada e na memória de classificação, vazios (decisão de 06/11/2026).
 
 - [ ] Módulo de precificação separado do cadastro de produtos.
