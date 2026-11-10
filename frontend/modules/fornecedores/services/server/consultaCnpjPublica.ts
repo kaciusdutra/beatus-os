@@ -30,6 +30,16 @@ export interface DadosCnpjPublico {
 
   ativa: boolean;
 
+  cep?: string;
+
+  logradouro?: string;
+
+  numero?: string;
+
+  complemento?: string;
+
+  bairro?: string;
+
   municipio?: string;
 
   uf?: string;
@@ -138,6 +148,11 @@ export async function consultarCnpjPublico(
     ativa:
       situacaoCadastral?.toUpperCase() ===
       "ATIVA",
+    cep: texto(dados.cep),
+    logradouro: texto(dados.logradouro),
+    numero: texto(dados.numero),
+    complemento: texto(dados.complemento),
+    bairro: texto(dados.bairro),
     municipio: texto(dados.municipio),
     uf: texto(dados.uf),
   };

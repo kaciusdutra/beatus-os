@@ -21,6 +21,7 @@ import {
 } from "@/modules/compras/services/documentos/interpretarXmlNfe";
 import { Fornecedor } from "@/modules/fornecedores/types/fornecedor";
 import { cnpjValido } from "@/modules/fornecedores/domain/documentoFornecedor";
+import { formatarCep } from "@/modules/fornecedores/domain/enderecoFornecedor";
 
 type TipoDocumento =
   | "NOTA_FISCAL"
@@ -314,6 +315,16 @@ export default function NovaEntradaCompraPage() {
     lendoXml,
     setLendoXml,
   ] = useState(false);
+
+  const [
+    cadastrandoFornecedor,
+    setCadastrandoFornecedor,
+  ] = useState(false);
+
+  const [
+    erroCadastroFornecedor,
+    setErroCadastroFornecedor,
+  ] = useState("");
 
   const [
     carregandoFornecedores,
@@ -789,6 +800,7 @@ export default function NovaEntradaCompraPage() {
       setFornecedorDoQr(null);
       setNotaXml(nota);
       setFornecedorDoXml(fornecedor ?? null);
+      setErroCadastroFornecedor("");
 
       setFormulario((anterior) => ({
         ...anterior,
@@ -836,6 +848,87 @@ export default function NovaEntradaCompraPage() {
       );
     } finally {
       setLendoXml(false);
+    }
+  }
+
+  /*
+   * Cria o fornecedor direto do emitente do XML e já o
+   * seleciona na entrada. Os dados vêm só da nota; o
+   * destino padrão fica vazio (regra 9.21).
+   */
+  async function cadastrarFornecedorDoXml() {
+    if (!notaXml) {
+      return;
+    }
+
+    const { emitente } = notaXml;
+
+    setCadastrandoFornecedor(true);
+    setErroCadastroFornecedor("");
+
+    try {
+      const resposta = await fetch(
+        "/api/fornecedores",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            razaoSocial: emitente.razaoSocial,
+            nomeFantasia:
+              emitente.nomeFantasia,
+            cnpj: emitente.cnpj,
+            cpf: emitente.cpf,
+            telefone: emitente.telefone,
+            inscricaoEstadual:
+              emitente.inscricaoEstadual,
+            cep: emitente.endereco.cep,
+            logradouro:
+              emitente.endereco.logradouro,
+            numero: emitente.endereco.numero,
+            complemento:
+              emitente.endereco.complemento,
+            bairro: emitente.endereco.bairro,
+            municipio:
+              emitente.endereco.municipio,
+            uf: emitente.endereco.uf,
+          }),
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados?.sucesso) {
+        throw new Error(
+          dados?.mensagem ??
+            "Não foi possível cadastrar o fornecedor."
+        );
+      }
+
+      const novo: Fornecedor =
+        dados.fornecedor;
+
+      setFornecedores((anteriores) => [
+        ...anteriores,
+        novo,
+      ]);
+
+      setFornecedorDoXml(novo);
+
+      setFormulario((anterior) => ({
+        ...anterior,
+        fornecedorId: novo.id,
+      }));
+    } catch (error) {
+      setErroCadastroFornecedor(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível cadastrar o fornecedor."
+      );
+    } finally {
+      setCadastrandoFornecedor(false);
     }
   }
 
@@ -1415,25 +1508,80 @@ export default function NovaEntradaCompraPage() {
                         </strong>
                       </p>
                     ) : (
-                      <p className="font-semibold text-amber-700">
-                        O emitente não está
-                        cadastrado como
-                        fornecedor.{" "}
-                        <a
-                          href={
-                            notaXml.emitente.cnpj
-                              ? `/compras/fornecedores?cnpj=${notaXml.emitente.cnpj}`
-                              : "/compras/fornecedores"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline underline-offset-2 hover:text-amber-900"
-                        >
-                          Cadastrar este fornecedor
-                        </a>{" "}
-                        e depois clique em
-                        &quot;Atualizar lista&quot;.
-                      </p>
+                      <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-amber-800">
+                        <p className="font-semibold">
+                          O emitente não está
+                          cadastrado como
+                          fornecedor.
+                        </p>
+
+                        <p>
+                          {[
+                            notaXml.emitente
+                              .inscricaoEstadual &&
+                              `IE ${notaXml.emitente.inscricaoEstadual}`,
+                            notaXml.emitente
+                              .endereco.logradouro &&
+                              `${notaXml.emitente.endereco.logradouro}${
+                                notaXml.emitente
+                                  .endereco.numero
+                                  ? `, ${notaXml.emitente.endereco.numero}`
+                                  : ""
+                              }`,
+                            notaXml.emitente
+                              .endereco.municipio &&
+                              `${notaXml.emitente.endereco.municipio}${
+                                notaXml.emitente
+                                  .endereco.uf
+                                  ? `/${notaXml.emitente.endereco.uf}`
+                                  : ""
+                              }`,
+                            notaXml.emitente
+                              .endereco.cep &&
+                              `CEP ${formatarCep(notaXml.emitente.endereco.cep)}`,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void cadastrarFornecedorDoXml()
+                            }
+                            disabled={
+                              cadastrandoFornecedor ||
+                              salvando
+                            }
+                            className="cursor-pointer rounded-lg bg-amber-600 px-3 py-1.5 font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {cadastrandoFornecedor
+                              ? "Cadastrando..."
+                              : "Cadastrar com os dados da nota"}
+                          </button>
+
+                          <a
+                            href={
+                              notaXml.emitente.cnpj
+                                ? `/compras/fornecedores?cnpj=${notaXml.emitente.cnpj}`
+                                : "/compras/fornecedores"
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-2 hover:text-amber-900"
+                          >
+                            ou cadastrar na tela de
+                            fornecedores
+                          </a>
+                        </div>
+
+                        {erroCadastroFornecedor && (
+                          <p className="font-semibold text-red-700">
+                            {erroCadastroFornecedor}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
 

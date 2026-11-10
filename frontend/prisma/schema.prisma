@@ -46,6 +46,16 @@ model Fornecedor {
   // Destino sugerido para os itens deste fornecedor quando não houver memória.
   destinoPadrao String?
 
+  // Dados da nota fiscal e do endereço (bloco 7E).
+  inscricaoEstadual String?
+  cep               String?
+  logradouro        String?
+  numero            String?
+  complemento       String?
+  bairro            String?
+  municipio         String?
+  uf                String?
+
   empresa        Empresa         @relation(fields: [empresaId], references: [id])
   entradasCompra EntradaCompra[]
   insumos        Insumo[]

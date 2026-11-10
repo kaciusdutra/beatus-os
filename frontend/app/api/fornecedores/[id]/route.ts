@@ -7,6 +7,10 @@ import {
   criarFornecedorServicePostgres,
 } from "@/modules/fornecedores/services/server/fornecedorServiceFactory";
 
+import {
+  lerEnderecoFornecedor,
+} from "@/modules/fornecedores/domain/enderecoFornecedor";
+
 const fornecedorService =
   criarFornecedorServicePostgres();
 
@@ -142,6 +146,8 @@ export async function PUT(
             typeof body.destinoPadrao === "string"
               ? body.destinoPadrao.trim() || undefined
               : undefined,
+
+          ...lerEnderecoFornecedor(body),
 
           criadoEm:
             existente.criadoEm,

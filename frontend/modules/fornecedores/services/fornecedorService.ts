@@ -19,6 +19,10 @@ import {
   ehDestinoItemCompra,
 } from "@/modules/compras/domain/destinoItemCompra";
 
+import {
+  normalizarEnderecoFornecedor,
+} from "../domain/enderecoFornecedor";
+
 export interface CriarFornecedorInput {
   fornecedor: Fornecedor;
 }
@@ -208,6 +212,10 @@ export class FornecedorService {
       cnpj,
 
       destinoPadrao,
+
+      ...normalizarEnderecoFornecedor(
+        input.fornecedor
+      ),
     };
 
     return this.repository.criar(
@@ -310,6 +318,10 @@ export class FornecedorService {
       cnpj,
 
       destinoPadrao,
+
+      ...normalizarEnderecoFornecedor(
+        input.fornecedor
+      ),
     };
 
     return this.repository.atualizar(

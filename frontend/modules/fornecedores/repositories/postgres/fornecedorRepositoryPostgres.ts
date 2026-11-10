@@ -43,6 +43,14 @@ function mapearFornecedor(
     email: string | null;
     observacao: string | null;
     destinoPadrao?: string | null;
+    inscricaoEstadual?: string | null;
+    cep?: string | null;
+    logradouro?: string | null;
+    numero?: string | null;
+    complemento?: string | null;
+    bairro?: string | null;
+    municipio?: string | null;
+    uf?: string | null;
     criadoEm: Date;
     atualizadoEm: Date;
     ativo: boolean;
@@ -80,6 +88,38 @@ function mapearFornecedor(
 
     destinoPadrao:
       fornecedor.destinoPadrao ??
+      undefined,
+
+    inscricaoEstadual:
+      fornecedor.inscricaoEstadual ??
+      undefined,
+
+    cep:
+      fornecedor.cep ??
+      undefined,
+
+    logradouro:
+      fornecedor.logradouro ??
+      undefined,
+
+    numero:
+      fornecedor.numero ??
+      undefined,
+
+    complemento:
+      fornecedor.complemento ??
+      undefined,
+
+    bairro:
+      fornecedor.bairro ??
+      undefined,
+
+    municipio:
+      fornecedor.municipio ??
+      undefined,
+
+    uf:
+      fornecedor.uf ??
       undefined,
 
     criadoEm:
@@ -148,6 +188,38 @@ export class FornecedorRepositoryPostgres
 
           destinoPadrao:
             fornecedor.destinoPadrao ??
+            null,
+
+          inscricaoEstadual:
+            fornecedor.inscricaoEstadual ??
+            null,
+
+          cep:
+            fornecedor.cep ??
+            null,
+
+          logradouro:
+            fornecedor.logradouro ??
+            null,
+
+          numero:
+            fornecedor.numero ??
+            null,
+
+          complemento:
+            fornecedor.complemento ??
+            null,
+
+          bairro:
+            fornecedor.bairro ??
+            null,
+
+          municipio:
+            fornecedor.municipio ??
+            null,
+
+          uf:
+            fornecedor.uf ??
             null,
 
           ativo:
@@ -326,6 +398,38 @@ export class FornecedorRepositoryPostgres
 
           destinoPadrao:
             fornecedor.destinoPadrao ??
+            null,
+
+          inscricaoEstadual:
+            fornecedor.inscricaoEstadual ??
+            null,
+
+          cep:
+            fornecedor.cep ??
+            null,
+
+          logradouro:
+            fornecedor.logradouro ??
+            null,
+
+          numero:
+            fornecedor.numero ??
+            null,
+
+          complemento:
+            fornecedor.complemento ??
+            null,
+
+          bairro:
+            fornecedor.bairro ??
+            null,
+
+          municipio:
+            fornecedor.municipio ??
+            null,
+
+          uf:
+            fornecedor.uf ??
             null,
 
           ativo:

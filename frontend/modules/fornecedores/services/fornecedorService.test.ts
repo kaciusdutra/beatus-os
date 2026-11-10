@@ -137,6 +137,30 @@ function criarFornecedor(
     destinoPadrao:
       dados?.destinoPadrao,
 
+    inscricaoEstadual:
+      dados?.inscricaoEstadual,
+
+    cep:
+      dados?.cep,
+
+    logradouro:
+      dados?.logradouro,
+
+    numero:
+      dados?.numero,
+
+    complemento:
+      dados?.complemento,
+
+    bairro:
+      dados?.bairro,
+
+    municipio:
+      dados?.municipio,
+
+    uf:
+      dados?.uf,
+
     criadoEm:
       dados?.criadoEm ??
       new Date().toISOString(),
@@ -438,6 +462,75 @@ async function executarTestes() {
   if (semDestino.destinoPadrao !== undefined) {
     throw new Error(
       "Falha: destino padrão vazio não foi limpo."
+    );
+  }
+
+  // Bloco 7E: endereço e inscrição estadual.
+  const comEndereco =
+    await service.criarFornecedor({
+      fornecedor: criarFornecedor({
+        id: crypto.randomUUID(),
+        cnpj: "22.333.444/0001-81",
+        inscricaoEstadual: " 041234567 ",
+        cep: "69005-000",
+        logradouro: " Rua Marechal Deodoro ",
+        numero: "100",
+        bairro: "Centro",
+        municipio: "Manaus",
+        uf: "am",
+      }),
+    });
+
+  if (
+    comEndereco.cep !== "69005000" ||
+    comEndereco.uf !== "AM" ||
+    comEndereco.inscricaoEstadual !== "041234567" ||
+    comEndereco.logradouro !== "Rua Marechal Deodoro" ||
+    comEndereco.complemento !== undefined
+  ) {
+    throw new Error(
+      "Falha: endereço não foi normalizado."
+    );
+  }
+
+  await esperarErro(
+    () =>
+      service.criarFornecedor({
+        fornecedor: criarFornecedor({
+          id: crypto.randomUUID(),
+          cnpj: "33.444.555/0001-81",
+          cep: "6900",
+        }),
+      }),
+    "CEP do fornecedor inválido. O CEP tem 8 números.",
+    "Falha: aceitou CEP incompleto."
+  );
+
+  await esperarErro(
+    () =>
+      service.criarFornecedor({
+        fornecedor: criarFornecedor({
+          id: crypto.randomUUID(),
+          cnpj: "33.444.555/0001-81",
+          uf: "AMA",
+        }),
+      }),
+    "UF do fornecedor inválida. Use a sigla com 2 letras.",
+    "Falha: aceitou UF com 3 letras."
+  );
+
+  const limpo =
+    await service.atualizarFornecedor({
+      fornecedor: {
+        ...comEndereco,
+        complemento: "  ",
+        bairro: "",
+      },
+    });
+
+  if (limpo.bairro !== undefined) {
+    throw new Error(
+      "Falha: bairro vazio não foi limpo."
     );
   }
 

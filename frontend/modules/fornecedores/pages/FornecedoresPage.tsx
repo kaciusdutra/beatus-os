@@ -22,6 +22,10 @@ import {
 } from "../domain/documentoFornecedor";
 
 import {
+  formatarCep,
+} from "../domain/enderecoFornecedor";
+
+import {
   DESTINOS_ITEM_COMPRA,
   rotuloDestinoItemCompra,
 } from "@/modules/compras/domain/destinoItemCompra";
@@ -42,6 +46,14 @@ interface FormularioFornecedor {
   destinoPadrao: string;
   observacao: string;
   ativo: boolean;
+  inscricaoEstadual: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  municipio: string;
+  uf: string;
 }
 
 interface DadosCnpjPublico {
@@ -51,6 +63,11 @@ interface DadosCnpjPublico {
   email?: string;
   situacaoCadastral?: string;
   ativa: boolean;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
   municipio?: string;
   uf?: string;
 }
@@ -71,6 +88,14 @@ const FORMULARIO_VAZIO: FormularioFornecedor = {
   destinoPadrao: "",
   observacao: "",
   ativo: true,
+  inscricaoEstadual: "",
+  cep: "",
+  logradouro: "",
+  numero: "",
+  complemento: "",
+  bairro: "",
+  municipio: "",
+  uf: "",
 };
 
 const CLASSE_CAMPO =
@@ -124,6 +149,15 @@ function formularioDoFornecedor(
       fornecedor.destinoPadrao ?? "",
     observacao:
       fornecedor.observacao ?? "",
+    inscricaoEstadual:
+      fornecedor.inscricaoEstadual ?? "",
+    cep: formatarCep(fornecedor.cep),
+    logradouro: fornecedor.logradouro ?? "",
+    numero: fornecedor.numero ?? "",
+    complemento: fornecedor.complemento ?? "",
+    bairro: fornecedor.bairro ?? "",
+    municipio: fornecedor.municipio ?? "",
+    uf: fornecedor.uf ?? "",
     ativo: fornecedor.ativo,
   };
 }
@@ -157,6 +191,15 @@ function montarPayload(
       formulario.destinoPadrao,
     observacao:
       formulario.observacao.trim(),
+    inscricaoEstadual:
+      formulario.inscricaoEstadual.trim(),
+    cep: somenteDigitos(formulario.cep),
+    logradouro: formulario.logradouro.trim(),
+    numero: formulario.numero.trim(),
+    complemento: formulario.complemento.trim(),
+    bairro: formulario.bairro.trim(),
+    municipio: formulario.municipio.trim(),
+    uf: formulario.uf.trim(),
     ativo: formulario.ativo,
   };
 }
@@ -202,6 +245,12 @@ export default function FornecedoresPage({
     useState(false);
 
   const [resultadoConsulta, setResultadoConsulta] =
+    useState<ResultadoConsulta | null>(null);
+
+  const [buscandoCep, setBuscandoCep] =
+    useState(false);
+
+  const [avisoCep, setAvisoCep] =
     useState<ResultadoConsulta | null>(null);
 
   const consultaInicialFeita = useRef(false);
@@ -342,6 +391,25 @@ export default function FornecedoresPage({
                 email:
                   publico.email ??
                   atual.email,
+                cep: publico.cep
+                  ? formatarCep(publico.cep)
+                  : atual.cep,
+                logradouro:
+                  publico.logradouro ??
+                  atual.logradouro,
+                numero:
+                  publico.numero ??
+                  atual.numero,
+                complemento:
+                  publico.complemento ??
+                  atual.complemento,
+                bairro:
+                  publico.bairro ??
+                  atual.bairro,
+                municipio:
+                  publico.municipio ??
+                  atual.municipio,
+                uf: publico.uf ?? atual.uf,
               }
             : atual
         );
@@ -453,6 +521,7 @@ export default function FornecedoresPage({
   ) {
     setFormulario(form);
     setResultadoConsulta(null);
+    setAvisoCep(null);
     setErro("");
     setAviso("");
 
@@ -506,6 +575,83 @@ export default function FornecedoresPage({
     );
 
     setResultadoConsulta(null);
+  }
+
+  // Preenche logradouro, bairro, município e UF pelo CEP.
+  // O número e o complemento continuam com o usuário.
+  async function buscarEnderecoPorCep(
+    cepDigitado: string
+  ) {
+    const cep = somenteDigitos(cepDigitado);
+
+    if (cep.length !== 8) {
+      setAvisoCep({
+        tipo: "erro",
+        mensagem:
+          "CEP inválido. O CEP tem 8 números.",
+      });
+
+      return;
+    }
+
+    setBuscandoCep(true);
+    setAvisoCep(null);
+
+    try {
+      const resposta = await fetch(
+        `/api/cep/${cep}`,
+        { cache: "no-store" }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados.sucesso) {
+        throw new Error(
+          dados.mensagem ||
+            "Não foi possível consultar o CEP agora. Preencha o endereço manualmente."
+        );
+      }
+
+      const endereco = dados.endereco as {
+        logradouro?: string;
+        bairro?: string;
+        municipio: string;
+        uf: string;
+      };
+
+      setFormulario((atual) =>
+        atual
+          ? {
+              ...atual,
+              logradouro:
+                endereco.logradouro ??
+                atual.logradouro,
+              bairro:
+                endereco.bairro ??
+                atual.bairro,
+              municipio: endereco.municipio,
+              uf: endereco.uf,
+            }
+          : atual
+      );
+
+      setAvisoCep({
+        tipo: "sucesso",
+        mensagem: endereco.logradouro
+          ? "Endereço preenchido pelo CEP. Digite o número e o complemento."
+          : "Este CEP não traz a rua (CEP geral da cidade). Preencha o restante à mão.",
+      });
+    } catch (error) {
+      setAvisoCep({
+        tipo: "erro",
+        mensagem:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível consultar o CEP agora. Preencha o endereço manualmente.",
+      });
+    } finally {
+      setBuscandoCep(false);
+    }
   }
 
   // Aviso de dígitos errados assim que o documento está completo.
@@ -1012,6 +1158,251 @@ export default function FornecedoresPage({
             </div>
 
             <div className="md:col-span-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
+                Endereço e inscrição estadual
+              </h3>
+            </div>
+
+            <div>
+              <label
+                htmlFor="inscricaoEstadual"
+                className={CLASSE_ROTULO}
+              >
+                Inscrição estadual
+              </label>
+
+              <input
+                id="inscricaoEstadual"
+                value={
+                  formulario.inscricaoEstadual
+                }
+                onChange={(evento) =>
+                  alterarCampo(
+                    "inscricaoEstadual",
+                    evento.target.value
+                  )
+                }
+                disabled={salvando}
+                className={CLASSE_CAMPO}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="cep"
+                className={CLASSE_ROTULO}
+              >
+                CEP
+              </label>
+
+              <div className="flex flex-wrap gap-3">
+                <input
+                  id="cep"
+                  inputMode="numeric"
+                  value={formulario.cep}
+                  onChange={(evento) => {
+                    const cep = formatarCep(
+                      evento.target.value
+                    );
+
+                    alterarCampo("cep", cep);
+                    setAvisoCep(null);
+
+                    // Completou os 8 números: busca sozinho.
+                    if (
+                      somenteDigitos(cep)
+                        .length === 8
+                    ) {
+                      void buscarEnderecoPorCep(
+                        cep
+                      );
+                    }
+                  }}
+                  onKeyDown={(evento) => {
+                    if (evento.key === "Enter") {
+                      evento.preventDefault();
+
+                      void buscarEnderecoPorCep(
+                        formulario.cep
+                      );
+                    }
+                  }}
+                  disabled={salvando}
+                  placeholder="00000-000"
+                  className={`${CLASSE_CAMPO} min-w-40 flex-1 font-mono`}
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void buscarEnderecoPorCep(
+                      formulario.cep
+                    )
+                  }
+                  disabled={
+                    buscandoCep ||
+                    salvando ||
+                    somenteDigitos(
+                      formulario.cep
+                    ).length !== 8
+                  }
+                  className="cursor-pointer whitespace-nowrap rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {buscandoCep
+                    ? "Buscando..."
+                    : "🔎 Buscar endereço"}
+                </button>
+              </div>
+            </div>
+
+            {avisoCep && (
+              <p
+                className={`rounded-xl px-4 py-3 text-sm md:col-span-2 ${
+                  avisoCep.tipo === "sucesso"
+                    ? "border border-sky-200 bg-sky-50 text-sky-800"
+                    : "border border-red-200 bg-red-50 text-red-700"
+                }`}
+              >
+                {avisoCep.mensagem}
+              </p>
+            )}
+
+            <div className="md:col-span-2">
+              <label
+                htmlFor="logradouro"
+                className={CLASSE_ROTULO}
+              >
+                Logradouro (rua, avenida...)
+              </label>
+
+              <input
+                id="logradouro"
+                value={formulario.logradouro}
+                onChange={(evento) =>
+                  alterarCampo(
+                    "logradouro",
+                    evento.target.value
+                  )
+                }
+                disabled={salvando}
+                className={CLASSE_CAMPO}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="numero"
+                className={CLASSE_ROTULO}
+              >
+                Número
+              </label>
+
+              <input
+                id="numero"
+                value={formulario.numero}
+                onChange={(evento) =>
+                  alterarCampo(
+                    "numero",
+                    evento.target.value
+                  )
+                }
+                disabled={salvando}
+                className={CLASSE_CAMPO}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="complemento"
+                className={CLASSE_ROTULO}
+              >
+                Complemento
+              </label>
+
+              <input
+                id="complemento"
+                value={formulario.complemento}
+                onChange={(evento) =>
+                  alterarCampo(
+                    "complemento",
+                    evento.target.value
+                  )
+                }
+                disabled={salvando}
+                className={CLASSE_CAMPO}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="bairro"
+                className={CLASSE_ROTULO}
+              >
+                Bairro
+              </label>
+
+              <input
+                id="bairro"
+                value={formulario.bairro}
+                onChange={(evento) =>
+                  alterarCampo(
+                    "bairro",
+                    evento.target.value
+                  )
+                }
+                disabled={salvando}
+                className={CLASSE_CAMPO}
+              />
+            </div>
+
+            <div className="grid grid-cols-[1fr_5rem] gap-3">
+              <div>
+                <label
+                  htmlFor="municipio"
+                  className={CLASSE_ROTULO}
+                >
+                  Município
+                </label>
+
+                <input
+                  id="municipio"
+                  value={formulario.municipio}
+                  onChange={(evento) =>
+                    alterarCampo(
+                      "municipio",
+                      evento.target.value
+                    )
+                  }
+                  disabled={salvando}
+                  className={CLASSE_CAMPO}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="uf"
+                  className={CLASSE_ROTULO}
+                >
+                  UF
+                </label>
+
+                <input
+                  id="uf"
+                  maxLength={2}
+                  value={formulario.uf}
+                  onChange={(evento) =>
+                    alterarCampo(
+                      "uf",
+                      evento.target.value.toUpperCase()
+                    )
+                  }
+                  disabled={salvando}
+                  className={CLASSE_CAMPO}
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
               <label
                 htmlFor="observacao"
                 className={CLASSE_ROTULO}
@@ -1197,6 +1588,14 @@ export default function FornecedoresPage({
                       <td className="whitespace-nowrap px-5 py-4 font-mono text-sm text-slate-700">
                         {documentoExibicao(
                           fornecedor
+                        )}
+
+                        {fornecedor.municipio && (
+                          <p className="font-sans text-xs text-slate-500">
+                            {fornecedor.municipio}
+                            {fornecedor.uf &&
+                              `/${fornecedor.uf}`}
+                          </p>
                         )}
                       </td>
 
