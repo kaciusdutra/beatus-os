@@ -7,6 +7,7 @@
 - **Sprint global:** G07, Compras e abastecimento.
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
+- **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
 - **Próximo passo:** o Kacius avalia o custo por foto e coloca a chave da Anthropic no `frontend/.env`; depois, testar a leitura com fotos reais. Para fechar a G07 faltam a atualização do custo do insumo na confirmação da entrada, a baixa automática da SEFAZ (depende do certificado digital) e a documentação do módulo Compras.
 
 ## Ambiente

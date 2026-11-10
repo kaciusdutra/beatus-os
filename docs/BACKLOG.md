@@ -48,6 +48,8 @@ Concluído no bloco 7D: importação do XML da NF-e/NFC-e na nova entrada (docum
 
 Concluído no bloco 7E (migração `add_endereco_inscricao_fornecedor`): inscrição estadual e endereço do fornecedor (campos separados), busca do endereço pelo CEP (rota `/api/cep/[cep]`, compartilhada), endereço vindo também da busca pelo CNPJ e botão "Cadastrar com os dados da nota" na nova entrada.
 
+Concluído: documentação do módulo Compras (`docs/MODULO_COMPRAS.md`, 12/11/2026), com telas, regras, API, dados, configuração, testes e pendências.
+
 Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (IA) para nota, cupom e recibo manuscrito, com itens em amarelo para conferir, avisos de soma e de CPF/CNPJ, fornecedor encontrado pelo documento ou sugerido pelo nome, cadastro com os dados lidos, e consumo de tokens e custo por leitura na tela.
 
 - [ ] **Colocar a chave da Anthropic** em `frontend/.env` (`ANTHROPIC_API_KEY`), depois de avaliar o custo por foto. Opcionais: `ANTHROPIC_PRECO_ENTRADA_REAIS_MILHAO` e `ANTHROPIC_PRECO_SAIDA_REAIS_MILHAO` (reais por milhão de tokens, para a tela mostrar o custo em reais) e `ANTHROPIC_MODELO` (padrão `claude-sonnet-5-5`). Testar a leitura com fotos reais (notas, cupons e recibos manuscritos) e ajustar as instruções da IA se preciso.
@@ -61,7 +63,6 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] Atualizar o custo do insumo quando a entrada for confirmada, com conversão entre a unidade da nota e a unidade de compra do insumo (decidido em 04/11/2026: fica para depois da 7B).
 - [ ] Leitura dos itens pela **foto** do cupom ou da nota (IA), com conferência humana.
 - [ ] Quando o CNPJ e o certificado digital saírem: baixa automática das NF-e da SEFAZ.
-- [ ] Documentação do módulo Compras no fim da G07.
 
 ## G03: Vendas e clientes
 
