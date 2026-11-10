@@ -15,6 +15,7 @@ import {
   EntradaCompra,
   EntradaCompraItem,
   MemoriaClassificacaoItemCompra,
+  MemoriaClassificacaoRegistro,
   TipoDocumentoEntradaCompra,
   StatusEntradaCompra,
 } from "../../types/entradaCompra";
@@ -30,6 +31,26 @@ import {
   OrigemDocumentoEntradaCompra,
   StatusLeituraDocumentoEntradaCompra,
 } from "../../types/entradaCompraDocumento";
+
+function mapearMemoria(memoria: {
+  id: string;
+  fornecedorId: string;
+  descricaoNormalizada: string;
+  destino: string;
+  insumoId: string | null;
+  vezesUsada: number;
+}): MemoriaClassificacaoRegistro {
+  return {
+    id: memoria.id,
+    fornecedorId: memoria.fornecedorId,
+    descricaoNormalizada:
+      memoria.descricaoNormalizada,
+    destino:
+      memoria.destino as DestinoItemCompra,
+    insumoId: memoria.insumoId ?? undefined,
+    vezesUsada: memoria.vezesUsada,
+  };
+}
 
 function mapearItem(
   item: {
@@ -1030,7 +1051,101 @@ export class EntradaCompraRepositoryPostgres
           memoria.descricaoNormalizada,
         destino:
           memoria.destino as DestinoItemCompra,
+        insumoId:
+          memoria.insumoId ?? undefined,
       }));
+  }
+
+  async listarMemoriasClassificacao(): Promise<
+    MemoriaClassificacaoRegistro[]
+  > {
+    const memorias =
+      await prisma.classificacaoItemCompra.findMany({
+        where: {
+          empresaId:
+            this.contexto.empresaId,
+        },
+        orderBy: {
+          atualizadoEm: "desc",
+        },
+      });
+
+    return memorias
+      .filter((memoria) =>
+        ehDestinoItemCompra(memoria.destino)
+      )
+      .map(mapearMemoria);
+  }
+
+  async buscarMemoriaClassificacaoPorId(
+    id: string
+  ): Promise<
+    MemoriaClassificacaoRegistro | undefined
+  > {
+    const memoria =
+      await prisma.classificacaoItemCompra.findFirst({
+        where: {
+          id,
+          empresaId:
+            this.contexto.empresaId,
+        },
+      });
+
+    return memoria &&
+      ehDestinoItemCompra(memoria.destino)
+      ? mapearMemoria(memoria)
+      : undefined;
+  }
+
+  async vincularMemoriaAoInsumo(
+    id: string,
+    insumoId: string | null
+  ): Promise<MemoriaClassificacaoRegistro> {
+    const existente =
+      await prisma.classificacaoItemCompra.findFirst({
+        where: {
+          id,
+          empresaId:
+            this.contexto.empresaId,
+        },
+      });
+
+    if (
+      !existente ||
+      !ehDestinoItemCompra(existente.destino)
+    ) {
+      throw new Error(
+        "Item de compra não encontrado."
+      );
+    }
+
+    const atualizada =
+      await prisma.classificacaoItemCompra.update({
+        where: { id },
+        data: { insumoId },
+      });
+
+    return mapearMemoria(atualizada);
+  }
+
+  async vincularItensAoInsumo(
+    itemIds: string[],
+    insumoId: string | null
+  ): Promise<void> {
+    if (itemIds.length === 0) {
+      return;
+    }
+
+    await prisma.entradaCompraItem.updateMany({
+      where: {
+        id: { in: itemIds },
+        entradaCompra: {
+          empresaId:
+            this.contexto.empresaId,
+        },
+      },
+      data: { insumoId },
+    });
   }
 
   async registrarMemoriasClassificacao(

@@ -4,8 +4,10 @@ import {
   IdentificacaoItemCompra,
   EntradaCompraItem,
   MemoriaClassificacaoItemCompra,
+  MemoriaClassificacaoRegistro,
   StatusEntradaCompra,
   TipoDocumentoEntradaCompra,
+  VinculoItemCompra,
 } from "../types/entradaCompra";
 
 import {
@@ -28,6 +30,10 @@ import {
 import {
   FornecedorRepositoryPort,
 } from "@/modules/fornecedores/repositories/fornecedorRepositoryPort";
+
+import {
+  InsumoRepositoryPort,
+} from "@/modules/insumos/repositories/insumoRepositoryPort";
 
 export interface CriarEntradaCompraInput {
   entrada: EntradaCompra;
@@ -443,6 +449,83 @@ function validarDocumento(
   }
 }
 
+function ehDestinoComInsumo(
+  destino?: string | null
+): boolean {
+  return (
+    destino === "INSUMO" ||
+    destino === "EMBALAGEM"
+  );
+}
+
+// Junta a memória do fornecedor com a compra confirmada mais recente do item.
+function montarVinculo(
+  memoria: MemoriaClassificacaoRegistro,
+  entradas: EntradaCompra[]
+): VinculoItemCompra {
+  let ultima:
+    | {
+        entrada: EntradaCompra;
+        item: EntradaCompraItem;
+      }
+    | undefined;
+
+  for (const entrada of entradas) {
+    if (
+      entrada.status !== "CONFIRMADA" ||
+      entrada.fornecedorId !==
+        memoria.fornecedorId
+    ) {
+      continue;
+    }
+
+    for (const item of entrada.itens) {
+      if (
+        normalizarDescricaoItemCompra(
+          item.descricaoOriginal
+        ) !== memoria.descricaoNormalizada
+      ) {
+        continue;
+      }
+
+      if (
+        !ultima ||
+        entrada.dataEntrada >
+          ultima.entrada.dataEntrada
+      ) {
+        ultima = { entrada, item };
+      }
+    }
+  }
+
+  return {
+    id: memoria.id,
+    fornecedorId: memoria.fornecedorId,
+    descricaoNormalizada:
+      memoria.descricaoNormalizada,
+    descricao:
+      ultima?.item.descricaoOriginal ??
+      memoria.descricaoNormalizada,
+    destino: memoria.destino,
+    vezesUsada: memoria.vezesUsada,
+    insumoId: memoria.insumoId,
+    ultimaCompra: ultima
+      ? {
+          entradaId: ultima.entrada.id,
+          numeroDocumento:
+            ultima.entrada.numeroDocumento,
+          dataEntrada:
+            ultima.entrada.dataEntrada,
+          quantidade: ultima.item.quantidade,
+          unidade: ultima.item.unidade,
+          valorUnitario:
+            ultima.item.valorUnitario,
+          desconto: ultima.item.desconto,
+        }
+      : undefined,
+  };
+}
+
 function montarMemorias(
   entrada: EntradaCompra
 ): MemoriaClassificacaoItemCompra[] {
@@ -481,7 +564,10 @@ export class EntradaCompraService {
       EntradaCompraRepositoryPort,
 
     private readonly fornecedorRepository:
-      FornecedorRepositoryPort
+      FornecedorRepositoryPort,
+
+    private readonly insumoRepository:
+      InsumoRepositoryPort
   ) {}
 
   async buscarPorId(
@@ -767,7 +853,176 @@ export class EntradaCompraService {
       montarMemorias(resultado)
     );
 
-    return resultado;
+    // Itens cujo fornecedor já tem insumo ligado (regra 7.13) levam o vínculo.
+    await this.ligarItensPelaMemoria(
+      resultado
+    );
+
+    return (
+      (await this.repository.buscarPorId(
+        resultado.id
+      )) ?? resultado
+    );
+  }
+
+  // Regra 7.13: o item do fornecedor ligado a um insumo passa o vínculo
+  // para os itens da entrada que acabou de ser confirmada.
+  private async ligarItensPelaMemoria(
+    entrada: EntradaCompra
+  ): Promise<void> {
+    const chaves = [
+      ...new Set(
+        entrada.itens
+          .filter((item) =>
+            ehDestinoComInsumo(item.destino)
+          )
+          .map((item) =>
+            normalizarDescricaoItemCompra(
+              item.descricaoOriginal
+            )
+          )
+          .filter(Boolean)
+      ),
+    ];
+
+    if (chaves.length === 0) {
+      return;
+    }
+
+    const memorias =
+      await this.repository.buscarMemoriasClassificacao(
+        entrada.fornecedorId,
+        chaves
+      );
+
+    const itensPorInsumo = new Map<
+      string,
+      string[]
+    >();
+
+    for (const memoria of memorias) {
+      if (!memoria.insumoId) {
+        continue;
+      }
+
+      const ids = entrada.itens
+        .filter(
+          (item) =>
+            normalizarDescricaoItemCompra(
+              item.descricaoOriginal
+            ) ===
+            memoria.descricaoNormalizada
+        )
+        .map((item) => item.id);
+
+      itensPorInsumo.set(memoria.insumoId, [
+        ...(itensPorInsumo.get(
+          memoria.insumoId
+        ) ?? []),
+        ...ids,
+      ]);
+    }
+
+    for (const [insumoId, ids] of itensPorInsumo) {
+      await this.repository.vincularItensAoInsumo(
+        ids,
+        insumoId
+      );
+    }
+  }
+
+  // Bloco 8A: itens de compras confirmadas, com o insumo ligado (ou não).
+  async listarVinculosCompra(): Promise<
+    VinculoItemCompra[]
+  > {
+    const [memorias, entradas] =
+      await Promise.all([
+        this.repository.listarMemoriasClassificacao(),
+        this.repository.listar(),
+      ]);
+
+    return memorias
+      .filter((memoria) =>
+        ehDestinoComInsumo(memoria.destino)
+      )
+      .map((memoria) =>
+        montarVinculo(memoria, entradas)
+      );
+  }
+
+  // Liga (ou desliga, com null) o insumo de um item do fornecedor.
+  // Vale para as próximas compras e para as já confirmadas.
+  async vincularItemCompraAoInsumo(
+    memoriaId: string,
+    insumoId: string | null
+  ): Promise<VinculoItemCompra> {
+    const memoria =
+      await this.repository.buscarMemoriaClassificacaoPorId(
+        memoriaId
+      );
+
+    if (!memoria) {
+      throw new Error(
+        "Item de compra não encontrado."
+      );
+    }
+
+    if (!ehDestinoComInsumo(memoria.destino)) {
+      throw new Error(
+        "Somente itens com destino Insumo ou Embalagem podem ser ligados a um insumo."
+      );
+    }
+
+    if (insumoId !== null) {
+      const insumo =
+        await this.insumoRepository.buscarPorId(
+          insumoId
+        );
+
+      if (!insumo) {
+        throw new Error(
+          "Insumo não encontrado."
+        );
+      }
+
+      if (!insumo.ativo) {
+        throw new Error(
+          "Insumo inativo não pode receber itens de compra."
+        );
+      }
+    }
+
+    const atualizada =
+      await this.repository.vincularMemoriaAoInsumo(
+        memoriaId,
+        insumoId
+      );
+
+    const entradas =
+      await this.repository.listar();
+
+    const itemIds = entradas
+      .filter(
+        (entrada) =>
+          entrada.status === "CONFIRMADA" &&
+          entrada.fornecedorId ===
+            memoria.fornecedorId
+      )
+      .flatMap((entrada) => entrada.itens)
+      .filter(
+        (item) =>
+          normalizarDescricaoItemCompra(
+            item.descricaoOriginal
+          ) === memoria.descricaoNormalizada
+      )
+      .map((item) => item.id);
+
+    await this.repository.vincularItensAoInsumo(
+      itemIds,
+      insumoId
+    );
+
+    return montarVinculo(atualizada, entradas);
   }
 
   async classificarItens(

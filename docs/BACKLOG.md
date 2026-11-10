@@ -91,9 +91,11 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G08: Fichas, preparações e precificação
 
+**Plano da G08 aprovado em 12/11/2026 (decisões nas regras 7.5 e 7.12 a 7.16):** 8A vínculo item → insumo; 8B unidades e peso (migração); 8C custo automático e histórico de preços (migração); 8D fichas técnicas (rotas, telas, fórmula da perda); 8E a 8G precificação.
+
 - [ ] **Custo automático do insumo pela última compra** (regra 7.12, decisão de 12/11/2026): ao confirmar a entrada, o custo do insumo passa a ser o último preço por unidade de medida (quilo etc.), e as fichas são recalculadas. A definir na sprint: conversão de unidades (a nota pode vir por "manta" ou "caixa" sem o peso: o peso real seria informado na entrada); se o desconto do item entra no preço; o que acontece com o custo quando a entrada é cancelada (volta ao preço da compra anterior); histórico de preços do insumo para ver a variação; frete e impostos da nota (hoje só aviso, regra 9.20).
 - [ ] Custo da porção pela gramatura (preço do quilo × peso da porção), com a perda de cada insumo (regra 7.5).
-- [ ] Ligar os itens de compra (pela chave do item do fornecedor) ao insumo cadastrado, sem duplicar o insumo, para que a ficha use o custo real da compra. Os campos `insumoId` já existem no item da entrada e na memória de classificação, vazios (decisão de 06/11/2026).
+- [x] **Bloco 8A concluído:** tela "Itens de compras" em Insumos (`/insumos/vinculos`) liga cada item do fornecedor ao insumo, uma única vez; as compras seguintes já vêm ligadas ao confirmar. Sem migração.
 
 - [ ] Módulo de precificação separado do cadastro de produtos.
 - [ ] Impostos de cada insumo visíveis na composição do preço.

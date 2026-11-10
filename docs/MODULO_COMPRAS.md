@@ -52,6 +52,7 @@ Detalhes do formulário:
   - cada item mostra "Item já conhecido" ou "Item novo" e uma caixa de **destino**, que vem preenchida quando há sugestão ("Destino das compras anteriores" ou "Destino padrão do fornecedor");
   - **Salvar classificação** grava os destinos;
   - **Confirmar** só libera com todos os itens classificados e a classificação salva (confirmação em dois passos).
+- **Itens de compras (módulo Insumos, `/insumos/vinculos`):** liga cada item que o fornecedor vende ao insumo certo, uma única vez (regra 7.13). As próximas compras do mesmo item já nascem ligadas ao confirmar a entrada.
 - **Em CONFIRMADA:** o destino aparece só para leitura, e há o botão **Cancelar**, que exige um **motivo** (ele é anotado nas observações da entrada).
 
 ### 2.4 Fornecedores (`/compras/fornecedores`)
@@ -125,6 +126,8 @@ Texto completo e datas das decisões em `REGRAS_DE_NEGOCIO.md`, seção 9.
 | `PATCH /api/compras/entradas/[id]/itens/classificacao` | Grava o destino dos itens. |
 | `GET /api/compras/leitura-foto` | Diz se a leitura por IA está configurada. |
 | `POST /api/compras/leitura-foto` | Lê uma foto (multipart: `imagem`, opcional `tipoDocumento`) e devolve os dados **sem gravar nada**. |
+| `GET /api/compras/vinculos-itens` | Itens de compras confirmadas (destino Insumo ou Embalagem) com o insumo ligado e a última compra (bloco 8A). |
+| `PATCH /api/compras/vinculos-itens/[id]` | Liga ou desliga (`insumoId` null) o insumo de um item do fornecedor; vale para as próximas compras e as já confirmadas. |
 | `GET /api/fornecedores` | Lista os fornecedores, ou busca por `?id=`, `?cnpj=` ou `?cpf=`. |
 | `POST /api/fornecedores` | Cadastra. |
 | `PUT /api/fornecedores/[id]` | Altera (a tela usa também para inativar e reativar). |
@@ -137,9 +140,9 @@ Texto completo e datas das decisões em `REGRAS_DE_NEGOCIO.md`, seção 9.
 | Tabela | Conteúdo |
 |---|---|
 | `EntradaCompra` | Cabeçalho: fornecedor, tipo, número, série, chave de acesso, situação, datas, valores (produtos, desconto, frete, total) e observação. |
-| `EntradaCompraItem` | Itens: descrição original, código do produto na nota, quantidade, unidade, valor unitário, desconto, total, lote, validade, **destino** e `insumoId` (vazio: a ligação será feita na G08). |
+| `EntradaCompraItem` | Itens: descrição original, código do produto na nota, quantidade, unidade, valor unitário, desconto, total, lote, validade, **destino** e `insumoId` (preenchido pelo vínculo do bloco 8A). |
 | `EntradaCompraDocumento` | Referência do arquivo original: nome, tipo MIME, tamanho, tipo do documento, **origem** (FOTOGRAFIA, UPLOAD, XML ou IMPORTACAO), situação da leitura (PENDENTE, PROCESSANDO, EXTRAIDO, ERRO), caminho e hash do arquivo. |
-| `ClassificacaoItemCompra` | Memória do fornecedor: chave do item → destino, com contador de usos. Gravada na confirmação. |
+| `ClassificacaoItemCompra` | Memória do fornecedor: chave do item → destino e **insumo ligado**, com contador de usos. Gravada na confirmação; o insumo é ligado na tela Itens de compras. |
 | `Fornecedor` | Razão social, nome fantasia, CNPJ ou CPF (únicos por empresa), contato, **destino padrão**, **inscrição estadual**, **endereço** (CEP, logradouro, número, complemento, bairro, município, UF) e situação ativo. |
 
 Todas as consultas são limitadas à empresa (`core/context/empresaContext.ts`).

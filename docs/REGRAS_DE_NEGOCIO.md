@@ -89,7 +89,7 @@
 2. A ficha é alimentada pelo **custo atual do insumo**. Quando uma nova compra muda o preço do insumo, o custo da ficha é recalculado; as quantidades da receita não mudam.
 3. Mudar o preço do insumo **não altera automaticamente o preço de venda**: a decisão de preço é do Kacius.
 4. A gramatura de cada item da ficha é editável, com recálculo do custo.
-5. A ficha considera o percentual de perda de cada insumo.
+5. A ficha considera o percentual de perda de cada insumo. **O custo é dividido pelo aproveitamento** (100% menos a perda): com 20% de perda aproveita-se 80%, então o custo do que vai ao prato é o preço ÷ 0,80, ou seja, 25% a mais, e não 20%. A perda é sempre repassada ao preço de venda. *(decisão de 12/11/2026; a fórmula atual, que soma a perda, é trocada no bloco 8D)*
 6. O custo do produto inclui o rateio dos custos fixos: mão de obra, gás, energia, aluguel (R$ 1.500 de referência, contado pelo mês inteiro mesmo nos dias fechados), internet, hospedagem do site e tráfego pago.
 7. O sistema deve mostrar CMV, DRE, markup e margem.
 8. Os impostos de cada insumo devem ficar visíveis, para compor um preço justo.
@@ -97,6 +97,10 @@
 10. A precificação conversa com o financeiro e considera a margem dos marketplaces.
 11. **iFood:** comissão de cerca de 25,2% mais R$ 150 por mês, tratada como custo de aquisição de clientes.
 12. **Custo do insumo = último preço pago por unidade de medida** (exemplo: o preço do quilo do bacon na última compra confirmada), seja ele maior ou menor que o anterior. A atualização é **automática** quando a entrada de compra é confirmada, e as fichas são recalculadas. O que importa é o preço do quilo, não o preço da peça: a manta de bacon pode variar de peso, mas o quilo é a base. O custo da porção é o preço do quilo vezes o peso da porção em quilos (exemplo: R$ 40,00 o quilo e porção de 30 g = R$ 1,20), considerando o percentual de perda da regra 5. *(decisão de 12/11/2026; fica para a G08)*
+13. **Vínculo item da compra → insumo:** feito uma única vez, na tela "Itens de compras sem insumo" (módulo Insumos), pela chave do item do fornecedor (regra 9.13), e lembrado para as próximas compras. A entrada de compra continua pedindo só o destino. Ao ligar, o custo do insumo passa a valer pela compra confirmada mais recente desse item. *(12/11/2026)*
+14. **Unidades e peso:** quando a unidade da nota se converte na do insumo (kg e g, L e ml), a conversão é automática. Quando não se converte (manta, caixa, pacote), a quantidade real na unidade do insumo é informada na entrada (exemplo: o peso em kg das mantas), e o fator fixo (exemplo: 1 caixa = 12 unidades) é lembrado por fornecedor e item. *(12/11/2026)*
+15. **O que entra no preço:** o preço líquido do item (já com o desconto do item). Frete e impostos da nota ficam de fora por enquanto (regra 9.20). *(12/11/2026)*
+16. **Cancelar a entrada devolve o custo** do insumo ao preço da compra anterior, por meio de um histórico de preços do insumo, que também mostra a variação. *(12/11/2026)*
 
 ## 8. Operação
 

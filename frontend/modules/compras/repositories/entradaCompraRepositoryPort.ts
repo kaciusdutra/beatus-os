@@ -2,6 +2,7 @@ import {
   ClassificacaoItemInput,
   EntradaCompra,
   MemoriaClassificacaoItemCompra,
+  MemoriaClassificacaoRegistro,
 } from "../types/entradaCompra";
 
 import {
@@ -58,6 +59,27 @@ export interface EntradaCompraRepositoryPort {
     fornecedorId: string,
     descricoesNormalizadas: string[]
   ): Promise<MemoriaClassificacaoItemCompra[]>;
+
+  // Todas as memórias da empresa (tela de vínculos, bloco 8A).
+  listarMemoriasClassificacao(): Promise<
+    MemoriaClassificacaoRegistro[]
+  >;
+
+  buscarMemoriaClassificacaoPorId(
+    id: string
+  ): Promise<MemoriaClassificacaoRegistro | undefined>;
+
+  // Liga (ou desliga, com null) o insumo de um item do fornecedor.
+  vincularMemoriaAoInsumo(
+    id: string,
+    insumoId: string | null
+  ): Promise<MemoriaClassificacaoRegistro>;
+
+  // Grava o insumo nos itens de entradas já lançadas.
+  vincularItensAoInsumo(
+    itemIds: string[],
+    insumoId: string | null
+  ): Promise<void>;
 
   // Cria ou atualiza a memória e soma 1 em vezesUsada.
   registrarMemoriasClassificacao(

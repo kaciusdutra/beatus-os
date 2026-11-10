@@ -68,6 +68,52 @@ export interface MemoriaClassificacaoItemCompra {
   descricaoNormalizada: string;
 
   destino: DestinoItemCompra;
+
+  // Insumo ligado a este item do fornecedor (bloco 8A); vazio = ainda sem insumo.
+  insumoId?: string;
+}
+
+// Registro da memória como está no banco (usado na tela de vínculos).
+export interface MemoriaClassificacaoRegistro
+  extends MemoriaClassificacaoItemCompra {
+  id: string;
+
+  vezesUsada: number;
+}
+
+// Item de compra de um fornecedor, com o insumo ligado (ou não) e a última compra.
+export interface VinculoItemCompra {
+  // Id da memória do fornecedor (é com ele que se liga o insumo).
+  id: string;
+
+  fornecedorId: string;
+
+  descricaoNormalizada: string;
+
+  // Descrição como veio na nota mais recente.
+  descricao: string;
+
+  destino: DestinoItemCompra;
+
+  vezesUsada: number;
+
+  insumoId?: string;
+
+  ultimaCompra?: {
+    entradaId: string;
+
+    numeroDocumento?: string;
+
+    dataEntrada: string;
+
+    quantidade: number;
+
+    unidade: string;
+
+    valorUnitario: number;
+
+    desconto: number;
+  };
 }
 
 export type OrigemSugestaoClassificacao =

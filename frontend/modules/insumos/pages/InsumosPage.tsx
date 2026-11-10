@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 
+import Link from "next/link";
+
 interface CategoriaInsumo {
   id: string;
   nome: string;
@@ -468,15 +470,24 @@ export default function InsumosPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={
-            abrirNovoInsumo
-          }
-          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-        >
-          + Novo insumo
-        </button>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/insumos/vinculos"
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Itens de compras
+          </Link>
+
+          <button
+            type="button"
+            onClick={
+              abrirNovoInsumo
+            }
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          >
+            + Novo insumo
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

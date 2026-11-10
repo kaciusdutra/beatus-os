@@ -3,6 +3,7 @@ import {
   EntradaCompra,
   EntradaCompraItem,
   MemoriaClassificacaoItemCompra,
+  MemoriaClassificacaoRegistro,
   TipoDocumentoEntradaCompra,
 } from "../types/entradaCompra";
 
@@ -26,14 +27,73 @@ import {
   Fornecedor,
 } from "@/modules/fornecedores/types/fornecedor";
 
+import {
+  InsumoRepositoryPort,
+} from "@/modules/insumos/repositories/insumoRepositoryPort";
+
+import {
+  Insumo,
+} from "@/modules/insumos/types/insumo";
+
 class EntradaCompraRepositoryFake
   implements EntradaCompraRepositoryPort
 {
   private entradas: EntradaCompra[] = [];
 
   memorias: (MemoriaClassificacaoItemCompra & {
+    id: string;
     vezesUsada: number;
   })[] = [];
+
+  async listarMemoriasClassificacao(): Promise<
+    MemoriaClassificacaoRegistro[]
+  > {
+    return this.memorias.map((memoria) => ({
+      ...memoria,
+    }));
+  }
+
+  async buscarMemoriaClassificacaoPorId(
+    id: string
+  ): Promise<
+    MemoriaClassificacaoRegistro | undefined
+  > {
+    return this.memorias.find(
+      (memoria) => memoria.id === id
+    );
+  }
+
+  async vincularMemoriaAoInsumo(
+    id: string,
+    insumoId: string | null
+  ): Promise<MemoriaClassificacaoRegistro> {
+    const memoria = this.memorias.find(
+      (item) => item.id === id
+    );
+
+    if (!memoria) {
+      throw new Error(
+        "Item de compra não encontrado."
+      );
+    }
+
+    memoria.insumoId = insumoId ?? undefined;
+
+    return memoria;
+  }
+
+  async vincularItensAoInsumo(
+    itemIds: string[],
+    insumoId: string | null
+  ): Promise<void> {
+    for (const entrada of this.entradas) {
+      for (const item of entrada.itens) {
+        if (itemIds.includes(item.id)) {
+          item.insumoId = insumoId ?? undefined;
+        }
+      }
+    }
+  }
 
   async classificarItens(
     entradaId: string,
@@ -97,6 +157,7 @@ class EntradaCompraRepositoryFake
       } else {
         this.memorias.push({
           ...memoria,
+          id: crypto.randomUUID(),
           vezesUsada: 1,
         });
       }
@@ -579,6 +640,53 @@ function criarDocumento(
   };
 }
 
+class InsumoRepositoryFake
+  implements InsumoRepositoryPort
+{
+  constructor(private readonly insumos: Insumo[]) {}
+
+  async criar(insumo: Insumo): Promise<Insumo> {
+    this.insumos.push(insumo);
+    return insumo;
+  }
+
+  async buscarPorId(
+    id: string
+  ): Promise<Insumo | undefined> {
+    return this.insumos.find(
+      (insumo) => insumo.id === id
+    );
+  }
+
+  async listar(): Promise<Insumo[]> {
+    return this.insumos;
+  }
+
+  async atualizar(insumo: Insumo): Promise<Insumo> {
+    return insumo;
+  }
+}
+
+function criarInsumo(
+  id: string,
+  ativo = true
+): Insumo {
+  const agora = new Date().toISOString();
+
+  return {
+    id,
+    nome: `Insumo ${id}`,
+    categoriaId: "categoria",
+    unidadeCompraId: "kg",
+    quantidadeCompra: 1,
+    precoCompra: 10,
+    custoUnitario: 10,
+    ativo,
+    criadoEm: agora,
+    atualizadoEm: agora,
+  };
+}
+
 function esperarErro(
   acao: () => Promise<unknown>,
   mensagemEsperada: string
@@ -618,7 +726,11 @@ async function executarTestes() {
   const service =
     new EntradaCompraService(
       entradaRepository,
-      fornecedorRepository
+      fornecedorRepository,
+      new InsumoRepositoryFake([
+        criarInsumo("insumo-bacon"),
+        criarInsumo("insumo-inativo", false),
+      ])
     );
 
   // --------------------------------------------------
@@ -1385,6 +1497,199 @@ async function executarTestes() {
   ) {
     throw new Error(
       "Falha: identidade do documento foi alterada."
+    );
+  }
+
+  // --------------------------------------------------
+  // VÍNCULO ITEM -> INSUMO (bloco 8A, regra 7.13)
+  // --------------------------------------------------
+
+  async function lancarEConfirmar(
+    descricao: string,
+    destino: "INSUMO" | "LIMPEZA_HIGIENE",
+    dataEntrada: string
+  ) {
+    const entradaId = crypto.randomUUID();
+
+    const lancada =
+      await service.criarEntradaCompra({
+        entrada: criarEntrada(fornecedor.id, {
+          id: entradaId,
+          numeroDocumento: `8A-${descricao}`,
+          dataEntrada,
+          itens: [
+            criarItem(entradaId, {
+              descricaoOriginal: descricao,
+              quantidade: 3,
+              unidade: "MANTA",
+              valorUnitario: 98,
+              valorTotal: 294,
+            }),
+          ],
+          valorProdutos: 294,
+          valorTotal: 294,
+        }),
+      });
+
+    await service.classificarItens(entradaId, [
+      { itemId: lancada.itens[0].id, destino },
+    ]);
+
+    return service.confirmarEntradaCompra(entradaId);
+  }
+
+  const baconUm = await lancarEConfirmar(
+    "Bacon manta",
+    "INSUMO",
+    "2029-01-01T00:00:00.000Z"
+  );
+
+  await lancarEConfirmar(
+    "Detergente neutro",
+    "LIMPEZA_HIGIENE",
+    "2029-01-02T00:00:00.000Z"
+  );
+
+  const antes = await service.listarVinculosCompra();
+
+  const vinculoBacon = antes.find(
+    (vinculo) =>
+      vinculo.descricaoNormalizada === "BACON MANTA"
+  );
+
+  if (
+    !vinculoBacon ||
+    vinculoBacon.insumoId !== undefined ||
+    vinculoBacon.descricao !== "Bacon manta" ||
+    vinculoBacon.ultimaCompra?.unidade !== "MANTA" ||
+    vinculoBacon.ultimaCompra.valorUnitario !== 98
+  ) {
+    throw new Error(
+      "Falha: item de compra não apareceu sem insumo, com a última compra."
+    );
+  }
+
+  if (
+    antes.some(
+      (vinculo) =>
+        vinculo.descricaoNormalizada ===
+        "DETERGENTE NEUTRO"
+    )
+  ) {
+    throw new Error(
+      "Falha: item com destino Limpeza apareceu na lista de vínculos."
+    );
+  }
+
+  const ligado =
+    await service.vincularItemCompraAoInsumo(
+      vinculoBacon.id,
+      "insumo-bacon"
+    );
+
+  if (ligado.insumoId !== "insumo-bacon") {
+    throw new Error(
+      "Falha: o insumo não foi ligado ao item."
+    );
+  }
+
+  if (
+    (await entradaRepository.buscarPorId(baconUm.id))
+      ?.itens[0].insumoId !== "insumo-bacon"
+  ) {
+    throw new Error(
+      "Falha: o vínculo não foi para o item da compra já confirmada."
+    );
+  }
+
+  // Próxima compra do mesmo item, escrito de outro jeito: já nasce ligada.
+  const baconDois = await lancarEConfirmar(
+    "  BACON  manta. ",
+    "INSUMO",
+    "2030-01-01T00:00:00.000Z"
+  );
+
+  if (baconDois.itens[0].insumoId !== "insumo-bacon") {
+    throw new Error(
+      "Falha: a nova compra não herdou o insumo ligado."
+    );
+  }
+
+  const depois = (
+    await service.listarVinculosCompra()
+  ).find(
+    (vinculo) =>
+      vinculo.descricaoNormalizada === "BACON MANTA"
+  );
+
+  if (
+    depois?.ultimaCompra?.entradaId !== baconDois.id ||
+    depois.vezesUsada !== 2
+  ) {
+    throw new Error(
+      "Falha: a última compra e o contador do item não foram atualizados."
+    );
+  }
+
+  await esperarErro(
+    () =>
+      service.vincularItemCompraAoInsumo(
+        vinculoBacon.id,
+        "nao-existe"
+      ),
+    "Insumo não encontrado."
+  );
+
+  await esperarErro(
+    () =>
+      service.vincularItemCompraAoInsumo(
+        vinculoBacon.id,
+        "insumo-inativo"
+      ),
+    "Insumo inativo não pode receber itens de compra."
+  );
+
+  await esperarErro(
+    () =>
+      service.vincularItemCompraAoInsumo(
+        "memoria-inexistente",
+        "insumo-bacon"
+      ),
+    "Item de compra não encontrado."
+  );
+
+  const memoriaDetergente =
+    entradaRepository.memorias.find(
+      (memoria) =>
+        memoria.descricaoNormalizada ===
+        "DETERGENTE NEUTRO"
+    );
+
+  await esperarErro(
+    () =>
+      service.vincularItemCompraAoInsumo(
+        memoriaDetergente?.id ?? "",
+        "insumo-bacon"
+      ),
+    "Somente itens com destino Insumo ou Embalagem podem ser ligados a um insumo."
+  );
+
+  // Desligar limpa o vínculo da memória e dos itens já lançados.
+  const desligado =
+    await service.vincularItemCompraAoInsumo(
+      vinculoBacon.id,
+      null
+    );
+
+  if (
+    desligado.insumoId !== undefined ||
+    (await entradaRepository.buscarPorId(baconUm.id))
+      ?.itens[0].insumoId !== undefined ||
+    (await entradaRepository.buscarPorId(baconDois.id))
+      ?.itens[0].insumoId !== undefined
+  ) {
+    throw new Error(
+      "Falha: desligar o insumo não limpou o vínculo."
     );
   }
 
