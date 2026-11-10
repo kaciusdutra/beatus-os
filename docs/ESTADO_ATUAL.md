@@ -9,7 +9,7 @@
 - **Branch principal:** `main`, igual a `origin/main`.
 - **Bloco concluído:** 7F, leitura dos itens por foto com IA, inclusive recibo manuscrito (commit `3483b9e`; falta só a chave da Anthropic). Antes dele, a 7E (`f77d31c`), a 7D (`2c9eb0e`), a 7C (`274f1a7`), a 7B (`126ea63`) e a 7A (`43ce3f8`).
 - **Documentação do módulo:** `docs/MODULO_COMPRAS.md` (telas, regras, API, dados, configuração, testes e pendências).
-- **G08 (fichas, custo automático e precificação):** plano aprovado em 12/11/2026 (regras 7.5 e 7.12 a 7.16). Bloco **8A** (vínculo item da compra → insumo) concluído (commit `8576697`). Bloco **8B** (equivalência de unidade, perda de limpeza e edição de insumo) concluído (commit `0a51110`). Bloco **8D** (tela de fichas técnicas) concluído (commit `c23f610`). Bloco **8E** (modo de preparo, montagem e ficha de produção) pronto para aprovação. Seguem **8E** (modo de preparo, montagem e ficha de produção para o funcionário; migração), **8C** (custo automático pelo último preço e histórico de preços, migração; guarda também a quantidade convertida, que servirá ao estoque) e 8E a 8G (precificação).
+- **G08 (fichas, custo automático e precificação):** plano aprovado em 12/11/2026 (regras 7.5 e 7.12 a 7.16). Bloco **8A** (vínculo item da compra → insumo) concluído (commit `8576697`). Bloco **8B** (equivalência de unidade, perda de limpeza e edição de insumo) concluído (commit `0a51110`). Bloco **8D** (tela de fichas técnicas) concluído (commit `c23f610`). Bloco **8E** (modo de preparo, montagem e ficha de produção) concluído (commit `d679de3`). Seguem **8C** (custo automático pelo último preço e histórico de preços, migração; guarda também a quantidade convertida, que servirá ao estoque) e 8F a 8H (precificação).
 - **Próximo passo:** terminar a **G08**, e então S2, S3, S4 e S6, nessa ordem. A chave da Anthropic entra quando o Kacius avaliar o custo por foto.
 
 ## Ambiente
@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 12/11/2026 | `d679de3` | G08 8E: modo de preparo, montagem, observações, validade, tempo e porção padrão na ficha (migração); ordem dos itens gravada; tela Ficha de produção sem custos, com escala e impressão; coluna Custo da porção; regras 7.21 e 7.22 |
 | 12/11/2026 | `c23f610` | G08 8D: tela de fichas técnicas (preparações e produtos) com ficha dentro de ficha, caixa de categoria, custo ao vivo, bloco de embalagem, combo, perda do preparo calculada, criar produto; motor de custo novo; rotas `/api/fichas` e `/api/produtos`; regras 7.18 a 7.20 |
 | 12/11/2026 | `0a51110` | G08 8B: equivalência de unidade e perda de limpeza no insumo (migração), tela Editar insumo, custo pelo aproveitamento (limpeza × cocção) e conversão por equivalência; regra 7.17 |
 | 12/11/2026 | `8576697` | G08 8A: tela "Itens de compras" em Insumos liga cada item do fornecedor ao insumo, uma única vez; as compras seguintes já nascem ligadas; regras 7.5 e 7.12 a 7.16 |
