@@ -190,6 +190,15 @@ export interface EntradaCompra {
 
   valorFrete: number;
 
+  // Impostos e outras despesas da nota: ficam à parte, fora do custo (regra 7.25).
+  valorIcmsSt?: number;
+
+  valorIpi?: number;
+
+  valorSeguro?: number;
+
+  valorOutrasDespesas?: number;
+
   valorTotal: number;
 
   documentoArquivo?: string;

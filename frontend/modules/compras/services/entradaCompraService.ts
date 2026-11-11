@@ -238,6 +238,22 @@ function validarValoresEntrada(
     );
   }
 
+  for (const [rotulo, valor] of [
+    ["ICMS-ST", entrada.valorIcmsSt],
+    ["IPI", entrada.valorIpi],
+    ["seguro", entrada.valorSeguro],
+    ["outras despesas", entrada.valorOutrasDespesas],
+  ] as const) {
+    if (
+      valor !== undefined &&
+      (!Number.isFinite(valor) || valor < 0)
+    ) {
+      throw new Error(
+        `O valor de ${rotulo} da entrada é inválido.`
+      );
+    }
+  }
+
   if (
     !Number.isFinite(
       entrada.valorProdutos

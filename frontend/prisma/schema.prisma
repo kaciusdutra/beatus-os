@@ -26,6 +26,9 @@ model Empresa {
 
   classificacoesItemCompra ClassificacaoItemCompra[]
 
+  custosFixos             CustoFixo[]
+  configuracaoPrecificacao ConfiguracaoPrecificacao?
+
   @@index([ativo])
 }
 
@@ -86,6 +89,13 @@ model EntradaCompra {
   valorProdutos Decimal @default(0) @db.Decimal(12, 2)
   valorDesconto Decimal @default(0) @db.Decimal(12, 2)
   valorFrete    Decimal @default(0) @db.Decimal(12, 2)
+
+  // Impostos e outras despesas da nota: ficam à parte, fora do custo (regra 7.25).
+  valorIcmsSt         Decimal @default(0) @db.Decimal(12, 2)
+  valorIpi            Decimal @default(0) @db.Decimal(12, 2)
+  valorSeguro         Decimal @default(0) @db.Decimal(12, 2)
+  valorOutrasDespesas Decimal @default(0) @db.Decimal(12, 2)
+
   valorTotal    Decimal @default(0) @db.Decimal(12, 2)
 
   documentoArquivo String?
@@ -354,6 +364,46 @@ model Pagamento {
   @@index([pedidoId])
   @@index([status])
   @@index([forma, status])
+}
+
+// Custo fixo mensal (regra 7.6): mão de obra, gás, energia, aluguel, internet etc.
+model CustoFixo {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  nome        String
+  valorMensal Decimal @db.Decimal(12, 2)
+
+  inicioVigencia DateTime  @default(now())
+  fimVigencia    DateTime?
+
+  ativo Boolean @default(true)
+
+  observacao String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId])
+  @@index([empresaId, ativo])
+}
+
+// Base do rateio dos custos fixos por pedido (regra 7.6).
+model ConfiguracaoPrecificacao {
+  id String @id @default(uuid())
+
+  empresaId String @unique
+
+  // Estimativa de pedidos por mês, até haver pedidos reais suficientes.
+  pedidosMensaisEstimados Int @default(0)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
 }
 
 model Insumo {

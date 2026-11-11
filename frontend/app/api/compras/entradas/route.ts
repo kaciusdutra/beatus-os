@@ -190,6 +190,30 @@ export async function POST(
                 0
             ),
 
+          valorIcmsSt:
+            Number(
+              body.valorIcmsSt ??
+                0
+            ),
+
+          valorIpi:
+            Number(
+              body.valorIpi ??
+                0
+            ),
+
+          valorSeguro:
+            Number(
+              body.valorSeguro ??
+                0
+            ),
+
+          valorOutrasDespesas:
+            Number(
+              body.valorOutrasDespesas ??
+                0
+            ),
+
           valorTotal:
             Number(
               body.valorTotal ??

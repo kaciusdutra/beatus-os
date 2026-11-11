@@ -98,6 +98,11 @@ interface FormularioEntrada {
   dataEntrada: string;
   desconto: string;
   frete: string;
+  // Impostos e outras despesas da nota: ficam fora do custo (regra 7.25).
+  icmsSt: string;
+  ipi: string;
+  seguro: string;
+  outrasDespesas: string;
   observacao: string;
 }
 
@@ -111,6 +116,10 @@ const formularioInicial: FormularioEntrada = {
   dataEntrada: "",
   desconto: "0",
   frete: "0",
+  icmsSt: "0",
+  ipi: "0",
+  seguro: "0",
+  outrasDespesas: "0",
   observacao: "",
 };
 
@@ -1035,6 +1044,12 @@ export default function NovaEntradaCompraPage() {
         // Os descontos da nota já vêm por item.
         desconto: "0",
         frete: String(nota.totais.frete),
+        icmsSt: String(nota.totais.icmsSt),
+        ipi: String(nota.totais.ipi),
+        seguro: String(nota.totais.seguro),
+        outrasDespesas: String(
+          nota.totais.outrasDespesas
+        ),
       }));
 
       setItens(
@@ -1595,6 +1610,22 @@ export default function NovaEntradaCompraPage() {
                     2
                   )
                 ),
+
+              valorIcmsSt: Number(
+                Number(formulario.icmsSt || 0).toFixed(2)
+              ),
+
+              valorIpi: Number(
+                Number(formulario.ipi || 0).toFixed(2)
+              ),
+
+              valorSeguro: Number(
+                Number(formulario.seguro || 0).toFixed(2)
+              ),
+
+              valorOutrasDespesas: Number(
+                Number(formulario.outrasDespesas || 0).toFixed(2)
+              ),
 
               valorTotal:
                 Number(
@@ -3088,6 +3119,116 @@ export default function NovaEntradaCompraPage() {
                   }
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                 />
+              </div>
+
+              <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold text-slate-700">
+                  Impostos e outras despesas da nota
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Só para consulta: ficam fora do custo do
+                  insumo e do total da entrada.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="icms-st"
+                    className="mb-1 block text-xs font-semibold text-slate-600"
+                  >
+                    ICMS-ST
+                  </label>
+
+                  <input
+                    id="icms-st"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formulario.icmsSt}
+                    onChange={(evento) =>
+                      alterarFormulario(
+                        "icmsSt",
+                        evento.target.value
+                      )
+                    }
+                    disabled={salvando}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="ipi"
+                    className="mb-1 block text-xs font-semibold text-slate-600"
+                  >
+                    IPI
+                  </label>
+
+                  <input
+                    id="ipi"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formulario.ipi}
+                    onChange={(evento) =>
+                      alterarFormulario(
+                        "ipi",
+                        evento.target.value
+                      )
+                    }
+                    disabled={salvando}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="seguro"
+                    className="mb-1 block text-xs font-semibold text-slate-600"
+                  >
+                    Seguro
+                  </label>
+
+                  <input
+                    id="seguro"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formulario.seguro}
+                    onChange={(evento) =>
+                      alterarFormulario(
+                        "seguro",
+                        evento.target.value
+                      )
+                    }
+                    disabled={salvando}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="outras-despesas"
+                    className="mb-1 block text-xs font-semibold text-slate-600"
+                  >
+                    Outras despesas
+                  </label>
+
+                  <input
+                    id="outras-despesas"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formulario.outrasDespesas}
+                    onChange={(evento) =>
+                      alterarFormulario(
+                        "outrasDespesas",
+                        evento.target.value
+                      )
+                    }
+                    disabled={salvando}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                  />
+                </div>
+                </div>
               </div>
 
               <div className="rounded-2xl bg-slate-900 p-5 text-white">

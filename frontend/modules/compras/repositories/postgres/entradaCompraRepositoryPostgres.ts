@@ -237,6 +237,10 @@ function mapearEntrada(
     valorProdutos: unknown;
     valorDesconto: unknown;
     valorFrete: unknown;
+    valorIcmsSt?: unknown;
+    valorIpi?: unknown;
+    valorSeguro?: unknown;
+    valorOutrasDespesas?: unknown;
     valorTotal: unknown;
     documentoArquivo: string | null;
     observacao: string | null;
@@ -331,6 +335,15 @@ function mapearEntrada(
         entrada.valorFrete
       ),
 
+    valorIcmsSt: Number(entrada.valorIcmsSt ?? 0),
+
+    valorIpi: Number(entrada.valorIpi ?? 0),
+
+    valorSeguro: Number(entrada.valorSeguro ?? 0),
+
+    valorOutrasDespesas: Number(entrada.valorOutrasDespesas ?? 0),
+
+
     valorTotal:
       Number(
         entrada.valorTotal
@@ -423,6 +436,15 @@ export class EntradaCompraRepositoryPostgres
 
           valorFrete:
             entrada.valorFrete,
+
+          valorIcmsSt: entrada.valorIcmsSt ?? 0,
+
+          valorIpi: entrada.valorIpi ?? 0,
+
+          valorSeguro: entrada.valorSeguro ?? 0,
+
+          valorOutrasDespesas: entrada.valorOutrasDespesas ?? 0,
+
 
           valorTotal:
             entrada.valorTotal,
@@ -830,6 +852,15 @@ export class EntradaCompraRepositoryPostgres
 
               valorFrete:
                 entrada.valorFrete,
+
+              valorIcmsSt: entrada.valorIcmsSt ?? 0,
+
+              valorIpi: entrada.valorIpi ?? 0,
+
+              valorSeguro: entrada.valorSeguro ?? 0,
+
+              valorOutrasDespesas: entrada.valorOutrasDespesas ?? 0,
+
 
               valorTotal:
                 entrada.valorTotal,

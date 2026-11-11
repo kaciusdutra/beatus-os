@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 import CapturaDocumentoNota from "@/modules/compras/components/CapturaDocumentoNota";
 import {
@@ -1156,6 +1156,24 @@ export default function EntradaCompraPage({
           <dd className="text-right text-slate-800">
             + {formatarMoeda(entrada.valorFrete)}
           </dd>
+
+          {[
+            ["ICMS-ST", entrada.valorIcmsSt],
+            ["IPI", entrada.valorIpi],
+            ["Seguro", entrada.valorSeguro],
+            ["Outras despesas", entrada.valorOutrasDespesas],
+          ]
+            .filter(([, valor]) => Number(valor ?? 0) > 0)
+            .map(([rotulo, valor]) => (
+              <Fragment key={String(rotulo)}>
+                <dt className="text-xs text-slate-400">
+                  {rotulo} (fora do custo)
+                </dt>
+                <dd className="text-right text-xs text-slate-400">
+                  {formatarMoeda(Number(valor))}
+                </dd>
+              </Fragment>
+            ))}
 
           <dt className="font-semibold text-slate-900">
             Total
