@@ -28,6 +28,8 @@ model Empresa {
 
   custosFixos             CustoFixo[]
   configuracaoPrecificacao ConfiguracaoPrecificacao?
+  canaisPrecificacao      CanalPrecificacao[]
+  precosProduto           PrecoProduto[]
 
   @@index([ativo])
 }
@@ -232,6 +234,7 @@ model Produto {
   empresa      Empresa       @relation(fields: [empresaId], references: [id])
   itens        PedidoItem[]
   fichaTecnica FichaTecnica?
+  precos       PrecoProduto[]
 
   @@index([empresaId])
   @@index([empresaId, ativo])
@@ -400,10 +403,75 @@ model ConfiguracaoPrecificacao {
   // Estimativa de pedidos por mês, até haver pedidos reais suficientes.
   pedidosMensaisEstimados Int @default(0)
 
+  // Percentuais sobre o preço, embutidos seja qual for a forma de pagamento (regra 4.5).
+  impostoPercentual        Decimal @default(0) @db.Decimal(8, 4)
+  taxaPagamentoPercentual  Decimal @default(0) @db.Decimal(8, 4)
+
+  // Embalagem do pedido (sacola, guardanapo, sachê), em R$ por pedido (regra 7.19).
+  embalagemPedido Decimal @default(0) @db.Decimal(12, 4)
+
+  // Quantos produtos, em média, vão em um pedido (rateia o custo fixo por pedido).
+  itensPorPedidoEstimados Decimal @default(1) @db.Decimal(8, 2)
+
+  // Margens que a tela mostra lado a lado, separadas por vírgula (decisão do Kacius: 20, 25, 30 e 35).
+  margensCenario String @default("20,25,30,35")
+
+  // Abaixo desta margem o preço conta como promoção (o Kacius trabalha de 20% para cima).
+  margemMinimaPercentual Decimal @default(20) @db.Decimal(8, 4)
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   empresa Empresa @relation(fields: [empresaId], references: [id])
+}
+
+// Percentuais e taxas de cada canal de venda (iFood, 99Food, Keeta, WhatsApp, site).
+model CanalPrecificacao {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  canal String
+
+  comissaoPercentual Decimal @default(0) @db.Decimal(8, 4)
+
+  // Taxa fixa por mês do canal (iFood: R$ 150), tratada como custo de aquisição.
+  taxaMensal Decimal @default(0) @db.Decimal(12, 2)
+
+  // Pedidos esperados por mês no canal (rateia a taxa mensal).
+  pedidosMensaisEstimados Int @default(0)
+
+  ativo Boolean @default(true)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, canal])
+  @@index([empresaId])
+}
+
+// Preço de venda de um produto em um canal (regra 6.6: vem da precificação).
+model PrecoProduto {
+  id String @id @default(uuid())
+
+  empresaId String
+  produtoId String
+
+  canal String
+
+  preco Decimal @db.Decimal(12, 2)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@unique([empresaId, produtoId, canal])
+  @@index([empresaId])
+  @@index([produtoId])
 }
 
 model Insumo {
