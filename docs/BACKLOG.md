@@ -97,6 +97,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 - [x] **Bloco 8C concluído** (migração `add_historico_preco_e_quantidade_convertida`): custo automático pelo último preço ao confirmar a entrada, histórico de preços do insumo (visível em Editar insumo), quantidade convertida gravada no item, custo volta ao cancelar a entrada, botão Recalcular custos das compras. Regra 7.23.
 - [x] **Peso real na entrada concluído** (migração `add_peso_real_e_fator_item_compra`): quantidade real com unidade por item da entrada em rascunho, fator fixo lembrado por fornecedor e item, prioridade no custo. Regra 7.24.
+- [ ] **Frete rateado por valor no custo do insumo; impostos visíveis à parte** (decisão do Kacius em 12/11/2026, regra 7.25): entra no começo do 8F, porque a precificação depende do custo real. Sem migração para o frete (a entrada já guarda o valor do frete); os impostos da nota hoje só aparecem como diferença no total, então guardá-los à parte exige campos novos, a decidir no plano do 8F.
 - [ ] **Esquecer ou editar o fator lembrado:** hoje o fator fixo só é substituído lembrando um novo valor; falta uma forma de apagá-lo. *(12/11/2026)*
 - [ ] **Ligar item ao insumo não aplica o custo sozinho:** ao ligar um item (tela Itens de compras), o custo só muda quando a entrada for confirmada ou ao usar Recalcular custos das compras. *(12/11/2026)*
 

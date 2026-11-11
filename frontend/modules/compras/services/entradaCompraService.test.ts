@@ -1204,6 +1204,84 @@ const custoKg = (): number => insumos[0].custoUnitario;  const custoUn = (): num
   console.log("✅ Peso real na entrada passou.");
 }
 
+// Regra 7.25: frete rateado por valor entre os itens da nota.
+async function testarFreteRateado() {
+  const fornecedor = criarFornecedor();
+
+  const entradaRepository = new EntradaCompraRepositoryFake();
+
+  const insumos: Insumo[] = [
+    { ...criarInsumo("insumo-frete-a"), unidadeCompraAbreviacao: "kg" },
+    { ...criarInsumo("insumo-frete-b"), unidadeCompraAbreviacao: "kg" },
+  ];
+
+  const service = new EntradaCompraService(
+    entradaRepository,
+    new FornecedorRepositoryFake([fornecedor]),
+    new InsumoRepositoryFake(insumos)
+  );
+
+  const entradaId = crypto.randomUUID();
+
+  // Itens de R$ 300 e R$ 100, frete de R$ 40: R$ 30 e R$ 10 de frete.
+  const lancada = await service.criarEntradaCompra({
+    entrada: criarEntrada(fornecedor.id, {
+      id: entradaId,
+      numeroDocumento: `FR-${entradaId}`,
+      itens: [
+        criarItem(entradaId, {
+          descricaoOriginal: "Item frete A",
+          quantidade: 1,
+          unidade: "KG",
+          valorUnitario: 300,
+          valorTotal: 300,
+        }),
+        criarItem(entradaId, {
+          descricaoOriginal: "Item frete B",
+          quantidade: 1,
+          unidade: "KG",
+          valorUnitario: 100,
+          valorTotal: 100,
+        }),
+      ],
+      valorProdutos: 400,
+      valorFrete: 40,
+      valorTotal: 440,
+    }),
+  });
+
+  await service.classificarItens(
+    entradaId,
+    lancada.itens.map((item) => ({
+      itemId: item.id,
+      destino: "INSUMO" as const,
+    }))
+  );
+
+  await entradaRepository.vincularItensAoInsumo(
+    [lancada.itens[0].id],
+    "insumo-frete-a"
+  );
+
+  await entradaRepository.vincularItensAoInsumo(
+    [lancada.itens[1].id],
+    "insumo-frete-b"
+  );
+
+  await service.confirmarEntradaCompra(entradaId);
+
+  if (
+    insumos[0].custoUnitario !== 330 ||
+    insumos[1].custoUnitario !== 110
+  ) {
+    throw new Error(
+      "Falha frete: o frete não foi rateado por valor (esperado 330 e 110)."
+    );
+  }
+
+  console.log("✅ Frete rateado por valor passou.");
+}
+
 async function executarTestes() {
   const fornecedor =
     criarFornecedor();
@@ -2279,6 +2357,8 @@ async function executarTestes() {
   await testarCustoAutomatico();
 
   await testarPesoReal();
+
+  await testarFreteRateado();
 
   console.log(
     "✅ Todos os testes do EntradaCompraService passaram."

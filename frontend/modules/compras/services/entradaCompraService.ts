@@ -996,6 +996,14 @@ export class EntradaCompraService {
       ])
     );
 
+    // Regra 7.25: o frete da nota é rateado entre todos os itens por valor.
+    const somaItens = entrada.itens.reduce(
+      (total, item) => total + item.valorTotal,
+      0
+    );
+
+    const freteTotal = entrada.valorFrete > 0 ? entrada.valorFrete : 0;
+
     for (const item of itens) {
       if (jaRegistrados.has(item.id) || !item.insumoId) {
         continue;
@@ -1020,6 +1028,10 @@ export class EntradaCompraService {
             quantidade: item.quantidade,
             unidade: item.unidade,
             valorTotal: item.valorTotal,
+            freteRateado:
+              somaItens > 0
+                ? (freteTotal * item.valorTotal) / somaItens
+                : 0,
             quantidadeReal: item.quantidadeReal,
             unidadeReal: item.unidadeReal,
             fatorQuantidade: memoriaPorChave.get(

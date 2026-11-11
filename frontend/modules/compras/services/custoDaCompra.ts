@@ -8,9 +8,12 @@ import {
 export interface ItemParaCusto {
   quantidade: number;
   unidade: string;
-  // Valor pago pelo item, já com o desconto do item. Frete e impostos
-  // da nota ficam fora.
+  // Valor pago pelo item, já com o desconto do item.
   valorTotal: number;
+
+  // Parte do frete da nota que cabe a este item, rateada por valor (regra 7.25).
+  // Impostos da nota ficam fora do custo.
+  freteRateado?: number;
 
   // Peso real informado na entrada: tem prioridade sobre tudo.
   quantidadeReal?: number;
@@ -126,7 +129,8 @@ export function calcularCustoDaCompra(
       Math.round(quantidadeConvertida * 10000) / 10000,
     unidadeConvertida: insumo.unidadeCompra,
     precoPorUnidade: arredondar4(
-      item.valorTotal / quantidadeConvertida
+      (item.valorTotal + (item.freteRateado ?? 0)) /
+        quantidadeConvertida
     ),
   };
 }

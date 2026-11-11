@@ -96,6 +96,22 @@ function executarTestes(): void {
     "quantidade zero"
   );
 
+  // Frete rateado entra no preço: R$ 300 + R$ 15 de frete por 1 kg
+  const comFrete = calcularCustoDaCompra(
+    {
+      quantidade: 1,
+      unidade: "kg",
+      valorTotal: 300,
+      freteRateado: 15,
+    },
+    { unidadeCompra: "kg" }
+  );
+
+  verificar(
+    comFrete.ok && comFrete.precoPorUnidade === 315,
+    "frete rateado entra no preço"
+  );
+
   // Preço no insumo: mantém a quantidade de compra
   const aplicado = aplicarPrecoNoInsumo(0.5, 40);
 
