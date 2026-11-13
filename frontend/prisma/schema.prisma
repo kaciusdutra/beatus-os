@@ -39,6 +39,9 @@ model Empresa {
   configuracaoEstoque     ConfiguracaoEstoque?
   lancamentosFinanceiros  LancamentoFinanceiro[]
   contasPagar             ContaPagar[]
+  integracoesMarketplace  IntegracaoMarketplace[]
+  eventosMarketplace      EventoMarketplace[]
+  vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
 
   @@index([ativo])
@@ -252,6 +255,7 @@ model Produto {
 
   empresa      Empresa       @relation(fields: [empresaId], references: [id])
   itens        PedidoItem[]
+  vinculosMarketplace VinculoItemMarketplace[]
   fichaTecnica FichaTecnica?
   precos       PrecoProduto[]
 
@@ -1008,4 +1012,105 @@ model ConfiguracaoFinanceira {
   atualizadoEm DateTime @updatedAt
 
   empresa Empresa @relation(fields: [empresaId], references: [id])
+}
+
+// Integração com um marketplace (iFood, 99Food, Keeta). As credenciais NÃO ficam
+// aqui: vão no .env do servidor (G10).
+model IntegracaoMarketplace {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  canal String
+
+  // Desligada, o sistema não consulta a plataforma.
+  ativo Boolean @default(false)
+
+  // O pedido é aceito na plataforma assim que chega (decisão do Kacius em 13/11/2026).
+  aceiteAutomatico Boolean @default(true)
+
+  // Sem credenciais: os eventos vêm da tela de simulação, não da plataforma.
+  modoSimulacao Boolean @default(true)
+
+  // Identificação da loja na plataforma (não é segredo).
+  idDaLoja String?
+
+  // Último contato bem-sucedido com a plataforma e a última falha, para o aviso de "parou de consultar".
+  ultimoContatoEm DateTime?
+  ultimaFalha     String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, canal])
+}
+
+// Caixa de entrada dos eventos da plataforma. O par (canal, eventoId) é único:
+// o mesmo evento nunca vira dois pedidos.
+model EventoMarketplace {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  canal String
+
+  // Identificador do evento na plataforma
+  eventoId String
+
+  // Identificador do pedido na plataforma
+  pedidoExternoId String?
+
+  // Ex.: PLACED, CONFIRMED, CANCELLED
+  tipo String
+
+  payload Json
+
+  // RECEBIDO, PROCESSADO, ERRO ou IGNORADO
+  status String @default("RECEBIDO")
+
+  erro String?
+
+  // Pedido criado no Beatus a partir deste evento
+  pedidoId String?
+
+  // Quando o aceite foi enviado à plataforma, e o erro se falhou.
+  confirmadoEm    DateTime?
+  confirmacaoErro String?
+
+  recebidoEm   DateTime  @default(now())
+  processadoEm DateTime?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, canal, eventoId])
+  @@index([empresaId, status])
+  @@index([empresaId, canal, pedidoExternoId])
+}
+
+// Liga um item do cardápio da plataforma a um produto do Beatus. Item novo que
+// chega sem vínculo cria uma linha com produtoId vazio, aguardando o Kacius ligar.
+model VinculoItemMarketplace {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  canal String
+
+  // Código do item na plataforma (id ou código externo do cardápio)
+  codigoItemExterno String
+
+  nomeExterno String?
+
+  produtoId String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id])
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
+  @@unique([empresaId, canal, codigoItemExterno])
+  @@index([empresaId, canal])
 }

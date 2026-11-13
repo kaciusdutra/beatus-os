@@ -26,6 +26,11 @@ export interface ItemSolicitado {
   observacao?: string;
 
   adicionais?: AdicionalSolicitado[];
+
+  // Só pelo caminho interno do servidor (integração com marketplace): preço
+  // cobrado pela plataforma, usado se o produto não tiver preço no canal. A
+  // rota pública nunca copia este campo do corpo.
+  precoDaPlataforma?: number;
 }
 
 export interface PedidoSolicitado {
@@ -51,6 +56,16 @@ export interface PedidoSolicitado {
 
     // Nome do cliente final, só para consulta
     nomeCliente?: string;
+
+    // Só pelo caminho interno (integração): itens da plataforma ainda sem
+    // produto ligado. Entram no pedido com o preço da plataforma e sem baixa
+    // de estoque, até o Kacius ligar o item a um produto.
+    itensSemVinculo?: {
+      nome: string;
+      quantidade: number;
+      precoUnitario: number;
+      observacao?: string;
+    }[];
   };
 
   // Distância até o endereço (km). O servidor calcula a taxa por ela.

@@ -66,6 +66,55 @@ function recusa(acao: () => unknown, trecho: string, mensagem: string) {
 }
 
 function executarTestes(): void {
+  // Marketplace integrado: item sem preço no canal usa o preço da plataforma, e
+  // item sem produto ligado entra pelo preço da plataforma, sem produto.
+  const integrado = calcularPedidoNoServidor({
+    canal: "IFOOD",
+    itens: [
+      { produtoId: "batata", quantidade: 1, precoDaPlataforma: 19.9 },
+      { produtoId: "agnus", quantidade: 1, precoDaPlataforma: 99 },
+    ],
+    itensSemVinculo: [{ nome: "Combo especial iFood", quantidade: 2, precoUnitario: 30.5 }],
+    distanciaEntregaKm: null,
+    semEntrega: true,
+    aceitarPrecoDaPlataforma: true,
+    produtos: PRODUTOS,
+    precos: PRECOS,
+  });
+
+  verificar(integrado.itens.length === 3, "3 linhas: 2 produtos e 1 item sem vínculo");
+  verificar(integrado.itens[0].precoUnitario === 19.9, "batata sem preço no iFood usa o da plataforma");
+  verificar(integrado.itens[1].precoUnitario === 65, "agnus tem preço no canal e o mantém (65), não o da plataforma");
+  verificar(integrado.itens[2].produtoId === "" && integrado.itens[2].subtotal === 61, "item sem vínculo: sem produto, 2 × 30,50");
+  verificar(integrado.total === 145.9, "total de 19,90 + 65 + 61");
+
+  recusa(
+    () =>
+      calcularPedidoNoServidor({
+        canal: "IFOOD",
+        itens: [{ produtoId: "batata", quantidade: 1, precoDaPlataforma: 19.9 }],
+        distanciaEntregaKm: null,
+        semEntrega: true,
+        produtos: PRODUTOS,
+        precos: PRECOS,
+      }),
+    "preço definido",
+    "sem a permissão da integração, o preço da plataforma não vale"
+  );
+
+  verificar(
+    calcularPedidoNoServidor({
+      canal: "IFOOD",
+      itens: [],
+      itensSemVinculo: [{ nome: "Só item novo", quantidade: 1, precoUnitario: 10 }],
+      distanciaEntregaKm: null,
+      semEntrega: true,
+      produtos: PRODUTOS,
+      precos: PRECOS,
+    }).total === 10,
+    "pedido só com item sem vínculo é aceito"
+  );
+
   // Marketplace: a plataforma entrega, então não há distância nem taxa, e o preço é o do canal.
   const marketplace = calcularPedidoNoServidor({
     canal: "IFOOD",

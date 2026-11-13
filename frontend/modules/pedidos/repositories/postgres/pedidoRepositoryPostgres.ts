@@ -143,8 +143,9 @@ export class PedidoRepositoryPostgres {
                       id:
                         crypto.randomUUID(),
 
+                      // Item da plataforma ainda sem produto ligado fica sem produto.
                       produtoId:
-                        item.produtoId ??
+                        item.produtoId ||
                         null,
 
                       nome:

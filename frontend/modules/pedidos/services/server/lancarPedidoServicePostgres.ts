@@ -279,6 +279,12 @@ export class LancarPedidoServicePostgres {
             semEntrega:
               ehMarketplace,
 
+            aceitarPrecoDaPlataforma:
+              ehMarketplace,
+
+            itensSemVinculo:
+              solicitado.marketplace?.itensSemVinculo,
+
             produtos:
               produtos.map(
                 (produto) => ({

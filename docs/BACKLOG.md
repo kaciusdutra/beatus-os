@@ -178,7 +178,12 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Produtos sem nenhuma venda no período** como candidatos a divulgação (a análise só vê quem vendeu).
 - [ ] **Entrega própria nos pedidos de marketplace** (endereço, distância e taxa), junto do cadastro de clientes e da delimitação da área no iFood.
 - [ ] **Desfazer conferência** e conferir **por repasse** (um valor que cobre vários pedidos), se o pedido a pedido ficar trabalhoso.
-- [ ] **Entrada automática dos pedidos de marketplace pelas APIs** (iFood, 99Food, Keeta), que já trarão o código; o lançamento manual vira exceção (G10).
+- [x] **Integração com marketplaces, estrutura pronta (13/11/2026, migração `add_integracao_marketplace_eventos_e_vinculos`):** caixa de entrada de eventos sem repetição, vínculo de itens, aceite automático, cancelamento pela plataforma, consulta a cada 30 s pela Cozinha, avisos no Dashboard e modo simulação. Regras 16.1 a 16.7.
+- [ ] **Adaptador do iFood de verdade (G10):** depende de o Kacius criar a conta de desenvolvedor, colocar `IFOOD_CLIENT_ID` e `IFOOD_CLIENT_SECRET` no `.env` e trazer a documentação oficial e um exemplo real de pedido (o portal bloqueou a leitura automática). Inclui a homologação que o iFood exige do integrador e a delimitação da área de entrega.
+- [ ] **Adaptadores do 99Food e do Keeta** (o Keeta usa o padrão Open Delivery, parecido com o do iFood).
+- [ ] **Agendador no servidor:** hoje a consulta ao iFood só roda com a Cozinha aberta; em produção, um agendador (ou `instrumentation` do Next) precisa consultar a cada 30 s mesmo sem tela aberta.
+- [ ] **Corrigir pedidos já criados quando um item for ligado:** hoje o vínculo vale para os pedidos seguintes; os anteriores continuam com a linha sem produto.
+- [ ] **Conferência do repasse automática** com o extrato/pagamentos da plataforma, quando houver API de financeiro.
 - [ ] **Conferir o dashboard em TV de 32" com touch, tablet e celular** (testado em 1920×1080 e em tela estreita).
 - [ ] **Avisos de validade no dashboard** (cartões vencidos ou vencendo no quadro do estoque), junto da integração do checklist (G04).
 

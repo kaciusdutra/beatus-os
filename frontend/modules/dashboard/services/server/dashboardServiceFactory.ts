@@ -6,6 +6,8 @@ import { getContaPagarService } from "@/modules/financeiro/services/server/finan
 
 import { getConferenciaMarketplaceService } from "@/modules/financeiro/services/server/financeiroServiceFactory";
 
+import { getIntegracaoMarketplaceService } from "@/modules/marketplace/services/server/integracaoMarketplaceFactory";
+
 import { criarPrecificacaoServicePostgres } from "@/modules/precificacao/services/server/precificacaoServiceFactory";
 
 import { getEstoqueService } from "@/modules/estoque/services/server/estoqueService";
@@ -89,10 +91,54 @@ async function margensDaPrecificacao() {
   };
 }
 
+// Integração com o iFood: o que pode fazer um pedido não entrar ou entrar errado.
+const MINUTOS_SEM_CONTATO = 5;
+
+async function alertasDaIntegracao(): Promise<AlertaDoDashboard[]> {
+  const servico = getIntegracaoMarketplaceService();
+
+  const [pendencias, ifood] = await Promise.all([
+    servico.pendencias(),
+    servico.obterIntegracao("IFOOD"),
+  ]);
+
+  const alertas: AlertaDoDashboard[] = [];
+
+  if (ifood.ativo && !ifood.modoSimulacao) {
+    const ultimo = ifood.ultimoContatoEm ? new Date(ifood.ultimoContatoEm).getTime() : 0;
+
+    if (ifood.ultimaFalha || Date.now() - ultimo > MINUTOS_SEM_CONTATO * 60000) {
+      alertas.push({
+        nivel: "CRITICO",
+        mensagem: `O Beatus parou de consultar o iFood${ifood.ultimaFalha ? `: ${ifood.ultimaFalha}` : ""}. Pedidos novos podem não estar chegando.`,
+        href: "/integracoes/marketplace",
+      });
+    }
+  }
+
+  if (pendencias.eventosComErro > 0) {
+    alertas.push({
+      nivel: "CRITICO",
+      mensagem: `${pendencias.eventosComErro} evento(s) do marketplace com erro: algum pedido pode não ter entrado.`,
+      href: "/integracoes/marketplace",
+    });
+  }
+
+  if (pendencias.vinculosPendentes > 0) {
+    alertas.push({
+      nivel: "ATENCAO",
+      mensagem: `${pendencias.vinculosPendentes} item(ns) do marketplace sem produto ligado: esses itens não baixam estoque.`,
+      href: "/integracoes/marketplace",
+    });
+  }
+
+  return alertas;
+}
+
 export function getDashboardService(): DashboardService {
   return new DashboardService(
     criarDashboardRepositoryPostgres(criarContextoDesenvolvimento()),
-    [alertasDoFinanceiro, alertasDoEstoque, alertasDaConferencia],
+    [alertasDoFinanceiro, alertasDoEstoque, alertasDaConferencia, alertasDaIntegracao],
     margensDaPrecificacao
   );
 }

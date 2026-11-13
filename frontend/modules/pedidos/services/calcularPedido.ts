@@ -119,11 +119,25 @@ export function calcularPedidoNoServidor(entrada: {
   // Marketplace: a plataforma entrega, então não há distância nem taxa.
   semEntrega?: boolean;
 
+  // Marketplace integrado: usa o preço da plataforma quando o produto não tem
+  // preço no canal, e aceita itens que ainda não têm produto ligado.
+  aceitarPrecoDaPlataforma?: boolean;
+
+  itensSemVinculo?: {
+    nome: string;
+    quantidade: number;
+    precoUnitario: number;
+    observacao?: string;
+  }[];
+
   produtos: ProdutoDoCatalogo[];
 
   precos: PrecoDoCatalogo[];
 }): PedidoCalculado {
-  if (!Array.isArray(entrada.itens) || entrada.itens.length === 0) {
+  if (
+    !Array.isArray(entrada.itens) ||
+    (entrada.itens.length === 0 && !entrada.itensSemVinculo?.length)
+  ) {
     throw new ErroDePedido("O pedido precisa ter pelo menos um item.");
   }
 
@@ -151,11 +165,21 @@ export function calcularPedidoNoServidor(entrada: {
       produto.nome
     );
 
-    const preco = precoNoCanal(
+    let preco = precoNoCanal(
       entrada.canal,
       produto.id,
       entrada.precos
     );
+
+    if (
+      preco === undefined &&
+      entrada.aceitarPrecoDaPlataforma &&
+      solicitado.precoDaPlataforma !== undefined &&
+      Number.isFinite(solicitado.precoDaPlataforma) &&
+      solicitado.precoDaPlataforma > 0
+    ) {
+      preco = solicitado.precoDaPlataforma;
+    }
 
     if (preco === undefined) {
       throw new ErroDePedido(
@@ -217,6 +241,24 @@ export function calcularPedidoNoServidor(entrada: {
       subtotal: centavos(preco * quantidade + subtotalAdicionais),
       adicionais: adicionais.length > 0 ? adicionais : undefined,
       observacao: solicitado.observacao?.trim() || undefined,
+    });
+  }
+
+  // Itens da plataforma sem produto ligado: preço da plataforma, sem estoque.
+  for (const avulso of entrada.itensSemVinculo ?? []) {
+    const quantidade = validarQuantidade(avulso.quantidade, avulso.nome);
+
+    if (!Number.isFinite(avulso.precoUnitario) || avulso.precoUnitario < 0) {
+      throw new ErroDePedido(`Preço inválido no item "${avulso.nome}".`);
+    }
+
+    itens.push({
+      produtoId: "",
+      nome: avulso.nome,
+      quantidade,
+      precoUnitario: avulso.precoUnitario,
+      subtotal: centavos(avulso.precoUnitario * quantidade),
+      observacao: avulso.observacao?.trim() || undefined,
     });
   }
 

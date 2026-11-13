@@ -208,6 +208,22 @@ Endereços diretos: `/pdv`, `/financeiro/conferencia-marketplace` e `/financeiro
 | 119 | `/financeiro/analise-de-vendas` (7, 30 e 90 dias) | Receita por canal e produtos com unidades, valor e margem por canal; etiquetas Mais vendido, Rever margem e Bom para divulgar |
 | 120 | No Dashboard, "Vendas por canal hoje" → **Ver análise** | Abre a análise |
 
+## Parte 13: Integração com marketplaces (modo simulação)
+
+Endereço direto: `/integracoes/marketplace` (também pelos botões "Marketplaces" na Cozinha e no Financeiro).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 121 | Abra a tela e marque **Integração ligada** (modo simulação ligado) | Salva; mostra "credenciais ainda não preenchidas" |
+| 122 | Desmarque o **modo simulação** | Recusa: precisa das credenciais no .env |
+| 123 | **Simular um pedido**: dois itens com códigos e preços, número do pedido e nome | O pedido entra na Cozinha como Novo, já aceito; o evento aparece como processado e "aceito" |
+| 124 | Em **Itens da plataforma e produtos**, ligue um item a um produto | O item some das pendências; o Dashboard deixa de avisar dele |
+| 125 | Simule outro pedido com o item ligado | O item vira o produto do cardápio (ficha e estoque na hora do preparo) |
+| 126 | Em `/pedidos` e `/financeiro/conferencia-marketplace` | O pedido aparece como iFood, com código, sem taxa de entrega e aguardando conferência |
+| 127 | No Dashboard | "Atenção" avisa de item sem produto ligado, com o botão Resolver |
+| 128 | Simule o **cancelamento** de um pedido (Cozinha → pedido novo) | O pedido fica cancelado, com o motivo "Cancelado pelo IFOOD" no histórico |
+| 129 | **Consultar agora** | Em simulação ou desligada, responde que não consulta |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

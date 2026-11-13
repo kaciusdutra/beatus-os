@@ -241,3 +241,15 @@
 3. **Valor esperado do repasse** = total do pedido menos a comissão do canal (Financeiro → Precificação). Se a plataforma também desconta taxa de pagamento online, essa taxa precisa estar dentro da comissão cadastrada.
 4. **Conferência pedido a pedido:** o pedido fica **aguardando conferência** até o Kacius marcar como conferido, informando o **valor recebido** e a **data do recebimento**; a diferença para o esperado fica registrada. Pedido cancelado não tem repasse a conferir. A conferência entra no Registro de atividades.
 5. **Caixa:** o dinheiro do marketplace **só entra no fluxo de caixa quando o repasse é conferido**, no valor e na data recebidos (não no dia do pedido). O faturamento do dashboard e das análises conta a venda no dia do pedido.
+
+## 16. Integração com marketplaces (iFood, 99Food, Keeta)
+
+*(decisões do Kacius em 13/11/2026)*
+
+1. O pedido do marketplace deve **chegar sozinho** pela API da plataforma e **entrar direto na fila da Cozinha**, pelo mesmo fluxo de marketplace do PDV (regras 15.1 a 15.5): cliente fixo do canal, entrega pela plataforma, repasse esperado e conferência.
+2. O **aceite na plataforma é automático e sem travas** (só o Kacius e o irmão operam; não há quem dê o aceite na hora). Pode ser desligado na tela de integração. Se o aviso de aceite falhar, o pedido continua no Beatus e a falha fica registrada no evento.
+3. **Item da plataforma sem produto ligado** não recusa o pedido: ele entra pelo preço da plataforma, **sem baixa de estoque**, e o Dashboard avisa até o Kacius ligar o item a um produto (tela Integrações → Marketplaces). Item ligado usa a ficha e o preço do canal (regra 3.8); se o produto não tiver preço no canal, vale o preço da plataforma. Se o total calculado difere do total da plataforma, o pedido entra e o aviso fica no Registro de atividades.
+4. **Evento repetido nunca vira dois pedidos:** a caixa de entrada guarda cada evento por canal e identificador, e o código do pedido na plataforma também é único por canal. **Cancelamento pela plataforma** cancela o pedido no Beatus com a mesma regra da Cozinha (a baixa feita em preparo vira perda); cancelamento de pedido que já foi entregue, já cancelado ou que não é do Beatus é ignorado e registrado.
+5. **Consulta periódica:** a Cozinha consulta as plataformas ligadas a cada 30 segundos enquanto está aberta. O Dashboard avisa se a consulta parou (mais de 5 minutos sem contato ou com falha), se há evento com erro e se há item sem vínculo.
+6. **Credenciais** ficam só no `.env` do servidor (`IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`), nunca no banco nem na tela. Sem elas, a integração fica em **modo simulação**, que testa o caminho inteiro por uma tela de simulação. Sair da simulação exige as credenciais.
+7. **Estado do adaptador do iFood:** o esqueleto está pronto, mas ainda **não fala com o iFood**: o formato dos pedidos, os endereços e o prazo do aceite precisam ser lidos da documentação oficial (developer.ifood.com.br), com credenciais da conta de desenvolvedor do Kacius e um exemplo real de pedido. Só o arquivo do adaptador muda quando isso chegar. O 99Food e o Keeta ainda não têm adaptador.

@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import type { PedidoDaCozinha } from "../services/server/operacaoPedidoService";
 
+import ConsultaAutomaticaDoMarketplace from "@/modules/marketplace/components/ConsultaAutomaticaDoMarketplace";
+
 interface ConsumoDoPedido {
   itemTipo: "INSUMO" | "PREPARACAO";
   id: string;
@@ -171,6 +173,8 @@ export default function CozinhaPage() {
 
   return (
     <div className="space-y-6">
+      <ConsultaAutomaticaDoMarketplace segundos={30} />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500">Módulo</p>
@@ -185,6 +189,10 @@ export default function CozinhaPage() {
         </div>
 
         <div className="flex gap-3">
+          <Link href="/integracoes/marketplace" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+            Marketplaces
+          </Link>
+
           <Link href="/estoque/quadro" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
             Quadro do estoque
           </Link>

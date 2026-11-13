@@ -78,6 +78,20 @@ export default function FinanceiroPage() {
         </Link>
 
         <Link
+          href="/integracoes/marketplace"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Integração com marketplaces
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Pedidos do iFood chegando sozinhos, vínculo dos itens e
+            simulação.
+          </p>
+        </Link>
+
+        <Link
           href="/financeiro/conferencia-marketplace"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
         >
