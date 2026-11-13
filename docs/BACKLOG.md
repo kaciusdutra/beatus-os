@@ -155,7 +155,11 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 ## G09: Financeiro
 
 - [x] **Fluxo de caixa concluído (bloco 1, migração `add_financeiro_lancamentos_e_pagamento_compra`):** entradas dos pagamentos aprovados dos pedidos, saídas das compras confirmadas por destino, lançamentos avulsos (cancelam, não se apagam), custos fixos previstos no mês e resumo real na tela Financeiro (saiu o número de demonstração). Regras 12.1 a 12.6.
-- [ ] **Contas a pagar com vencimento e parcelas:** só quando houver compra a prazo (hoje tudo é à vista).
+- [x] **Contas a pagar e capital de giro concluídos (bloco 2, migração `add_contas_a_pagar_e_saldo_inicial`):** compra a prazo com parcelas (boleto, duplicata, outro), títulos com vencimento, pagamento (com juros ou desconto) e cancelamento, saldo inicial do caixa, posição, projeção de 30 dias e alertas. Regras 12.2 e 12.7 a 12.10.
+- [ ] **Beatriz no capital de giro:** explicar os alertas em linguagem simples e sugerir ajustes (renegociar, antecipar vendas, reforçar o caixa). Depende da `ANTHROPIC_API_KEY` e do módulo de inteligência (G11).
+- [ ] **Título a pagar avulso** (aluguel, serviço sem compra): hoje o título só nasce de uma entrada de compra.
+- [ ] **Alerta de vencimento fora da tela** (notificação, WhatsApp) quando as integrações existirem.
+- [ ] **Projeção com compras futuras e repasse dos marketplaces** (iFood, 99Food, Keeta), quando houver dados.
 - [ ] **CMV real, DRE e conciliação:** CMV a partir da baixa de estoque dos pedidos, DRE do mês, conciliação com extrato (marketplaces e banco) e exportação para o contador. Contas a receber dos marketplaces (repasse do iFood, 99Food e Keeta), quando as integrações existirem.
 - [ ] **Compras: pagar depois da confirmação** (e dar baixa na data do pagamento) e editar a forma de pagamento de compras já confirmadas.
 - [ ] O financeiro nasce dos dados da operação, não é um módulo isolado.

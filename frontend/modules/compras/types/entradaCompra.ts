@@ -204,6 +204,9 @@ export interface EntradaCompra {
 
   pagoEm?: string;
 
+  // Compra a prazo: o pagamento vem pelos títulos (Financeiro → Contas a pagar).
+  aPrazo?: boolean;
+
   valorTotal: number;
 
   documentoArquivo?: string;

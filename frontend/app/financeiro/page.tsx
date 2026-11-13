@@ -48,7 +48,7 @@ export default function FinanceiroPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Link
           href="/financeiro/fluxo-de-caixa"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
@@ -60,6 +60,32 @@ export default function FinanceiroPage() {
           <p className="mt-1 text-sm text-slate-500">
             O que entrou e o que saiu por período, com lançamentos
             avulsos de despesas e receitas.
+          </p>
+        </Link>
+
+        <Link
+          href="/financeiro/contas-a-pagar"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Contas a pagar
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Boletos e duplicatas das compras a prazo, com vencimento e pagamento.
+          </p>
+        </Link>
+
+        <Link
+          href="/financeiro/capital-de-giro"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Capital de giro
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Saldo, vencimentos, projeção do caixa e alertas.
           </p>
         </Link>
 

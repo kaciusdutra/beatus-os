@@ -11,6 +11,10 @@ import {
   FORMAS_DE_PAGAMENTO_DA_COMPRA,
 } from "../types/entradaCompra";
 
+import type { NovoTitulo } from "@/modules/financeiro/types/contasAPagar";
+
+import type { ContasDaCompraPort } from "./contasDaCompraPort";
+
 import {
   contarItensSemDestino,
   ehDestinoItemCompra,
@@ -600,7 +604,9 @@ export class EntradaCompraService {
     private readonly insumoRepository:
       InsumoRepositoryPort,
 
-    private readonly estoque?: EstoqueDaCompraPort
+    private readonly estoque?: EstoqueDaCompraPort,
+
+    private readonly contasAPagar?: ContasDaCompraPort
   ) {}
 
   async buscarPorId(
@@ -830,9 +836,16 @@ export class EntradaCompraService {
   async confirmarEntradaCompra(
     entradaId: string,
     operador?: string | null,
-    pagamento?: { forma?: string; pagoEm?: string }
+    pagamento?: {
+      forma?: string;
+      pagoEm?: string;
+      // Compra a prazo: as parcelas (boleto, duplicata ou outro) viram títulos a pagar.
+      titulos?: NovoTitulo[];
+    }
   ): Promise<EntradaCompra> {
     const forma = pagamento?.forma?.trim().toUpperCase();
+
+    const aPrazo = (pagamento?.titulos?.length ?? 0) > 0;
 
     if (forma && !FORMAS_DE_PAGAMENTO_DA_COMPRA.includes(forma)) {
       throw new Error(
@@ -874,18 +887,34 @@ export class EntradaCompraService {
       );
     }
 
+    // Compra a prazo: confere as parcelas antes de gravar qualquer coisa.
+    let titulosValidos: NovoTitulo[] = [];
+
+    if (aPrazo) {
+      if (!this.contasAPagar) {
+        throw new Error("Compra a prazo indisponível neste ambiente.");
+      }
+
+      titulosValidos = this.contasAPagar.validarTitulos(
+        pagamento?.titulos ?? [],
+        entradaValidada.valorTotal
+      );
+    }
+
     const confirmada:
       EntradaCompra =
       {
         ...entradaValidada,
 
+        aPrazo,
+
         status:
           "CONFIRMADA",
 
         // Pagamento à vista: a data é a informada ou o momento da confirmação.
-        formaPagamento: forma || undefined,
+        formaPagamento: !aPrazo ? forma || undefined : undefined,
 
-        pagoEm: forma
+        pagoEm: !aPrazo && forma
           ? pagamento?.pagoEm || new Date().toISOString()
           : undefined,
 
@@ -914,6 +943,17 @@ export class EntradaCompraService {
       resultado;
 
     const { avisos } = await this.aplicarCustosDaEntrada(final);
+
+    if (aPrazo) {
+      await this.contasAPagar?.criarTitulos(
+        { entradaCompraId: final.id, fornecedorId: final.fornecedorId },
+        titulosValidos.map((titulo) => ({
+          ...titulo,
+          numeroDocumento: titulo.numeroDocumento || final.numeroDocumento,
+        })),
+        operador
+      );
+    }
 
     await this.estoque?.registrarAtividade({
       acao: "CONFIRMADA",
@@ -1714,6 +1754,15 @@ export class EntradaCompraService {
       referenciaNumero: existente.numeroDocumento,
       operador,
     });
+
+    // Compra a prazo: os títulos ainda em aberto são cancelados junto.
+    if (existente.aPrazo) {
+      await this.contasAPagar?.cancelarDaCompra(
+        existente.id,
+        motivo.trim(),
+        operador
+      );
+    }
 
     return resultadoCancelamento;
   }

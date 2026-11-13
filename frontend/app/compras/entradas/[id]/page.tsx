@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 
+import PagamentoDaCompra, {
+  corpoDoPagamento,
+  pagamentoInicial,
+  type PagamentoDaCompraEstado,
+} from "@/modules/compras/components/PagamentoDaCompra";
+
 import CapturaDocumentoNota from "@/modules/compras/components/CapturaDocumentoNota";
 import {
   DESTINOS_ITEM_COMPRA,
@@ -205,7 +211,7 @@ const ROTULO_ORIGEM: Record<string, string> = {
 export default function EntradaCompraPage({
   params,
 }: Props) {
-  const [formaPagamento, setFormaPagamento] = useState("PIX");
+  const [pagamento, setPagamento] = useState<PagamentoDaCompraEstado>(pagamentoInicial);
 
   const [entradaId, setEntradaId] = useState<string | null>(
     null,
@@ -607,7 +613,7 @@ export default function EntradaCompraPage({
               ? JSON.stringify({
                   motivo: motivoCancelamento.trim(),
                 })
-              : JSON.stringify({ formaPagamento }),
+              : JSON.stringify(corpoDoPagamento(pagamento)),
         },
       );
 
@@ -1302,25 +1308,11 @@ export default function EntradaCompraPage({
                 {nomeFornecedor}?
               </p>
 
-              <div className="max-w-xs">
-                <label
-                  htmlFor="forma-pagamento-compra"
-                  className="mb-1 block text-xs font-semibold text-slate-700"
-                >
-                  Pago à vista com
-                </label>
-
-                <select
-                  id="forma-pagamento-compra"
-                  value={formaPagamento}
-                  onChange={(evento) => setFormaPagamento(evento.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="PIX">Pix</option>
-                  <option value="DINHEIRO">Dinheiro</option>
-                  <option value="CARTAO">Cartão</option>
-                </select>
-              </div>
+              <PagamentoDaCompra
+                valorTotal={entrada.valorTotal}
+                estado={pagamento}
+                aoMudar={setPagamento}
+              />
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button

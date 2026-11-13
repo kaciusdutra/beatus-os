@@ -1,3 +1,5 @@
+import type { TituloPago } from "../types/contasAPagar";
+
 import type {
   CompraPaga,
   FluxoDeCaixa,
@@ -69,6 +71,8 @@ export interface EntradasDoFluxo {
   pagamentos: PagamentoRecebido[];
   compras: CompraPaga[];
   lancamentos: LancamentoManual[];
+  // Títulos a pagar (compras a prazo) pagos no período: a saída é na data do pagamento.
+  titulosPagos?: TituloPago[];
   custosFixosPrevistos?: number;
 }
 
@@ -122,6 +126,46 @@ export function calcularFluxoDeCaixa(
         chave: rotuloDoDestino(parte.destino),
         valor: parte.valor,
       });
+    }
+  }
+
+  for (const titulo of entrada.titulosPagos ?? []) {
+    movimentos.push({
+      id: `titulo-${titulo.id}`,
+      data: titulo.pagoEm,
+      tipo: "SAIDA",
+      origem: "TITULO",
+      categoria: "Título a pagar",
+      descricao: `Título ${titulo.parcela}/${titulo.totalParcelas} de ${titulo.fornecedor}${titulo.numeroDocumento ? ` (doc. ${titulo.numeroDocumento})` : ""}`,
+      valor: titulo.valorPago,
+      forma: titulo.forma,
+      referenciaId: titulo.entradaCompraId,
+      referenciaNumero: titulo.numeroDocumento,
+    });
+
+    // A saída se reparte pelos destinos da compra, na proporção do título;
+    // juros, multa e desconto ficam à parte.
+    const partes =
+      titulo.compraValorTotal && titulo.compraItensPorDestino
+        ? repartirCompraPorDestino({
+            valorTotal: titulo.compraValorTotal,
+            itensPorDestino: titulo.compraItensPorDestino,
+          })
+        : [{ destino: "SEM_DESTINO", valor: titulo.valor }];
+
+    const totalDasPartes = partes.reduce((soma, parte) => soma + parte.valor, 0) || 1;
+
+    for (const parte of partes) {
+      saidasCategoria.push({
+        chave: rotuloDoDestino(parte.destino),
+        valor: (parte.valor / totalDasPartes) * titulo.valor,
+      });
+    }
+
+    const diferenca = arredondar(titulo.valorPago - titulo.valor);
+
+    if (diferenca !== 0) {
+      saidasCategoria.push({ chave: "Juros, multas e descontos", valor: diferenca });
     }
   }
 

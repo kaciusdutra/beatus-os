@@ -24,6 +24,10 @@ import {
   criarEstoqueDaCompraPostgres,
 } from "./estoqueDaCompraPostgres";
 
+import {
+  criarContasDaCompraPostgres,
+} from "./contasDaCompraPostgres";
+
 export function criarEntradaCompraServicePostgres():
   EntradaCompraService {
   const contexto =
@@ -48,6 +52,7 @@ export function criarEntradaCompraServicePostgres():
     entradaCompraRepository,
     fornecedorRepository,
     insumoRepository,
-    criarEstoqueDaCompraPostgres()
+    criarEstoqueDaCompraPostgres(),
+    criarContasDaCompraPostgres()
   );
 }

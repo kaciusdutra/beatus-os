@@ -38,6 +38,8 @@ model Empresa {
   regrasValidade          RegraValidade[]
   configuracaoEstoque     ConfiguracaoEstoque?
   lancamentosFinanceiros  LancamentoFinanceiro[]
+  contasPagar             ContaPagar[]
+  configuracaoFinanceira  ConfiguracaoFinanceira?
 
   @@index([ativo])
 }
@@ -71,6 +73,7 @@ model Fornecedor {
 
   empresa        Empresa         @relation(fields: [empresaId], references: [id])
   entradasCompra EntradaCompra[]
+  contasPagar    ContaPagar[]
   insumos        Insumo[]
 
   classificacoesItemCompra ClassificacaoItemCompra[]
@@ -112,6 +115,9 @@ model EntradaCompra {
   formaPagamento String?
   pagoEm         DateTime?
 
+  // Compra a prazo: o caixa conta pelo pagamento dos títulos (ContaPagar).
+  aPrazo Boolean @default(false)
+
   documentoArquivo String?
   observacao       String?
 
@@ -123,6 +129,7 @@ model EntradaCompra {
   empresa    Empresa             @relation(fields: [empresaId], references: [id])
   fornecedor Fornecedor          @relation(fields: [fornecedorId], references: [id])
   itens      EntradaCompraItem[]
+  contasPagar ContaPagar[]
 
   @@index([empresaId])
   @@index([empresaId, fornecedorId])
@@ -929,4 +936,61 @@ model LancamentoFinanceiro {
   empresa Empresa @relation(fields: [empresaId], references: [id])
 
   @@index([empresaId, data])
+}
+
+// Título a pagar (uma linha por parcela): boleto, duplicata ou outro (Financeiro, G09).
+model ContaPagar {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  entradaCompraId String?
+
+  fornecedorId String
+
+  // BOLETO, DUPLICATA ou OUTRO
+  tipo String
+
+  numeroDocumento String?
+
+  parcela       Int @default(1)
+  totalParcelas Int @default(1)
+
+  valor Decimal @db.Decimal(12, 2)
+
+  vencimento DateTime
+
+  // ABERTO, PAGO ou CANCELADO (vencido é calculado: aberto com vencimento passado)
+  status String @default("ABERTO")
+
+  pagoEm         DateTime?
+  valorPago      Decimal?  @db.Decimal(12, 2)
+  formaPagamento String?
+
+  observacao         String?
+  motivoCancelamento String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa      Empresa        @relation(fields: [empresaId], references: [id])
+  entradaCompra EntradaCompra? @relation(fields: [entradaCompraId], references: [id])
+  fornecedor   Fornecedor     @relation(fields: [fornecedorId], references: [id])
+
+  @@index([empresaId, status, vencimento])
+  @@index([entradaCompraId])
+}
+
+// Saldo de partida do caixa (um registro por empresa).
+model ConfiguracaoFinanceira {
+  id String @id @default(uuid())
+
+  empresaId String @unique
+
+  saldoInicial   Decimal   @default(0) @db.Decimal(12, 2)
+  saldoInicialEm DateTime?
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
 }

@@ -140,6 +140,24 @@ Endereço direto: `/financeiro/fluxo-de-caixa`.
 | 79 | Com **Este mês** marcado, veja o saldo | Aparece o saldo com os custos fixos do mês descontados |
 | 80 | `/atividades` | Aparecem o lançamento e o cancelamento, com quem fez |
 
+## Parte 9: Contas a pagar e capital de giro
+
+Endereços diretos: `/financeiro/contas-a-pagar` e `/financeiro/capital-de-giro`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 81 | Em uma entrada em rascunho com todos os itens classificados, **Confirmar entrada** → **A prazo** | Aparecem tipo, parcelas, 1º vencimento e intervalo |
+| 82 | Informe 3 parcelas e **Gerar parcelas**; mude o vencimento de uma | As parcelas dividem o total (o centavo que sobra vai para a primeira) e a soma é conferida na tela |
+| 83 | Altere um valor para a soma não bater e confirme | Recusa: a soma das parcelas deve ser igual ao total |
+| 84 | Confirme | A entrada fica confirmada e os títulos aparecem em **Contas a pagar**, em aberto; o caixa ainda **não** mostra a saída |
+| 85 | **Pagar** um título com um valor um pouco maior (juros) | O título vira pago; a saída entra no fluxo de caixa na data do pagamento, com a diferença em "Juros, multas e descontos" |
+| 86 | **Cancelar** um título em aberto, sem motivo e depois com motivo | Sem motivo recusa; com motivo ele sai da lista de abertos |
+| 87 | Cancele a compra a prazo | Os títulos em aberto são cancelados; os já pagos permanecem no caixa |
+| 88 | `/financeiro/capital-de-giro` → **Saldo inicial** | Informe quanto tem em caixa e banco e a data; o saldo de hoje aparece |
+| 89 | Confira os cartões (vencidos, vence hoje, até 7, 15 e 30 dias) e os avisos no topo | Os valores batem com a lista de Contas a pagar; títulos vencidos geram aviso vermelho |
+| 90 | Veja a **projeção do caixa** | Uma linha por dia, com vendas esperadas, títulos, custos fixos e saldo; linhas negativas em vermelho e aviso com a data |
+| 91 | `/atividades` | Aparecem a criação dos títulos, o pagamento, o cancelamento e o saldo inicial, com quem fez |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

@@ -76,6 +76,39 @@ function executarTestes(): void {
 
   verificar(semPrevisto.saldo === 0 && semPrevisto.saldoComPrevisto === undefined, "vazio: saldo zero, sem previsto");
 
+  // Título pago: a saída é na data do pagamento, repartida pelos destinos da compra; juros à parte.
+  const comTitulo = calcularFluxoDeCaixa({
+    de: "2026-12-01",
+    ate: "2026-12-31",
+    pagamentos: [],
+    compras: [],
+    lancamentos: [],
+    titulosPagos: [
+      {
+        id: "t1",
+        fornecedor: "Fornecedor X",
+        parcela: 1,
+        totalParcelas: 2,
+        valor: 500,
+        valorPago: 510,
+        pagoEm: "2026-12-10T12:00:00.000Z",
+        forma: "PIX",
+        entradaCompraId: "c9",
+        compraValorTotal: 1000,
+        compraItensPorDestino: [
+          { destino: "INSUMO", valor: 800 },
+          { destino: "EMBALAGEM", valor: 200 },
+        ],
+      },
+    ],
+  });
+
+  verificar(comTitulo.saidas === 510, "a saída é o valor pago (510)");
+  verificar(comTitulo.movimentos[0].origem === "TITULO", "movimento de origem título");
+  verificar(comTitulo.saidasPorCategoria.some((item) => item.chave === "Compra: insumos" && item.valor === 400), "80% do título em insumos");
+  verificar(comTitulo.saidasPorCategoria.some((item) => item.chave === "Compra: embalagens" && item.valor === 100), "20% do título em embalagens");
+  verificar(comTitulo.saidasPorCategoria.some((item) => item.chave === "Juros, multas e descontos" && item.valor === 10), "juros de R$ 10 à parte");
+
   // Mês inteiro
   verificar(ehMesInteiro("2026-11-01", "2026-11-30"), "novembro inteiro");
   verificar(ehMesInteiro("2026-02-01", "2026-02-28"), "fevereiro de 2026 inteiro");

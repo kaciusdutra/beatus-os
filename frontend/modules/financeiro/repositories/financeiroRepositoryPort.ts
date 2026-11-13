@@ -1,3 +1,5 @@
+import type { TituloPago } from "../types/contasAPagar";
+
 import type {
   CompraPaga,
   LancamentoManual,
@@ -11,8 +13,12 @@ export interface FinanceiroRepositoryPort {
   // Pagamentos aprovados de pedidos não cancelados, no período [de, ate).
   listarPagamentosRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]>;
 
-  // Compras confirmadas, pela data de pagamento (ou da entrada, se antiga), no período.
+  // Compras confirmadas à vista, pela data de pagamento (ou da entrada, se antiga), no período.
+  // Compras a prazo não entram aqui: contam pelo pagamento dos títulos.
   listarComprasPagas(de: Date, ate: Date): Promise<CompraPaga[]>;
+
+  // Títulos pagos no período [de, ate).
+  listarTitulosPagos(de: Date, ate: Date): Promise<TituloPago[]>;
 
   listarLancamentos(de: Date, ate: Date): Promise<LancamentoManual[]>;
 

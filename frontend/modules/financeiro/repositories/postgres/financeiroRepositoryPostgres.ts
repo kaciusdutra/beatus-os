@@ -8,6 +8,8 @@ import { registrarAtividade } from "@/modules/atividades/services/server/ativida
 
 import type { FinanceiroRepositoryPort } from "../financeiroRepositoryPort";
 
+import type { TituloPago } from "../../types/contasAPagar";
+
 import type {
   CompraPaga,
   LancamentoManual,
@@ -84,6 +86,7 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
       where: {
         empresaId: this.contexto.empresaId,
         status: "CONFIRMADA",
+        aPrazo: false,
         OR: [
           { pagoEm: { gte: de, lt: ate } },
           { pagoEm: null, dataEntrada: { gte: de, lt: ate } },
@@ -116,6 +119,53 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
           destino,
           valor,
         })),
+      };
+    });
+  }
+
+  async listarTitulosPagos(de: Date, ate: Date): Promise<TituloPago[]> {
+    const titulos = await prisma.contaPagar.findMany({
+      where: {
+        empresaId: this.contexto.empresaId,
+        status: "PAGO",
+        pagoEm: { gte: de, lt: ate },
+      },
+      include: {
+        fornecedor: { select: { razaoSocial: true, nomeFantasia: true } },
+        entradaCompra: {
+          select: {
+            valorTotal: true,
+            itens: { select: { destino: true, valorTotal: true } },
+          },
+        },
+      },
+      orderBy: { pagoEm: "desc" },
+    });
+
+    return titulos.map((titulo) => {
+      const porDestino = new Map<string, number>();
+
+      for (const item of titulo.entradaCompra?.itens ?? []) {
+        const destino = item.destino ?? "SEM_DESTINO";
+
+        porDestino.set(destino, (porDestino.get(destino) ?? 0) + Number(item.valorTotal));
+      }
+
+      return {
+        id: titulo.id,
+        fornecedor: titulo.fornecedor.nomeFantasia || titulo.fornecedor.razaoSocial,
+        numeroDocumento: titulo.numeroDocumento ?? undefined,
+        parcela: titulo.parcela,
+        totalParcelas: titulo.totalParcelas,
+        valor: Number(titulo.valor),
+        valorPago: Number(titulo.valorPago ?? titulo.valor),
+        pagoEm: (titulo.pagoEm ?? titulo.criadoEm).toISOString(),
+        forma: titulo.formaPagamento ?? undefined,
+        entradaCompraId: titulo.entradaCompraId ?? undefined,
+        compraValorTotal: titulo.entradaCompra ? Number(titulo.entradaCompra.valorTotal) : undefined,
+        compraItensPorDestino: titulo.entradaCompra
+          ? [...porDestino.entries()].map(([destino, valor]) => ({ destino, valor }))
+          : undefined,
       };
     });
   }

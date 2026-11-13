@@ -41,6 +41,22 @@ export async function POST(
             typeof corpo?.pagoEm === "string"
               ? corpo.pagoEm
               : undefined,
+          // Compra a prazo: [{ tipo, vencimento, valor, numeroDocumento? }]
+          titulos: Array.isArray(corpo?.titulos)
+            ? corpo.titulos.map(
+                (titulo: Record<string, unknown>) => ({
+                  tipo: String(titulo?.tipo ?? "BOLETO").toUpperCase(),
+                  vencimento: String(titulo?.vencimento ?? ""),
+                  valor: Number(
+                    String(titulo?.valor ?? "").replace(",", ".")
+                  ),
+                  numeroDocumento:
+                    typeof titulo?.numeroDocumento === "string"
+                      ? titulo.numeroDocumento
+                      : undefined,
+                })
+              )
+            : undefined,
         }
       );
 
