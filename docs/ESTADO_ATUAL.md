@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 12/11/2026 | `60b62eb` | Estoque e produção, bloco 2: quadro kanban por lote e gaveta, validade pela norma de São Paulo (editável), produção com gavetas e etiquetas para imprimir (migração); regras 11.9 a 11.12 |
 | 12/11/2026 | `7342d3d` | Estoque e produção, bloco 1: movimentos de estoque, entrada pela compra, tela Estoque (contagem, perda, mínimo), produção de lotes, registro de atividades e seletor de operador (migração); seção 11 das regras |
 | 12/11/2026 | `4ae7578` | S2: pedido seguro no servidor (preço da Precificação por canal, taxa, total e número calculados no servidor; número sem repetição; PDV lê o cardápio do cadastro); regra 3.8 |
 | 12/11/2026 | `d39461b` | G08 8I: combo como produto principal (grupo de escolha com custo pelo pior caso, desconto máximo, margem contra o avulso, meta de CMV); migração; regra 7.29 |
