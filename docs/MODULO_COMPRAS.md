@@ -14,7 +14,7 @@ Ele resolve quatro problemas:
 3. **Classificar o que foi comprado:** cada item recebe um destino (insumo, embalagem, limpeza, expediente, equipamento ou serviço), que alimenta estoque, financeiro e custos nos módulos seguintes.
 4. **Aprender com o uso:** o sistema reconhece o item que o fornecedor já vendeu antes ("Item já conhecido") e sugere o destino.
 
-**O que o módulo ainda não faz** (ver seção 11): atualizar o custo do insumo, dar entrada no estoque, lançar no financeiro e baixar as NF-e automaticamente da SEFAZ.
+**O que o módulo ainda não faz** (ver seção 11): dar entrada no estoque, lançar no financeiro e baixar as NF-e automaticamente da SEFAZ. A atualização do custo do insumo pela compra confirmada foi entregue na G08 e está documentada em `docs/MODULO_FICHAS_E_PRECIFICACAO.md`.
 
 ## 2. Como usar
 

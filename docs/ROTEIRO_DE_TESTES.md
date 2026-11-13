@@ -1,0 +1,79 @@
+# Roteiro de testes do Kacius (G07 e G08)
+
+> Passo a passo para percorrer, de uma vez, o que foi construído em Compras e em Fichas, Custo e Precificação. Última atualização: 12/11/2026.
+> Marque cada passo. Se algo não bater, anote a tela e o que aconteceu: eu corrijo em um commit novo.
+
+## Antes de começar
+
+1. Abra o terminal em `C:\beatus-os\frontend` e rode `npm run dev` (ou peça para eu subir o servidor).
+2. Abra `http://localhost:3000`.
+3. O menu **Financeiro** fica bloqueado enquanto a operação está "Aguardando abertura". Use os endereços diretos abaixo.
+4. Os dados atuais são de teste. Nada aqui apaga cadastros: tudo só se inativa ou se cancela.
+
+## Parte 1: Compras (G07)
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 1 | `/compras/fornecedores` → **Novo fornecedor**, digite um CNPJ e use a busca | Razão social, nome fantasia e endereço vêm preenchidos (BrasilAPI) |
+| 2 | Digite um CEP | O endereço é completado |
+| 3 | `/compras/entradas/nova` → **Importar XML da NF-e** com um XML seu | Documento, fornecedor, itens, lote, validade e frete preenchidos; o XML fica anexado |
+| 4 | Importe o mesmo XML de novo | Aparece o bloqueio de nota em duplicidade |
+| 5 | **Digitar manualmente** uma entrada de recibo com 2 itens | Total = produtos − desconto + frete |
+| 6 | Na entrada, olhe o bloco **Impostos e outras despesas da nota** | ICMS-ST, IPI, seguro e outras despesas, só para consulta |
+| 7 | Salve e escolha o **destino** de cada item (Insumo, Embalagem...) | O botão de confirmar só libera com todos classificados |
+| 8 | Num item de insumo, preencha **Quantidade real** (exemplo: 6,8 kg) e salve | O custo usará esse peso |
+| 9 | Confirme a entrada | Mensagem de sucesso; se algum item não converter, um aviso de custo aparece |
+| 10 | Cancele uma entrada confirmada, com motivo | A situação vira Cancelada e o custo volta ao anterior |
+| 11 | (Se já tiver a chave da Anthropic) tire uma foto de um recibo | Os itens são lidos para conferência; sem a chave, a tela avisa |
+
+## Parte 2: Insumos e custo (G08)
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 12 | `/insumos` → **Novo insumo** (exemplo: bacon, R$ 115 o kg) | Aparece na lista com o custo por unidade |
+| 13 | **Editar** um insumo: preencha equivalência (1 pacote = 6 un) e perda de limpeza | Salva e a lista mostra os valores |
+| 14 | `/insumos/vinculos` → ligue o item "Bacon manta" ao insumo bacon | O item fica "Ligado" |
+| 15 | Clique em **Recalcular custos das compras** | Mensagem com quantos itens foram aplicados |
+| 16 | **Editar** o insumo bacon e olhe o **Histórico de preços** | Lista as compras, da mais nova para a mais antiga |
+| 17 | Confirme uma nova entrada com o bacon a outro preço | O custo do insumo passa a ser o preço novo (frete rateado entra) |
+
+## Parte 3: Fichas técnicas
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 18 | `/fichas` → **Nova preparação** (exemplo: Blend Beatus: 112 g de peito + 48 g de linguiça) | Custo calculado ao vivo, com rendimento e custo por grama |
+| 19 | Preencha o **modo de preparo** (um passo por linha), validade, tempo e **porção padrão** | A lista mostra o custo da porção |
+| 20 | Use os botões ↑ ↓ para reordenar os itens | A ordem fica gravada |
+| 21 | Crie uma **segunda preparação** que usa a primeira como item | O custo da segunda inclui o da primeira (ficha dentro de ficha) |
+| 22 | Aba **Produtos** → **Novo produto**: pão, preparações e bloco **Embalagem do produto** | Mostra "custo da receita" e "custo com embalagem" |
+| 23 | Num produto, em **Opção de escolha**, dê o mesmo nome a duas batatas | O custo usa a opção mais cara; a outra aparece como "não é a mais cara" |
+| 24 | Abra **Ficha de produção (sem custos)** de uma preparação | Sem R$, custo, preço ou margem; passos numerados |
+| 25 | Mude o campo "Quanto vou fazer" | As quantidades são multiplicadas |
+| 26 | Clique em **Imprimir** | A impressão sai sem menu nem botões |
+| 27 | Inative uma ficha | Ela some das listas ativas, mas não é apagada |
+
+## Parte 4: Financeiro
+
+Endereços diretos: `/financeiro`, `/financeiro/custos-fixos`, `/financeiro/precificacao`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 28 | `/financeiro` | Dois cartões: Precificação e Custos fixos |
+| 29 | Custos fixos → cadastre o aluguel de R$ 1.500 e outros | O total do mês soma os custos |
+| 30 | Informe os **pedidos esperados por mês** (sugestão: 430) e salve | Aparece o custo fixo por pedido |
+| 31 | Inative um custo | Sai do total, mas continua na lista |
+| 32 | Precificação → **Parâmetros e canais**: imposto, taxa de pagamento, embalagem do pedido, produtos por pedido, comissão do iFood (25,2%) e taxa de R$ 150 | Salva; o aviso de "percentuais em zero" some |
+| 33 | Escolha o canal **Site** e veja a linha de um produto | Custo da ficha, custo total e os preços para 20, 25, 30 e 35% |
+| 34 | Digite um **preço praticado** | Margem, CMV, markup e lucro na hora; abaixo de 20% vira "promoção", abaixo de zero "prejuízo" |
+| 35 | Clique em um dos preços das colunas de margem | Ele vira o preço praticado |
+| 36 | Troque para **iFood** | Os preços para cada margem sobem (a comissão pesa) |
+| 37 | Mude o custo de um insumo (nova compra) e reabra a Precificação | Aparece o **Aviso de impacto** se o custo subiu 5% ou mais |
+| 38 | **Aceitar novo custo** | O aviso some; o preço não muda |
+| 39 | **Simulador de promoção**: escolha um produto, desconto de 15% | Por canal: preço, margem, lucro por pedido e pedidos a mais para compensar |
+| 40 | Escolha um **combo** (produto que usa outros produtos) | Economia do cliente, desconto máximo, preço mínimo e margem contra o avulso |
+
+## O que anotar
+
+- Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.
+- Qualquer tela confusa: diga o que você esperava ver.
+- Regras de negócio que faltam: entram no BACKLOG e a gente decide se entram agora ou depois.
