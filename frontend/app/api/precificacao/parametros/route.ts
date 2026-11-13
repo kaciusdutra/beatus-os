@@ -19,6 +19,7 @@ export async function PUT(request: Request) {
           ? corpo.margensCenario
           : "",
       margemMinimaPercentual: Number(corpo?.margemMinimaPercentual),
+      cmvAlvoPercentual: Number(corpo?.cmvAlvoPercentual),
     });
 
     return NextResponse.json({ sucesso: true, parametros });

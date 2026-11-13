@@ -48,6 +48,8 @@ interface Linha {
   unidade: string;
   // Perda de cocção (%) deste uso.
   perda: string;
+  // Opção de escolha do cliente (mesmo nome = o cliente escolhe uma).
+  grupo: string;
 }
 
 interface Props {
@@ -73,6 +75,7 @@ function novaLinha(bloco: Bloco): Linha {
     quantidade: "",
     unidade: "",
     perda: "0",
+    grupo: "",
   };
 }
 
@@ -219,6 +222,7 @@ export default function FichaEditorPage({
           quantidade: String(item.quantidade),
           unidade: item.unidade,
           perda: String(item.percentualPerda),
+          grupo: item.grupoEscolha ?? "",
         };
       }
     );
@@ -542,6 +546,7 @@ export default function FichaEditorPage({
           unidade: linha.unidade.trim(),
           percentualPerda: Number(linha.perda) || 0,
           custoCalculado: 0,
+          grupoEscolha: linha.grupo.trim() || undefined,
         })),
       criadoEm: existente?.criadoEm ?? "",
       atualizadoEm: existente?.atualizadoEm ?? "",
@@ -771,6 +776,7 @@ export default function FichaEditorPage({
           quantidade: Number(linha.quantidade),
           unidade: linha.unidade.trim(),
           percentualPerda: Number(linha.perda) || 0,
+          grupoEscolha: linha.grupo.trim() || undefined,
         })),
       };
 
@@ -1032,6 +1038,34 @@ export default function FichaEditorPage({
                 <p className="mt-2 text-xs font-semibold text-red-600">
                   {resultado.erro}
                 </p>
+              )}
+
+              {tipo === "PRODUTO" && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                  <label htmlFor={`grupo-${linha.id}`}>
+                    Opção de escolha (opcional):
+                  </label>
+
+                  <input
+                    id={`grupo-${linha.id}`}
+                    value={linha.grupo}
+                    onChange={(evento) =>
+                      alterarLinha(linha.id, {
+                        grupo: evento.target.value,
+                      })
+                    }
+                    placeholder="Ex.: acompanhamento"
+                    className="w-48 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs outline-none focus:border-slate-500"
+                  />
+
+                  <span className="text-slate-400">
+                    Itens com o mesmo nome são opções: o custo usa
+                    a mais cara.
+                    {resultado && resultado.contaNoCusto === false
+                      ? " Esta não é a mais cara."
+                      : ""}
+                  </span>
+                </div>
               )}
             </div>
           );

@@ -401,6 +401,50 @@ function executarTestes(): void {
     "ciclo entre fichas é detectado sem travar"
   );
 
+  // --------------------------------------------------
+  // Grupo de escolha (bloco 8I): o custo usa a opção mais cara
+  // --------------------------------------------------
+  // peito R$ 35/kg e linguiça R$ 22/kg: 100 g de cada = R$ 3,50 e R$ 2,20
+  const opcaoA = item("g1", "INSUMO", "peito", 100, "g");
+
+  const opcaoB = item("g2", "INSUMO", "linguica", 100, "g");
+
+  opcaoA.grupoEscolha = "acompanhamento";
+
+  opcaoB.grupoEscolha = "acompanhamento";
+
+  const comboEscolha = ficha("comboEscolha-escolha", "Combo com escolha", "PRODUTO", [
+    opcaoA,
+    opcaoB,
+    item("g3", "INSUMO", "pao", 1, "un"),
+  ]);
+
+  const resultadoCombo = calcularCustoFichaTecnica(
+    comboEscolha,
+    montarContexto([comboEscolha])
+  );
+
+  // pão R$ 11 / 36 un = R$ 0,3056; entra a opção mais cara (R$ 3,50)
+  perto(resultadoCombo.custoTotal, 3.5 + 11 / 36, "comboEscolha: só a opção mais cara conta");
+
+  verificar(
+    resultadoCombo.itens.find((i) => i.itemId === "g1")?.contaNoCusto === true &&
+      resultadoCombo.itens.find((i) => i.itemId === "g2")?.contaNoCusto === false,
+    "a opção mais barata não conta no custo"
+  );
+
+  // Sem grupo, tudo soma
+  const semGrupo = ficha("comboEscolha-soma", "Combo sem escolha", "PRODUTO", [
+    item("h1", "INSUMO", "peito", 100, "g"),
+    item("h2", "INSUMO", "linguica", 100, "g"),
+  ]);
+
+  perto(
+    calcularCustoFichaTecnica(semGrupo, montarContexto([semGrupo])).custoTotal,
+    3.5 + 2.2,
+    "sem grupo, os itens somam"
+  );
+
   console.log(
     `✅ Testes do motor de custo das fichas passaram (${verificacoes} verificações).`
   );

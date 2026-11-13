@@ -137,6 +137,7 @@ async function executarTestes(): Promise<void> {
     itensPorPedidoEstimados: 1.5,
     margensCenario: "35, 20, 25, 30",
     margemMinimaPercentual: 20,
+        cmvAlvoPercentual: 35,
   });
 
   verificar(
@@ -187,6 +188,7 @@ async function executarTestes(): Promise<void> {
         itensPorPedidoEstimados: 1,
         margensCenario: "20",
         margemMinimaPercentual: 20,
+        cmvAlvoPercentual: 35,
       }),
     "O imposto"
   );
@@ -200,6 +202,7 @@ async function executarTestes(): Promise<void> {
         itensPorPedidoEstimados: 1,
         margensCenario: "20",
         margemMinimaPercentual: 20,
+        cmvAlvoPercentual: 35,
       }),
     "embalagem"
   );
@@ -213,6 +216,7 @@ async function executarTestes(): Promise<void> {
         itensPorPedidoEstimados: 0.5,
         margensCenario: "20",
         margemMinimaPercentual: 20,
+        cmvAlvoPercentual: 35,
       }),
     "produtos por pedido"
   );
@@ -226,6 +230,7 @@ async function executarTestes(): Promise<void> {
         itensPorPedidoEstimados: 1,
         margensCenario: "20, x",
         margemMinimaPercentual: 20,
+        cmvAlvoPercentual: 35,
       }),
     "margem"
   );

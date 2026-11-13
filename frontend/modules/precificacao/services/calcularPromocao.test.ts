@@ -1,5 +1,7 @@
 import {
   avisoDeImpacto,
+  compararComboComAvulso,
+  descontoMaximoDoCombo,
   economiaDoCombo,
   parametrosDoCanal,
   precoDaPromocao,
@@ -207,6 +209,49 @@ function executarTestes(): void {
       margemMinimaPercentual: 20,
     })?.tipos.join(",") === "PREJUIZO",
     "prejuízo sempre avisa"
+  );
+
+  // Desconto máximo do combo: soma avulsa R$ 72, custo R$ 20, margem mínima 20%
+  // preço mínimo = 20 / 0,8 = R$ 25 => pode baixar R$ 47 (65,28%)
+  const maximo = descontoMaximoDoCombo(
+    72,
+    { ...custos, custoFicha: 20 },
+    sem,
+    20
+  );
+
+  verificar(
+    perto(maximo?.precoMinimo, 25) &&
+      perto(maximo?.descontoMaximoReais, 47) &&
+      perto(maximo?.descontoMaximoPercentual, 65.28),
+    "desconto máximo do combo"
+  );
+
+  verificar(
+    descontoMaximoDoCombo(10, { ...custos, custoFicha: 20 }, sem, 20)
+      ?.descontoMaximoReais === 0,
+    "combo já abaixo do preço mínimo não tem desconto"
+  );
+
+  // Combo contra avulso: burger R$ 49 (custo 14), batata R$ 15 (custo 3),
+  // bebida R$ 8 (custo 2); combo a R$ 64,90 com custo 19
+  const comparacao = compararComboComAvulso(
+    { preco: 64.9, custos: { ...custos, custoFicha: 19 } },
+    [
+      { preco: 49, custos: { ...custos, custoFicha: 14 } },
+      { preco: 15, custos: { ...custos, custoFicha: 3 } },
+      { preco: 8, custos: { ...custos, custoFicha: 2 } },
+    ],
+    sem
+  );
+
+  // lucro avulso = 35 + 12 + 6 = 53 de 72 (73,61%); combo = 45,90 de 64,90 (70,72%)
+  verificar(
+    perto(comparacao?.lucroAvulso, 53) &&
+      perto(comparacao?.margemAvulsa, 73.61) &&
+      perto(comparacao?.margemCombo, 70.72) &&
+      perto(comparacao?.diferencaEmPontos, -2.89),
+    "margem do combo contra a dos itens avulsos"
   );
 
   console.log(

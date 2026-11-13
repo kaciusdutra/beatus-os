@@ -1,4 +1,6 @@
 import {
+  custoTotalDoProduto,
+  precoParaMargem,
   resultadoDoPreco,
   type CustosDoPedido,
   type PercentuaisSobrePreco,
@@ -218,4 +220,93 @@ export function avisoDeImpacto(dados: {
   return tipos.length > 0
     ? { tipos, variacaoDoCustoPercentual: variacao }
     : undefined;
+}
+
+export interface DescontoMaximoDoCombo {
+  // Menor preço do combo que ainda mantém a margem mínima.
+  precoMinimo: number;
+
+  // Maior desconto sobre a soma dos preços avulsos, em R$ e em %.
+  descontoMaximoReais: number;
+
+  descontoMaximoPercentual: number;
+}
+
+// Bloco 8I: até quanto o combo pode baixar sem a margem cair abaixo da mínima.
+// Indefinido quando nenhum preço atinge a margem (percentuais altos demais).
+export function descontoMaximoDoCombo(
+  somaAvulsa: number,
+  custos: CustosDoPedido,
+  percentuais: PercentuaisSobrePreco,
+  margemMinimaPercentual: number
+): DescontoMaximoDoCombo | undefined {
+  const precoMinimo = precoParaMargem(
+    custoTotalDoProduto(custos),
+    percentuais,
+    margemMinimaPercentual
+  );
+
+  if (precoMinimo === undefined || !(somaAvulsa > 0)) {
+    return undefined;
+  }
+
+  const desconto = arredondar(somaAvulsa - precoMinimo, 2);
+
+  return {
+    precoMinimo: arredondar(precoMinimo, 2),
+    descontoMaximoReais: desconto > 0 ? desconto : 0,
+    descontoMaximoPercentual:
+      desconto > 0 ? arredondar((desconto / somaAvulsa) * 100, 2) : 0,
+  };
+}
+
+export interface ComparacaoComboAvulso {
+  margemCombo: number;
+
+  margemAvulsa: number;
+
+  lucroCombo: number;
+
+  lucroAvulso: number;
+
+  // Margem do combo menos a margem dos itens vendidos separados, em pontos.
+  diferencaEmPontos: number;
+}
+
+// Compara a margem do combo com a dos mesmos itens vendidos separados
+// (a bebida e o acompanhamento costumam levantar a margem do conjunto).
+export function compararComboComAvulso(
+  combo: { preco: number; custos: CustosDoPedido },
+  avulsos: { preco: number; custos: CustosDoPedido }[],
+  percentuais: PercentuaisSobrePreco
+): ComparacaoComboAvulso | undefined {
+  const doCombo = resultadoDoPreco(combo.preco, combo.custos, percentuais);
+
+  const resultados = avulsos.map((item) =>
+    resultadoDoPreco(item.preco, item.custos, percentuais)
+  );
+
+  if (!doCombo || avulsos.length === 0 || resultados.some((r) => !r)) {
+    return undefined;
+  }
+
+  const lucroAvulso = (resultados as ResultadoDoPreco[]).reduce(
+    (soma, r) => soma + r.lucro,
+    0
+  );
+
+  const receitaAvulsa = avulsos.reduce((soma, i) => soma + i.preco, 0);
+
+  const margemAvulsa = arredondar((lucroAvulso / receitaAvulsa) * 100, 2);
+
+  return {
+    margemCombo: doCombo.margemPercentual,
+    margemAvulsa,
+    lucroCombo: doCombo.lucro,
+    lucroAvulso: arredondar(lucroAvulso, 4),
+    diferencaEmPontos: arredondar(
+      doCombo.margemPercentual - margemAvulsa,
+      2
+    ),
+  };
 }

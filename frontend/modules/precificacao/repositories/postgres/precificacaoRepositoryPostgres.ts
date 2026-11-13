@@ -46,6 +46,7 @@ export class PrecificacaoRepositoryPostgres
       itensPorPedidoEstimados: Number(linha.itensPorPedidoEstimados),
       margensCenario: margens,
       margemMinimaPercentual: Number(linha.margemMinimaPercentual),
+      cmvAlvoPercentual: Number(linha.cmvAlvoPercentual),
     };
   }
 
@@ -59,6 +60,7 @@ export class PrecificacaoRepositoryPostgres
       itensPorPedidoEstimados: parametros.itensPorPedidoEstimados,
       margensCenario: parametros.margensCenario.join(","),
       margemMinimaPercentual: parametros.margemMinimaPercentual,
+      cmvAlvoPercentual: parametros.cmvAlvoPercentual,
     };
 
     await prisma.configuracaoPrecificacao.upsert({

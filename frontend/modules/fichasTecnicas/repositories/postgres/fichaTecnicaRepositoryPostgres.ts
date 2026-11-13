@@ -47,6 +47,7 @@ function mapearFichaTecnica(
       custoCalculado: unknown;
       observacao: string | null;
       ordem?: number;
+      grupoEscolha?: string | null;
     }>;
   }
 ): FichaTecnica {
@@ -103,6 +104,7 @@ function mapearFichaTecnica(
           item.observacao ??
           undefined,
         ordem: item.ordem,
+        grupoEscolha: item.grupoEscolha ?? undefined,
       };
     });
 
@@ -356,6 +358,7 @@ observacao:
                     item.observacao ??
                     null,
                   ordem: indice,
+                  grupoEscolha: item.grupoEscolha ?? null,
                 })
               ),
           },
@@ -460,6 +463,7 @@ observacao:
                     item.observacao ??
                     null,
                   ordem: indice,
+                  grupoEscolha: item.grupoEscolha ?? null,
 
             atualizadoEm:
               new Date(),
@@ -502,6 +506,7 @@ observacao:
                     item.observacao ??
                     null,
                   ordem: indice,
+                  grupoEscolha: item.grupoEscolha ?? null,
         },
       });
     }

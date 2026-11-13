@@ -419,6 +419,9 @@ model ConfiguracaoPrecificacao {
   // Abaixo desta margem o preço conta como promoção (o Kacius trabalha de 20% para cima).
   margemMinimaPercentual Decimal @default(20) @db.Decimal(8, 4)
 
+  // Meta de custo dos ingredientes sobre o preço (regra de mercado: até 35%).
+  cmvAlvoPercentual Decimal @default(35) @db.Decimal(8, 4)
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
@@ -601,6 +604,9 @@ model FichaTecnicaItem {
   observacao      String?
   // Posição do item na ficha (a ordem em que foi digitado; bloco 8E).
   ordem           Int      @default(0)
+  // Itens do mesmo grupo são opções que o cliente escolhe (ex.: a batata ou a
+  // salada do combo); o custo do combo usa a opção mais cara (bloco 8I).
+  grupoEscolha    String?
   criadoEm        DateTime @default(now())
   atualizadoEm    DateTime @updatedAt
 

@@ -48,6 +48,9 @@ export interface ContextoCustoFicha {
 }
 
 export interface CustoItemFicha {
+  // Em grupo de escolha, só a opção mais cara entra no custo (bloco 8I).
+  contaNoCusto?: boolean;
+
   itemId: string;
 
   // null quando o item tem pendência (ver erro).
@@ -113,8 +116,12 @@ export function calcularCustoFichaTecnica(
   const itens: CustoItemFicha[] = [];
   const erros: string[] = [];
 
-  let custoReceita = 0;
-  let custoEmbalagemItens = 0;
+  const contribuicoes: {
+    item: CustoItemFicha;
+    grupo?: string;
+    custo: number;
+    embalagem: boolean;
+  }[] = [];
 
   for (const item of ficha.itens) {
     const base: CustoItemFicha = {
@@ -153,11 +160,12 @@ export function calcularCustoFichaTecnica(
 
         base.custo = custo;
 
-        if (insumo.embalagem) {
-          custoEmbalagemItens += custo;
-        } else {
-          custoReceita += custo;
-        }
+        contribuicoes.push({
+          item: base,
+          grupo: item.grupoEscolha?.trim() || undefined,
+          custo,
+          embalagem: insumo.embalagem,
+        });
 
         itens.push(base);
         continue;
@@ -239,7 +247,13 @@ export function calcularCustoFichaTecnica(
       base.custoPorUnidade = custoPorUnidade;
       base.unidadeReferencia = unidadeUsada;
 
-      custoReceita += base.custo;
+      contribuicoes.push({
+        item: base,
+        grupo: item.grupoEscolha?.trim() || undefined,
+        custo: base.custo,
+        embalagem: false,
+      });
+
       itens.push(base);
     } catch (erro) {
       const mensagem =
@@ -250,6 +264,42 @@ export function calcularCustoFichaTecnica(
       base.erro = mensagem;
       itens.push(base);
       erros.push(mensagem);
+    }
+  }
+
+  // Itens de um mesmo grupo de escolha são opções: conta a mais cara (pior caso).
+  let custoReceita = 0;
+  let custoEmbalagemItens = 0;
+
+  const maisCaroDoGrupo = new Map<string, (typeof contribuicoes)[number]>();
+
+  for (const contribuicao of contribuicoes) {
+    if (!contribuicao.grupo) {
+      continue;
+    }
+
+    const atual = maisCaroDoGrupo.get(contribuicao.grupo);
+
+    if (!atual || contribuicao.custo > atual.custo) {
+      maisCaroDoGrupo.set(contribuicao.grupo, contribuicao);
+    }
+  }
+
+  for (const contribuicao of contribuicoes) {
+    const conta =
+      !contribuicao.grupo ||
+      maisCaroDoGrupo.get(contribuicao.grupo) === contribuicao;
+
+    contribuicao.item.contaNoCusto = conta;
+
+    if (!conta) {
+      continue;
+    }
+
+    if (contribuicao.embalagem) {
+      custoEmbalagemItens += contribuicao.custo;
+    } else {
+      custoReceita += contribuicao.custo;
     }
   }
 

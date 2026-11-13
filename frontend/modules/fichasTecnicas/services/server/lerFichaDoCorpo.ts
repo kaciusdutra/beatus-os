@@ -66,6 +66,7 @@ export function lerFichaDoCorpo(
         percentualPerda: numero(item.percentualPerda),
         custoCalculado: 0,
         observacao: texto(item.observacao),
+        grupoEscolha: texto(item.grupoEscolha)?.slice(0, 40),
         ordem: indice,
       };
     }

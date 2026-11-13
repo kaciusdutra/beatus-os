@@ -33,6 +33,9 @@ export interface ParametrosPrecificacao {
 
   // Abaixo desta margem, o preço conta como promoção.
   margemMinimaPercentual: number;
+
+  // Meta de custo dos ingredientes sobre o preço (referência de mercado: 35%).
+  cmvAlvoPercentual: number;
 }
 
 export interface CanalPrecificacaoDados {
@@ -70,4 +73,5 @@ export const PARAMETROS_PADRAO: ParametrosPrecificacao = {
   itensPorPedidoEstimados: 1,
   margensCenario: [20, 25, 30, 35],
   margemMinimaPercentual: 20,
+  cmvAlvoPercentual: 35,
 };

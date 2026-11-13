@@ -5,6 +5,8 @@ import { useState } from "react";
 import { formatarMoeda } from "@/modules/fichasTecnicas/pages/dadosFichas";
 
 import {
+  compararComboComAvulso,
+  descontoMaximoDoCombo,
   economiaDoCombo,
   parametrosDoCanal,
   simularPromocao,
@@ -27,7 +29,13 @@ export interface LinhaSimulavel {
   custoFicha?: number;
 
   // Produtos que compõem este (quando é um combo).
-  componentes: { produtoId: string; nome: string; quantidade: number }[];
+  componentes: {
+    produtoId: string;
+    nome: string;
+    quantidade: number;
+    // Opção de escolha do cliente (mesmo nome = o cliente escolhe uma).
+    grupo?: string;
+  }[];
 }
 
 interface Props {
@@ -71,6 +79,41 @@ export default function SimuladorDePromocao({
   const numero = Number(valor.replace(",", ".") || 0);
 
   const promocao: Promocao = { tipo, valor: numero };
+
+  // Em grupo de escolha, o cliente leva uma opção: conta a de maior custo,
+  // como no custo do combo.
+  function componentesContados(
+    componentes: LinhaSimulavel["componentes"]
+  ): LinhaSimulavel["componentes"] {
+    const maisCaroDoGrupo = new Map<
+      string,
+      LinhaSimulavel["componentes"][number]
+    >();
+
+    const custoDe = (produto: string) =>
+      linhas.find((outra) => outra.produtoId === produto)?.custoFicha ?? 0;
+
+    for (const componente of componentes) {
+      if (!componente.grupo) {
+        continue;
+      }
+
+      const atual = maisCaroDoGrupo.get(componente.grupo);
+
+      if (
+        !atual ||
+        custoDe(componente.produtoId) > custoDe(atual.produtoId)
+      ) {
+        maisCaroDoGrupo.set(componente.grupo, componente);
+      }
+    }
+
+    return componentes.filter(
+      (componente) =>
+        !componente.grupo ||
+        maisCaroDoGrupo.get(componente.grupo) === componente
+    );
+  }
 
   function precoPraticado(id: string, canal: string): number | undefined {
     return precos.find(
@@ -316,7 +359,9 @@ export default function SimuladorDePromocao({
                 return null;
               }
 
-              const faltando = linha.componentes.filter(
+              const contados = componentesContados(linha.componentes);
+
+              const faltando = contados.filter(
                 (componente) =>
                   precoPraticado(componente.produtoId, item.chave) ===
                   undefined
@@ -332,13 +377,75 @@ export default function SimuladorDePromocao({
               }
 
               const economia = economiaDoCombo(
-                linha.componentes.flatMap((componente) =>
+                contados.flatMap((componente) =>
                   Array.from({ length: Math.max(1, componente.quantidade) }, () =>
                     precoPraticado(componente.produtoId, item.chave) as number
                   )
                 ),
                 precoCombo
               );
+
+              const canalDados = canais.find((c) => c.canal === item.chave);
+
+              const custosDe = (custoFicha: number) => ({
+                custoFicha,
+                embalagemPedido: parametros.embalagemPedido,
+                custoFixoPorPedido,
+                itensPorPedido: parametros.itensPorPedidoEstimados,
+                taxaCanalPorPedido: canalDados
+                  ? parametrosDoCanal(parametros, canalDados)
+                      .taxaCanalPorPedido
+                  : 0,
+              });
+
+              const percentuaisDoCanal = canalDados
+                ? parametrosDoCanal(parametros, canalDados).percentuais
+                : undefined;
+
+              const custoDoCombo = linha.custoFicha;
+
+              const avulsos = contados.flatMap((componente) => {
+                const dadosDoComponente = linhas.find(
+                  (outra) => outra.produtoId === componente.produtoId
+                );
+
+                const preco = precoPraticado(
+                  componente.produtoId,
+                  item.chave
+                );
+
+                return dadosDoComponente?.custoFicha !== undefined &&
+                  preco !== undefined
+                  ? Array.from(
+                      { length: Math.max(1, componente.quantidade) },
+                      () => ({
+                        preco,
+                        custos: custosDe(
+                          dadosDoComponente.custoFicha as number
+                        ),
+                      })
+                    )
+                  : [];
+              });
+
+              const maximo =
+                economia && percentuaisDoCanal && custoDoCombo !== undefined
+                  ? descontoMaximoDoCombo(
+                      economia.somaAvulsa,
+                      custosDe(custoDoCombo),
+                      percentuaisDoCanal,
+                      parametros.margemMinimaPercentual
+                    )
+                  : undefined;
+
+              const comparacao =
+                percentuaisDoCanal && custoDoCombo !== undefined
+                  ? compararComboComAvulso(
+                      { preco: precoCombo, custos: custosDe(custoDoCombo) },
+                      avulsos,
+                      percentuaisDoCanal
+                    )
+                  : undefined;
 
               return (
                 <li key={item.chave}>
@@ -350,6 +457,29 @@ export default function SimuladorDePromocao({
                         economia.economiaReais
                       )} (${percentual(economia.economiaPercentual)}).`
                     : "sem dados para comparar."}
+
+                  {maximo && (
+                    <span className="block text-xs text-slate-500">
+                      Desconto máximo mantendo a margem mínima:{" "}
+                      {formatarMoeda(maximo.descontoMaximoReais)} (
+                      {percentual(maximo.descontoMaximoPercentual)}); o
+                      combo não deve ficar abaixo de{" "}
+                      {formatarMoeda(maximo.precoMinimo)}.
+                    </span>
+                  )}
+
+                  {comparacao && (
+                    <span className="block text-xs text-slate-500">
+                      Margem do combo {percentual(comparacao.margemCombo)}{" "}
+                      contra {percentual(comparacao.margemAvulsa)} dos itens
+                      vendidos separados (
+                      {comparacao.diferencaEmPontos >= 0 ? "+" : ""}
+                      {comparacao.diferencaEmPontos.toLocaleString("pt-BR", {
+                        maximumFractionDigits: 1,
+                      })}{" "}
+                      pontos).
+                    </span>
+                  )}
                 </li>
               );
             })}

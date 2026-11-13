@@ -34,6 +34,7 @@ export interface EntradaParametros {
   itensPorPedidoEstimados: number;
   margensCenario: string | number[];
   margemMinimaPercentual: number;
+  cmvAlvoPercentual: number;
 }
 
 export class PrecificacaoService {
@@ -84,6 +85,10 @@ export class PrecificacaoService {
       margemMinimaPercentual: percentual(
         entrada.margemMinimaPercentual,
         "A margem mínima"
+      ),
+      cmvAlvoPercentual: percentual(
+        entrada.cmvAlvoPercentual,
+        "O CMV-alvo"
       ),
     });
 

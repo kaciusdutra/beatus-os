@@ -61,6 +61,7 @@ interface FormParametros {
   itens: string;
   margens: string;
   minima: string;
+  cmv: string;
 }
 
 interface FormCanal {
@@ -140,6 +141,7 @@ export default function PrecificacaoPage() {
       itens: texto(carregados.parametros.itensPorPedidoEstimados),
       margens: carregados.parametros.margensCenario.join(", "),
       minima: texto(carregados.parametros.margemMinimaPercentual),
+      cmv: texto(carregados.parametros.cmvAlvoPercentual),
     });
 
     setFormCanais(
@@ -215,6 +217,7 @@ export default function PrecificacaoPage() {
           itensPorPedidoEstimados: numero(formParametros.itens),
           margensCenario: formParametros.margens,
           margemMinimaPercentual: numero(formParametros.minima),
+          cmvAlvoPercentual: numero(formParametros.cmv),
         },
         "Não foi possível salvar os parâmetros."
       );
@@ -404,6 +407,7 @@ export default function PrecificacaoPage() {
                 produtoId: usada.produtoId,
                 nome: usada.nome,
                 quantidade: item.quantidade,
+                grupo: item.grupoEscolha,
               },
             ]
           : [];
@@ -585,6 +589,7 @@ export default function PrecificacaoPage() {
                   ["itens", "Produtos por pedido (média)"],
                   ["margens", "Margens para comparar (%)"],
                   ["minima", "Margem mínima (%)"],
+                  ["cmv", "CMV-alvo (% do preço)"],
                 ] as const
               ).map(([chave, rotulo]) => (
                 <div key={chave}>
@@ -860,7 +865,20 @@ export default function PrecificacaoPage() {
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-right text-slate-700">
+                  <td
+                    className={`px-4 py-3 text-right ${
+                      resultado &&
+                      resultado.cmvPercentual > parametros.cmvAlvoPercentual
+                        ? "font-semibold text-amber-700"
+                        : "text-slate-700"
+                    }`}
+                    title={
+                      resultado &&
+                      resultado.cmvPercentual > parametros.cmvAlvoPercentual
+                        ? `Acima da meta de ${percentualTexto(parametros.cmvAlvoPercentual)}`
+                        : undefined
+                    }
+                  >
                     {resultado
                       ? percentualTexto(resultado.cmvPercentual)
                       : "—"}

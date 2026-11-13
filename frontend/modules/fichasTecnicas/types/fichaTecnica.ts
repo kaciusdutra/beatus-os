@@ -18,6 +18,9 @@ export interface FichaTecnicaItem {
   observacao?: string;
   // Posição do item na ficha (a ordem em que foi digitado).
   ordem?: number;
+  // Itens com o mesmo nome de grupo são opções (o cliente escolhe uma);
+  // o custo usa a mais cara (bloco 8I).
+  grupoEscolha?: string;
 }
 
 export interface FichaTecnica {
