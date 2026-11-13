@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 13/11/2026 | `f412f6f` | G03: telas Pedidos e Clientes lendo o banco (consulta, filtros, detalhe, edição de cliente) e pagamento na entrega bloqueado até a fidelização; regras 4.2 e 13.1 a 13.3 (sem migração) |
 | 13/11/2026 | `78952ef` | Financeiro, bloco 2: contas a pagar, compra a prazo com parcelas, pagamento de títulos, saldo inicial, capital de giro com projeção e alertas (migração); regras 12.7 a 12.10 |
 | 13/11/2026 | `c4be165` | Financeiro, bloco 1: fluxo de caixa (pagamentos dos pedidos, compras por destino, lançamentos avulsos, custos fixos previstos), forma de pagamento na confirmação da compra (migração); regras 12.1 a 12.6 |
 | 13/11/2026 | `15f71b5` | Cozinha: fila, status do pedido, cancelamento com motivo, ticket de 80 mm e baixa por venda (sem migração) |
