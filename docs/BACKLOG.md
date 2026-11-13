@@ -75,7 +75,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [x] **Legado `localStorage` de pedidos e clientes removido** (13/11/2026, decisão H da S5): `pedidoRepository.ts`, `PedidoCard.tsx` e `clienteRepository.ts`.
 - [ ] **`modules/pedidos/components/PedidoStatusBadge.tsx` ficou sem uso** (só o `PedidoCard` o usava). Remover com a autorização do Kacius.
 - [ ] **Cadastro de cliente fora do PDV** (nome, telefone, CPF, endereço) e **edição de endereços** pela tela Clientes: hoje o cliente novo só entra pelo PDV e os endereços só se consultam.
-- [ ] **Clube de vantagens (fidelização):** libera o pagamento na entrega para o cliente fidelizado (regra 4.3, em espera).
+- [ ] **Fidelização de clientes (próximo bloco, regras 17.1 a 17.4):** (1) **cartão-convite para a embalagem** com um código de campanha, que o cliente do marketplace cita ao pedir direto (WhatsApp) para ganhar o benefício da primeira compra, e o sistema mede quantos vieram do marketplace; (2) cliente recorrente e categorias, calculados dos pedidos reais; (3) **sugestão do melhor benefício** por perfil, pela margem; (4) campanhas com lista de clientes e mensagem pronta; (5) benefícios aplicados aos poucos: pagar na entrega (regra 4.3), desconto em %, brinde, cupom de aniversário. Exige mexer no cálculo de desconto do pedido e provavelmente nova migração. QR code no cartão depende de autorização para uma biblioteca nova.
 - [ ] Exceção para cliente recorrente ligada ao clube de vantagens (em espera, desligada).
 - [ ] Geração de Pix (QR Code e copia e cola) e de link de cartão nos canais próprios.
 
