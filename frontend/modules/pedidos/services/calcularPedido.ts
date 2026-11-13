@@ -116,6 +116,9 @@ export function calcularPedidoNoServidor(entrada: {
 
   distanciaEntregaKm: number | null;
 
+  // Marketplace: a plataforma entrega, então não há distância nem taxa.
+  semEntrega?: boolean;
+
   produtos: ProdutoDoCatalogo[];
 
   precos: PrecoDoCatalogo[];
@@ -217,10 +220,24 @@ export function calcularPedidoNoServidor(entrada: {
     });
   }
 
-  const entrega = calcularEntrega(entrada.distanciaEntregaKm);
+  let taxaEntrega = 0;
 
-  if (entrega.status !== "CALCULADO" || entrada.distanciaEntregaKm === null) {
-    throw new ErroDePedido(entrega.mensagem);
+  let distanciaEntregaKm = 0;
+
+  let regraEntregaAplicada: string | undefined = "ENTREGA_DO_MARKETPLACE";
+
+  if (!entrada.semEntrega) {
+    const entrega = calcularEntrega(entrada.distanciaEntregaKm);
+
+    if (entrega.status !== "CALCULADO" || entrada.distanciaEntregaKm === null) {
+      throw new ErroDePedido(entrega.mensagem);
+    }
+
+    taxaEntrega = entrega.taxa;
+
+    distanciaEntregaKm = entrada.distanciaEntregaKm;
+
+    regraEntregaAplicada = entrega.regraAplicada;
   }
 
   const subtotal = centavos(
@@ -231,9 +248,9 @@ export function calcularPedidoNoServidor(entrada: {
     itens,
     subtotal,
     descontos: 0,
-    taxaEntrega: entrega.taxa,
-    total: centavos(subtotal + entrega.taxa),
-    distanciaEntregaKm: entrada.distanciaEntregaKm,
-    regraEntregaAplicada: entrega.regraAplicada,
+    taxaEntrega,
+    total: centavos(subtotal + taxaEntrega),
+    distanciaEntregaKm,
+    regraEntregaAplicada,
   };
 }

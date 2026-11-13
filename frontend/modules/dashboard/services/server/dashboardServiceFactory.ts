@@ -4,6 +4,10 @@ import { criarContextoDesenvolvimento } from "@/core/context/empresaContext";
 
 import { getContaPagarService } from "@/modules/financeiro/services/server/financeiroServiceFactory";
 
+import { getConferenciaMarketplaceService } from "@/modules/financeiro/services/server/financeiroServiceFactory";
+
+import { criarPrecificacaoServicePostgres } from "@/modules/precificacao/services/server/precificacaoServiceFactory";
+
 import { getEstoqueService } from "@/modules/estoque/services/server/estoqueService";
 
 import { DashboardService } from "../dashboardService";
@@ -51,9 +55,44 @@ async function alertasDoEstoque(): Promise<AlertaDoDashboard[]> {
   ];
 }
 
+async function alertasDaConferencia(): Promise<AlertaDoDashboard[]> {
+  const { resumo } = await getConferenciaMarketplaceService().listar();
+
+  if (resumo.aguardando.quantidade === 0) {
+    return [];
+  }
+
+  return [
+    {
+      nivel: "INFO",
+      mensagem: `${resumo.aguardando.quantidade} pedido(s) de marketplace aguardando conferência do repasse (R$ ${resumo.aguardando.esperado.toFixed(2).replace(".", ",")} esperados).`,
+      href: "/financeiro/conferencia-marketplace",
+    },
+  ];
+}
+
+async function margensDaPrecificacao() {
+  const precificacao = criarPrecificacaoServicePostgres();
+
+  const [precos, parametros] = await Promise.all([
+    precificacao.listarPrecos(),
+    precificacao.buscarParametros(),
+  ]);
+
+  return {
+    margens: precos.map((preco) => ({
+      produtoId: preco.produtoId,
+      canal: preco.canal,
+      margemPercentual: preco.margemReferencia,
+    })),
+    margemMinimaPercentual: parametros.margemMinimaPercentual,
+  };
+}
+
 export function getDashboardService(): DashboardService {
   return new DashboardService(
     criarDashboardRepositoryPostgres(criarContextoDesenvolvimento()),
-    [alertasDoFinanceiro, alertasDoEstoque]
+    [alertasDoFinanceiro, alertasDoEstoque, alertasDaConferencia],
+    margensDaPrecificacao
   );
 }

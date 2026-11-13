@@ -64,6 +64,33 @@ export default function FinanceiroPage() {
         </Link>
 
         <Link
+          href="/financeiro/analise-de-vendas"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Vendas por canal e produto
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            De onde vem a receita, o que mais rende e o que vale
+            promover ou divulgar.
+          </p>
+        </Link>
+
+        <Link
+          href="/financeiro/conferencia-marketplace"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Conferência dos marketplaces
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Repasses do iFood, 99Food e Keeta aguardando conferência.
+          </p>
+        </Link>
+
+        <Link
           href="/financeiro/contas-a-pagar"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
         >

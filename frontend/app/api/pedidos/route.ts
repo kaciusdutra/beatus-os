@@ -82,10 +82,17 @@ export async function POST(
       body.clienteId ??
       body.cliente?.clienteId;
 
+    // Pedido de marketplace (iFood, 99Food, Keeta): sem cliente, endereço nem pagamento
+    // informados; o servidor usa o cliente do canal e o pagamento aprovado da plataforma.
+    const ehMarketplace = ["IFOOD", "99FOOD", "KEETA"].includes(body.canal);
+
+    const pagamentoDoCorpo = body.pagamento ?? {};
+
     if (
-      typeof clienteId !==
+      !ehMarketplace &&
+      (typeof clienteId !==
         "string" ||
-      !clienteId.trim()
+      !clienteId.trim())
     ) {
       return resposta(
         "Cliente do pedido não informado.",
@@ -107,9 +114,10 @@ export async function POST(
     }
 
     if (
-      !body.pagamento ||
+      !ehMarketplace &&
+      (!body.pagamento ||
       typeof body.pagamento !==
-        "object"
+        "object")
     ) {
       return resposta(
         "Pagamento do pedido não informado.",
@@ -118,9 +126,10 @@ export async function POST(
     }
 
     if (
-      !body.enderecoEntrega ||
+      !ehMarketplace &&
+      (!body.enderecoEntrega ||
       typeof body.enderecoEntrega !==
-        "object"
+        "object")
     ) {
       return resposta(
         "Endereço de entrega não informado.",
@@ -149,10 +158,21 @@ export async function POST(
             ? body.identificadorExterno
             : undefined,
 
-        clienteId,
+        clienteId: ehMarketplace ? undefined : clienteId,
 
-        enderecoEntrega:
-          body.enderecoEntrega,
+        enderecoEntrega: ehMarketplace ? undefined : body.enderecoEntrega,
+
+        marketplace:
+          body.marketplace && typeof body.marketplace === "object"
+            ? {
+                codigo: String(body.marketplace.codigo ?? ""),
+
+                nomeCliente:
+                  typeof body.marketplace.nomeCliente === "string"
+                    ? body.marketplace.nomeCliente
+                    : undefined,
+              }
+            : undefined,
 
         distanciaEntregaKm:
           typeof body.distanciaEntregaKm ===
@@ -215,16 +235,13 @@ export async function POST(
 
         pagamento: {
           modalidade:
-            body.pagamento
-              .modalidade,
+            pagamentoDoCorpo.modalidade,
 
           forma:
-            body.pagamento
-              .forma,
+            pagamentoDoCorpo.forma,
 
           status:
-            body.pagamento
-              .status,
+            pagamentoDoCorpo.status,
         },
       };
 

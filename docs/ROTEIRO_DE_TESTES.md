@@ -190,6 +190,24 @@ Endereço: `/` (primeira tela).
 | 108 | Com um título vencido ou um item abaixo do mínimo | Aparece em "Atenção", com o botão Resolver |
 | 109 | Abra em TV, tablet ou celular | Tudo cabe; em TV de 1920×1080 não há barra de rolagem |
 
+## Parte 12: Pedidos de marketplace, conferência e análise de vendas
+
+Endereços diretos: `/pdv`, `/financeiro/conferencia-marketplace` e `/financeiro/analise-de-vendas`. Antes, defina na Precificação a **comissão** e o **preço no canal iFood** de um produto.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 110 | No PDV, mude a origem para **iFood** | A comanda vira "Pedido de marketplace": sem telefone, endereço nem pagamento; o catálogo mostra o preço do iFood |
+| 111 | Adicione itens, informe o **código do pedido** e lance | O pedido entra na Cozinha como Novo, com o total dos itens (sem taxa de entrega) |
+| 112 | Lance outro pedido com o mesmo código | Recusa: já existe pedido do iFood com esse código |
+| 113 | `/pedidos` → abra o pedido | Mostra canal, código, nome do cliente final (se informado), "entrega pela plataforma" e o repasse esperado |
+| 114 | `/clientes` | O "Cliente iFood" não aparece na lista |
+| 115 | `/financeiro/conferencia-marketplace` | O pedido aparece aguardando, com total, comissão e valor esperado; o Dashboard avisa em "Atenção" |
+| 116 | `/financeiro/fluxo-de-caixa` antes de conferir | O pedido do iFood **não** está nas entradas |
+| 117 | **Conferir** informando um valor menor que o esperado e a data | O pedido vira conferido, mostra a diferença e o resumo "diferença acumulada" muda |
+| 118 | Volte ao fluxo de caixa | Entra "Repasse do pedido N" no valor e na data informados, no canal iFood |
+| 119 | `/financeiro/analise-de-vendas` (7, 30 e 90 dias) | Receita por canal e produtos com unidades, valor e margem por canal; etiquetas Mais vendido, Rever margem e Bom para divulgar |
+| 120 | No Dashboard, "Vendas por canal hoje" → **Ver análise** | Abre a análise |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

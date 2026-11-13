@@ -112,7 +112,13 @@ export default async function Home() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm" title="Faturamento de hoje por canal de venda, sem os cancelados.">
-              <h2 className="text-lg font-bold text-slate-800">Vendas por canal hoje</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-800">Vendas por canal hoje</h2>
+
+                <Link href="/financeiro/analise-de-vendas" className="text-xs font-semibold text-sky-700 underline">
+                  Ver análise
+                </Link>
+              </div>
 
               {dados.vendasPorCanal.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">Ainda sem vendas hoje.</p>

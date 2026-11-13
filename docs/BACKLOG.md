@@ -172,7 +172,13 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 ## Dashboard
 
 - [x] **Dashboard real (13/11/2026, sem migração):** indicadores do dia, vendas por canal, mais vendidos em 7 dias, fluxo da operação, avisos do financeiro e do estoque, fonte de cada número ao passar o mouse e tela sem rolagem em 1920×1080. Regras 14.1 a 14.6.
-- [ ] **Margem no ranking de produtos:** mostrar a margem de cada produto (da Precificação) ao lado das vendas, para decidir promoções.
+- [x] **Pedido de marketplace e conferência do repasse (13/11/2026, migração `add_marketplace_codigo_externo_e_conferencia`):** lançamento no PDV sem cliente, com código do pedido, cliente fixo por canal, valor esperado e fila de conferência; o repasse conferido entra no caixa. Regras 15.1 a 15.5.
+- [x] **Vendas por canal e produto, com margem e etiquetas de promoção e divulgação (13/11/2026, sem migração):** regras 14.7 e 14.8.
+- [ ] **Margem sempre disponível na análise:** hoje usa a margem registrada na Precificação (`margemReferencia`); produto sem ela aparece "sem margem registrada". Calcular a margem atual no servidor (hoje a conta fica na tela de Precificação) para a análise não depender do registro.
+- [ ] **Produtos sem nenhuma venda no período** como candidatos a divulgação (a análise só vê quem vendeu).
+- [ ] **Entrega própria nos pedidos de marketplace** (endereço, distância e taxa), junto do cadastro de clientes e da delimitação da área no iFood.
+- [ ] **Desfazer conferência** e conferir **por repasse** (um valor que cobre vários pedidos), se o pedido a pedido ficar trabalhoso.
+- [ ] **Entrada automática dos pedidos de marketplace pelas APIs** (iFood, 99Food, Keeta), que já trarão o código; o lançamento manual vira exceção (G10).
 - [ ] **Conferir o dashboard em TV de 32" com touch, tablet e celular** (testado em 1920×1080 e em tela estreita).
 - [ ] **Avisos de validade no dashboard** (cartões vencidos ou vencendo no quadro do estoque), junto da integração do checklist (G04).
 

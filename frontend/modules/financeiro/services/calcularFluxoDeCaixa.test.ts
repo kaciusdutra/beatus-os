@@ -109,6 +109,23 @@ function executarTestes(): void {
   verificar(comTitulo.saidasPorCategoria.some((item) => item.chave === "Compra: embalagens" && item.valor === 100), "20% do título em embalagens");
   verificar(comTitulo.saidasPorCategoria.some((item) => item.chave === "Juros, multas e descontos" && item.valor === 10), "juros de R$ 10 à parte");
 
+  // Repasse de marketplace: entra no valor e na data conferidos, com canal.
+  const comRepasse = calcularFluxoDeCaixa({
+    de: "2026-12-01",
+    ate: "2026-12-31",
+    pagamentos: [],
+    compras: [],
+    lancamentos: [],
+    repasses: [
+      { id: "r1", pedidoId: "p9", numero: "9", canal: "IFOOD", forma: "REPASSE", valor: 84.5, data: "2026-12-05T12:00:00.000Z" },
+    ],
+  });
+
+  verificar(comRepasse.entradas === 84.5, "o repasse entra pelo valor recebido");
+  verificar(comRepasse.movimentos[0].origem === "REPASSE" && comRepasse.movimentos[0].canal === "IFOOD", "movimento de repasse do iFood");
+  verificar(comRepasse.entradasPorCanal.some((item) => item.chave === "IFOOD" && item.valor === 84.5), "entrada por canal");
+  verificar(comRepasse.entradasPorForma.some((item) => item.chave === "Repasse"), "forma Repasse");
+
   // Mês inteiro
   verificar(ehMesInteiro("2026-11-01", "2026-11-30"), "novembro inteiro");
   verificar(ehMesInteiro("2026-02-01", "2026-02-28"), "fevereiro de 2026 inteiro");

@@ -66,6 +66,26 @@ export interface LancarPedidoPostgresResult {
 
 const TENTATIVAS_DO_NUMERO = 6;
 
+const CANAIS_MARKETPLACE = ["IFOOD", "99FOOD", "KEETA"];
+
+const ROTULO_DO_CANAL: Record<string, string> = {
+  IFOOD: "iFood",
+  "99FOOD": "99Food",
+  KEETA: "Keeta",
+};
+
+const ENDERECO_VAZIO = {
+  logradouro: "",
+  numero: "",
+  bairro: "",
+  cidade: "",
+  estado: "",
+};
+
+function arredondar(valor: number): number {
+  return Math.round(valor * 100) / 100;
+}
+
 function ehConflitoDeNumero(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -119,24 +139,75 @@ export class LancarPedidoServicePostgres {
 
     return prisma.$transaction(
       async (tx) => {
-        const cliente =
-          await tx.cliente.findFirst({
+        const ehMarketplace = CANAIS_MARKETPLACE.includes(solicitado.canal);
+
+        const codigoExterno = solicitado.marketplace?.codigo?.trim();
+
+        if (ehMarketplace && !codigoExterno) {
+          throw new ErroDePedido("Informe o código do pedido no marketplace.");
+        }
+
+        if (!ehMarketplace && solicitado.marketplace) {
+          throw new ErroDePedido(
+            "Os dados de marketplace só valem para pedidos do iFood, 99Food ou Keeta."
+          );
+        }
+
+        // Pedido de marketplace usa o cliente fixo do canal (criado na primeira vez);
+        // os demais exigem um cliente cadastrado.
+        let cliente;
+
+        if (ehMarketplace) {
+          const jaExisteCodigo = await tx.pedido.findFirst({
+            where: { empresaId, canal: solicitado.canal, codigoExterno },
+            select: { numero: true },
+          });
+
+          if (jaExisteCodigo) {
+            throw new ErroDePedido(
+              `Já existe um pedido do ${ROTULO_DO_CANAL[solicitado.canal]} com o código ${codigoExterno} (pedido ${jaExisteCodigo.numero}).`
+            );
+          }
+
+          const chave = `MKT-${solicitado.canal}`;
+
+          cliente =
+            (await tx.cliente.findFirst({ where: { empresaId, cpf: chave } })) ??
+            (await tx.cliente.create({
+              data: {
+                empresaId,
+                nome: `Cliente ${ROTULO_DO_CANAL[solicitado.canal]}`,
+                telefone: chave,
+                cpf: chave,
+                origemPrimeiroPedido: solicitado.canal,
+              },
+            }));
+        } else {
+          cliente = await tx.cliente.findFirst({
             where: {
-              id:
-                solicitado.clienteId,
+              id: solicitado.clienteId ?? "",
 
               empresaId,
 
-              ativo:
-                true,
+              ativo: true,
             },
           });
+        }
 
         if (!cliente) {
           throw new Error(
             "Cliente não encontrado."
           );
         }
+
+        // No marketplace o pagamento já vem aprovado pela plataforma.
+        const pagamentoSolicitado = ehMarketplace
+          ? {
+              modalidade: "ELETRONICO" as const,
+              forma: solicitado.canal === "IFOOD" ? ("IFOOD" as const) : solicitado.canal === "99FOOD" ? ("99FOOD" as const) : ("KEETA" as const),
+              status: "APROVADO" as const,
+            }
+          : solicitado.pagamento;
 
         if (solicitado.id) {
           const jaExiste =
@@ -203,7 +274,10 @@ export class LancarPedidoServicePostgres {
               solicitado.itens,
 
             distanciaEntregaKm:
-              solicitado.distanciaEntregaKm,
+              ehMarketplace ? null : solicitado.distanciaEntregaKm,
+
+            semEntrega:
+              ehMarketplace,
 
             produtos:
               produtos.map(
@@ -268,7 +342,7 @@ export class LancarPedidoServicePostgres {
           entrada,
 
           identificadorExterno:
-            solicitado.identificadorExterno,
+            codigoExterno ?? solicitado.identificadorExterno,
 
           cliente: {
             clienteId:
@@ -282,7 +356,7 @@ export class LancarPedidoServicePostgres {
           },
 
           enderecoEntrega:
-            solicitado.enderecoEntrega,
+            solicitado.enderecoEntrega ?? ENDERECO_VAZIO,
 
           itens:
             calculado.itens,
@@ -307,13 +381,13 @@ export class LancarPedidoServicePostgres {
 
           pagamento: {
             modalidade:
-              solicitado.pagamento.modalidade,
+              pagamentoSolicitado.modalidade,
 
             forma:
-              solicitado.pagamento.forma,
+              pagamentoSolicitado.forma,
 
             status:
-              solicitado.pagamento.status,
+              pagamentoSolicitado.status,
 
             origem:
               entrada === "MANUAL"
@@ -335,7 +409,7 @@ export class LancarPedidoServicePostgres {
               agora,
 
             aprovadoEm:
-              solicitado.pagamento.status ===
+              pagamentoSolicitado.status ===
               "APROVADO"
                 ? agora
                 : undefined,
@@ -373,6 +447,40 @@ export class LancarPedidoServicePostgres {
             pedido.pagamento
           );
 
+        // Marketplace: guarda o código, a entrega da plataforma e o que ela deve
+        // repassar (total menos a comissão do canal), aguardando conferência.
+        let complementoDoResumo = "";
+
+        if (ehMarketplace) {
+          const canalDePreco = await tx.canalPrecificacao.findFirst({
+            where: { empresaId, canal: solicitado.canal },
+          });
+
+          const comissao = arredondar(
+            (pedido.total * Number(canalDePreco?.comissaoPercentual ?? 0)) / 100
+          );
+
+          await tx.pedido.update({
+            where: { id: pedidoCriado.id },
+            data: {
+              codigoExterno,
+              nomeClienteExterno: solicitado.marketplace?.nomeCliente?.trim() || null,
+              entregaPor: "MARKETPLACE",
+              comissaoEsperada: comissao,
+              liquidoEsperado: arredondar(pedido.total - comissao),
+              conferenciaStatus: "AGUARDANDO",
+              distanciaEntregaKm: null,
+              enderecoLogradouro: null,
+              enderecoNumero: null,
+              enderecoBairro: null,
+              enderecoCidade: null,
+              enderecoEstado: null,
+            },
+          });
+
+          complementoDoResumo = ` Código ${codigoExterno} no ${ROTULO_DO_CANAL[solicitado.canal]}; repasse esperado R$ ${arredondar(pedido.total - comissao).toFixed(2).replace(".", ",")}.`;
+        }
+
         // O pedido entrou na fila da cozinha: gera o ticket e registra.
         await tx.filaImpressao.create({
           data: {
@@ -385,11 +493,20 @@ export class LancarPedidoServicePostgres {
         await registrarAtividade(tx, {
           entidade: "PEDIDO",
           acao: "LANCADO",
-          resumo: `Pedido ${pedidoCriado.numero} lançado (${pedido.canal}): ${pedido.itens.length} item(ns), R$ ${pedido.total.toFixed(2)}.`,
+          resumo: `Pedido ${pedidoCriado.numero} lançado (${pedido.canal}): ${pedido.itens.length} item(ns), R$ ${pedido.total.toFixed(2)}.${complementoDoResumo}`,
           referenciaId: pedidoCriado.id,
           referenciaNumero: String(pedidoCriado.numero),
           operador,
         });
+
+        // O cliente fixo do canal não acumula histórico de compras.
+        if (ehMarketplace) {
+          return {
+            pedido: pedidoCriado,
+
+            pagamento: pagamentoCriado,
+          };
+        }
 
         const clienteAtualizado =
           await tx.cliente.update({

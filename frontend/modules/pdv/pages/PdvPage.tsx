@@ -9,6 +9,7 @@ import {
 import PdvCatalogo from "../components/PdvCatalogo";
 import PdvComanda from "../components/PdvComanda";
 import PdvClienteModal from "../components/PdvClienteModal";
+import PdvComandaMarketplace from "../components/PdvComandaMarketplace";
 import PdvNovoEnderecoModal from "../components/PdvNovoEnderecoModal";
 
 import {
@@ -385,6 +386,89 @@ export default function PdvPage() {
             produtoId
         )
     );
+  }
+
+  const origemEhMarketplace = ["IFOOD", "99FOOD", "KEETA"].includes(origem);
+
+  // Pedido de marketplace: sem cliente, endereço nem cobrança. O servidor usa
+  // o cliente do canal, o preço do canal e o pagamento aprovado da plataforma.
+  async function lancarPedidoMarketplace(dados: {
+    codigo: string;
+    nomeCliente: string;
+  }): Promise<boolean> {
+    if (itens.length === 0) {
+      setMensagem("Adicione pelo menos um produto.");
+
+      return false;
+    }
+
+    if (!dados.codigo) {
+      setMensagem("Informe o código do pedido no marketplace.");
+
+      return false;
+    }
+
+    try {
+      setMensagem("Lançando pedido...");
+
+      const resposta = await fetch("/api/pedidos", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Accept: "application/json",
+        },
+
+        body: JSON.stringify({
+          id: crypto.randomUUID(),
+
+          canal: origem,
+
+          entrada: "MANUAL",
+
+          marketplace: {
+            codigo: dados.codigo,
+
+            nomeCliente: dados.nomeCliente || undefined,
+          },
+
+          itens: itens.map((item) => ({
+            produtoId: item.produtoId,
+
+            quantidade: item.quantidade,
+
+            observacao: item.observacao,
+
+            adicionais: item.adicionais?.map((adicional) => ({
+              produtoId: adicional.id,
+
+              quantidade: adicional.quantidade,
+            })),
+          })),
+        }),
+      });
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(resultado?.mensagem ?? "Não foi possível lançar o pedido.");
+      }
+
+      setMensagem(
+        `Pedido #${resultado.pedido.numero} do marketplace lançado. Ele aguarda a conferência do repasse em Financeiro.`
+      );
+
+      setItens([]);
+
+      return true;
+    } catch (error) {
+      setMensagem(
+        error instanceof Error ? error.message : "Não foi possível lançar o pedido."
+      );
+
+      return false;
+    }
   }
 
   function alterarOrigem(
@@ -1477,6 +1561,16 @@ export default function PdvPage() {
               />
             </section>
 
+            {origemEhMarketplace ? (
+              <PdvComandaMarketplace
+                itens={itens}
+                origem={origem}
+                onOrigemChange={alterarOrigem}
+                onAlterarQuantidade={alterarQuantidade}
+                onRemover={removerProduto}
+                onLancar={lancarPedidoMarketplace}
+              />
+            ) : (
             <PdvComanda
               itens={
                 itens
@@ -1601,6 +1695,7 @@ export default function PdvPage() {
                 lancarPedido
               }
             />
+            )}
           </div>
         </div>
       </main>

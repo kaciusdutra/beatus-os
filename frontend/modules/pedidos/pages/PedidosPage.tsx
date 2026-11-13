@@ -272,7 +272,7 @@ export default function PedidosPage() {
                   </p>
 
                   <p className="text-xs text-slate-500">
-                    {dataHora(pedido.criadoEm)} · {pedido.canal} · {pedido.quantidadeItens} item(ns)
+                    {dataHora(pedido.criadoEm)} · {pedido.canal}{pedido.codigoExterno ? ` (código ${pedido.codigoExterno})` : ""} · {pedido.quantidadeItens} item(ns)
                     {pedido.formaPagamento ? ` · ${pedido.formaPagamento}${pedido.pagamentoStatus ? ` (${pedido.pagamentoStatus.toLowerCase()})` : ""}` : ""}
                   </p>
                 </div>
@@ -322,9 +322,23 @@ export default function PedidosPage() {
                           <div>
                             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Cliente e entrega</h3>
 
-                            <p>{detalhe.cliente.nome} · {detalhe.cliente.telefone}</p>
+                            {detalhe.codigoExterno ? (
+                              <>
+                                <p>{detalhe.canal} · código {detalhe.codigoExterno}{detalhe.nomeClienteExterno ? ` · ${detalhe.nomeClienteExterno}` : ""}</p>
 
-                            <p className="text-xs text-slate-600">{detalhe.endereco || "Sem endereço"}</p>
+                                <p className="text-xs text-slate-600">
+                                  {detalhe.entregaPor === "MARKETPLACE" ? "Entrega pela plataforma" : "Entrega própria"}
+                                  {detalhe.liquidoEsperado !== undefined ? ` · repasse esperado ${moeda(detalhe.liquidoEsperado)}` : ""}
+                                  {detalhe.conferenciaStatus === "CONFERIDO" && detalhe.valorRecebido !== undefined ? ` · conferido: recebido ${moeda(detalhe.valorRecebido)}` : detalhe.conferenciaStatus === "AGUARDANDO" ? " · aguardando conferência" : ""}
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <p>{detalhe.cliente.nome} · {detalhe.cliente.telefone}</p>
+
+                                <p className="text-xs text-slate-600">{detalhe.endereco || "Sem endereço"}</p>
+                              </>
+                            )}
                           </div>
 
                           <div>

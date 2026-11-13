@@ -227,5 +227,17 @@
 2. **Indicadores do dia** (calendário local, sem os pedidos cancelados): pedidos, faturamento (total dos pedidos, com a taxa de entrega), **ticket médio do dia** (faturamento ÷ pedidos) e entregues. Os cancelados aparecem à parte, só como contagem.
 3. **Em operação:** pedidos de qualquer dia que ainda não foram entregues nem cancelados (novos, em preparo, prontos e em rota). Atalho para a Cozinha.
 4. **Vendas por canal hoje** (valor, pedidos e % do faturamento) e **mais vendidos nos últimos 7 dias** (por faturamento, sem cancelados e sem adicionais), para orientar promoções e margens.
-5. **Atenção:** avisos do financeiro (título vencido, vencendo hoje ou em até 3 dias, caixa projetado negativo) e do estoque (itens abaixo do mínimo), cada um com o caminho para resolver. Um aviso que falha não derruba o painel.
+5. **Atenção:** avisos do financeiro (título vencido, vencendo hoje ou em até 3 dias, caixa projetado negativo), do estoque (itens abaixo do mínimo) e da conferência dos marketplaces (pedidos aguardando o repasse), cada um com o caminho para resolver. Um aviso que falha não derruba o painel.
 6. **Fonte de cada número:** o cartão mostra, ao passar o mouse, de onde o número vem. A mensagem do Assistente avisa de pedido novo parado há mais de 10 minutos na fila.
+7. **Vendas por canal e produto** (Financeiro → Vendas por canal e produto): receita, pedidos e ticket médio por canal e, por produto, unidades, faturamento e a margem do preço praticado em cada canal (a registrada na Precificação), nos últimos 7, 30 ou 90 dias, sem cancelados. Serve para decidir promoção e divulgação.
+8. **Etiquetas dos produtos (critérios abertos na tela):** **Mais vendido** = os 3 que mais faturam; **Rever margem** = vende em algum canal com margem abaixo da mínima (20%), então o preço deve ser revisto antes de promover; **Bom para divulgar** = margem pelo menos 10 pontos acima da mínima em todos os canais conhecidos e venda abaixo da mediana (com ao menos 3 produtos vendidos). Produto sem margem registrada só entra no ranking. *(13/11/2026)*
+
+## 15. Pedidos de marketplace
+
+*(decisões do Kacius em 13/11/2026)*
+
+1. Pedido do **iFood, 99Food ou Keeta** é lançado no PDV escolhendo o canal, **sem cadastrar cliente**: o sistema usa um **cliente fixo por canal** ("Cliente iFood", e assim por diante), criado por ele e fora da lista de Clientes. O Kacius informa o **código do pedido na plataforma** (obrigatório, e não pode repetir no mesmo canal) e, se quiser, o nome do cliente final, só para consulta.
+2. O **preço é o da Precificação do canal** (regra 3.8) e o pedido entra na fila da Cozinha **com o pagamento já aprovado**, pela forma do canal. A **plataforma entrega** (no início): não há endereço, distância nem taxa de entrega. Quando o Beatus passar a entregar por conta própria, junto do cadastro de clientes, entram o endereço e o cálculo de distância (campo "entrega por" já preparado).
+3. **Valor esperado do repasse** = total do pedido menos a comissão do canal (Financeiro → Precificação). Se a plataforma também desconta taxa de pagamento online, essa taxa precisa estar dentro da comissão cadastrada.
+4. **Conferência pedido a pedido:** o pedido fica **aguardando conferência** até o Kacius marcar como conferido, informando o **valor recebido** e a **data do recebimento**; a diferença para o esperado fica registrada. Pedido cancelado não tem repasse a conferir. A conferência entra no Registro de atividades.
+5. **Caixa:** o dinheiro do marketplace **só entra no fluxo de caixa quando o repasse é conferido**, no valor e na data recebidos (não no dia do pedido). O faturamento do dashboard e das análises conta a venda no dia do pedido.

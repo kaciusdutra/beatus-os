@@ -12,6 +12,8 @@ export interface PedidoListado {
   quantidadeItens: number;
   formaPagamento?: string;
   pagamentoStatus?: string;
+  // Pedido de marketplace
+  codigoExterno?: string;
 }
 
 export interface PedidoDetalhe extends PedidoListado {
@@ -19,6 +21,11 @@ export interface PedidoDetalhe extends PedidoListado {
   descontos: number;
   taxaEntrega: number;
   distanciaEntregaKm?: number;
+  nomeClienteExterno?: string;
+  entregaPor?: string;
+  liquidoEsperado?: number;
+  conferenciaStatus?: string;
+  valorRecebido?: number;
   endereco: string;
   itens: {
     id: string;

@@ -39,8 +39,9 @@ export class FinanceiroService {
 
     fim.setDate(fim.getDate() + 1);
 
-    const [pagamentos, compras, titulosPagos, lancamentos] = await Promise.all([
+    const [pagamentos, repasses, compras, titulosPagos, lancamentos] = await Promise.all([
       this.repository.listarPagamentosRecebidos(inicio, fim),
+      this.repository.listarRepassesRecebidos(inicio, fim),
       this.repository.listarComprasPagas(inicio, fim),
       this.repository.listarTitulosPagos(inicio, fim),
       this.repository.listarLancamentos(inicio, fim),
@@ -54,6 +55,7 @@ export class FinanceiroService {
       de,
       ate,
       pagamentos,
+      repasses,
       compras,
       titulosPagos,
       lancamentos,

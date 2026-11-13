@@ -80,6 +80,8 @@ export class ClienteConsultaRepositoryPostgres
     const clientes = await prisma.cliente.findMany({
       where: {
         empresaId: this.contexto.empresaId,
+        // Os clientes fixos dos marketplaces (MKT-...) não são clientes reais.
+        NOT: { cpf: { startsWith: "MKT-" } },
         ...(termo
           ? {
               OR: [

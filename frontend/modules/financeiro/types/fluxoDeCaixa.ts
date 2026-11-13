@@ -1,6 +1,6 @@
 export type TipoDeMovimento = "ENTRADA" | "SAIDA";
 
-export type OrigemDoMovimento = "PEDIDO" | "COMPRA" | "LANCAMENTO" | "TITULO";
+export type OrigemDoMovimento = "PEDIDO" | "COMPRA" | "LANCAMENTO" | "TITULO" | "REPASSE";
 
 // Pagamento aprovado de um pedido (entrada do caixa).
 export interface PagamentoRecebido {

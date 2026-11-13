@@ -73,6 +73,9 @@ export interface EntradasDoFluxo {
   lancamentos: LancamentoManual[];
   // Títulos a pagar (compras a prazo) pagos no período: a saída é na data do pagamento.
   titulosPagos?: TituloPago[];
+  // Repasses de marketplace conferidos no período: o dinheiro entra no valor e
+  // na data recebidos, não no dia do pedido.
+  repasses?: PagamentoRecebido[];
   custosFixosPrevistos?: number;
 }
 
@@ -105,6 +108,24 @@ export function calcularFluxoDeCaixa(
 
     entradasCanal.push({ chave: pagamento.canal, valor: pagamento.valor });
     entradasForma.push({ chave: pagamento.forma, valor: pagamento.valor });
+  }
+
+  for (const repasse of entrada.repasses ?? []) {
+    movimentos.push({
+      id: `repasse-${repasse.id}`,
+      data: repasse.data,
+      tipo: "ENTRADA",
+      origem: "REPASSE",
+      categoria: "Repasse do marketplace",
+      descricao: `Repasse do pedido ${repasse.numero} (${repasse.canal})`,
+      valor: repasse.valor,
+      canal: repasse.canal,
+      referenciaId: repasse.pedidoId,
+      referenciaNumero: repasse.numero,
+    });
+
+    entradasCanal.push({ chave: repasse.canal, valor: repasse.valor });
+    entradasForma.push({ chave: "Repasse", valor: repasse.valor });
   }
 
   for (const compra of entrada.compras) {

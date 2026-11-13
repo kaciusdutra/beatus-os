@@ -60,6 +60,8 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
         pedido: {
           empresaId: this.contexto.empresaId,
           statusOperacional: { not: "CANCELADO" },
+          // Pedido de marketplace entra no caixa pelo repasse conferido, não pelo pagamento.
+          conferenciaStatus: null,
         },
         OR: [
           { aprovadoEm: { gte: de, lt: ate } },
@@ -78,6 +80,34 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
       forma: pagamento.forma,
       valor: Number(pagamento.valor),
       data: (pagamento.aprovadoEm ?? pagamento.criadoEm).toISOString(),
+    }));
+  }
+
+  async listarRepassesRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]> {
+    const pedidos = await prisma.pedido.findMany({
+      where: {
+        empresaId: this.contexto.empresaId,
+        conferenciaStatus: "CONFERIDO",
+        conferidoEm: { gte: de, lt: ate },
+      },
+      select: {
+        id: true,
+        numero: true,
+        canal: true,
+        valorRecebido: true,
+        conferidoEm: true,
+      },
+      orderBy: { conferidoEm: "desc" },
+    });
+
+    return pedidos.map((pedido) => ({
+      id: pedido.id,
+      pedidoId: pedido.id,
+      numero: pedido.numero,
+      canal: pedido.canal,
+      forma: "REPASSE",
+      valor: Number(pedido.valorRecebido ?? 0),
+      data: (pedido.conferidoEm ?? new Date()).toISOString(),
     }));
   }
 

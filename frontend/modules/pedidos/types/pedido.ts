@@ -21,6 +21,8 @@ export type FormaPagamento =
   | "CARTAO"
   | "DINHEIRO"
   | "IFOOD"
+  | "99FOOD"
+  | "KEETA"
   | "OUTRO"
   | "A_DEFINIR";
 

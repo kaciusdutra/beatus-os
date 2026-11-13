@@ -13,6 +13,9 @@ export interface FinanceiroRepositoryPort {
   // Pagamentos aprovados de pedidos não cancelados, no período [de, ate).
   listarPagamentosRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]>;
 
+  // Repasses de marketplace conferidos no período [de, ate): entrada no valor e na data recebidos.
+  listarRepassesRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]>;
+
   // Compras confirmadas à vista, pela data de pagamento (ou da entrada, se antiga), no período.
   // Compras a prazo não entram aqui: contam pelo pagamento dos títulos.
   listarComprasPagas(de: Date, ate: Date): Promise<CompraPaga[]>;

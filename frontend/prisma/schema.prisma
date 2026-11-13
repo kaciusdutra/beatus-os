@@ -326,6 +326,19 @@ model Pedido {
   statusOperacional    String
   enderecoEntregaId    String?
 
+  // Pedido de marketplace (iFood, 99Food, Keeta) e a conferência do repasse (G03).
+  codigoExterno         String?
+  nomeClienteExterno    String?
+  // MARKETPLACE (hoje) ou BEATUS (entrega própria, no futuro)
+  entregaPor            String?
+  comissaoEsperada      Decimal? @db.Decimal(12, 2)
+  liquidoEsperado       Decimal? @db.Decimal(12, 2)
+  // AGUARDANDO ou CONFERIDO
+  conferenciaStatus     String?
+  valorRecebido         Decimal? @db.Decimal(12, 2)
+  conferidoEm           DateTime?
+  observacaoConferencia String?
+
   enderecoRotulo      String?
   enderecoCep         String?
   enderecoLogradouro  String?
@@ -347,6 +360,8 @@ model Pedido {
   filaImpressao   FilaImpressao[]
 
   @@unique([empresaId, numero])
+  @@unique([empresaId, canal, codigoExterno])
+  @@index([empresaId, conferenciaStatus])
   @@index([empresaId])
   @@index([empresaId, clienteId])
   @@index([empresaId, statusOperacional])

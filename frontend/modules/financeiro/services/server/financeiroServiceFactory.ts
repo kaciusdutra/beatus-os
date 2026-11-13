@@ -4,9 +4,13 @@ import { criarContextoDesenvolvimento } from "@/core/context/empresaContext";
 
 import { criarCustoFixoServicePostgres } from "@/modules/precificacao/services/server/custoFixoServiceFactory";
 
+import { ConferenciaMarketplaceService } from "../conferenciaMarketplaceService";
+
 import { ContaPagarService } from "../contaPagarService";
 
 import { FinanceiroService } from "../financeiroService";
+
+import { criarConferenciaMarketplaceRepositoryPostgres } from "../../repositories/postgres/conferenciaMarketplaceRepositoryPostgres";
 
 import { criarContaPagarRepositoryPostgres } from "../../repositories/postgres/contaPagarRepositoryPostgres";
 
@@ -37,5 +41,11 @@ export function getContaPagarService(): ContaPagarService {
     financeiroRepository,
     new FinanceiroService(financeiroRepository, totalCustosFixos()),
     totalCustosFixos()
+  );
+}
+
+export function getConferenciaMarketplaceService(): ConferenciaMarketplaceService {
+  return new ConferenciaMarketplaceService(
+    criarConferenciaMarketplaceRepositoryPostgres(criarContextoDesenvolvimento())
   );
 }

@@ -2,6 +2,10 @@ import type { DashboardRepositoryPort } from "../repositories/dashboardRepositor
 
 import type { AlertaDoDashboard, DashboardDados } from "../types/dashboard";
 
+import type { AnaliseDeVendas, MargemDoPreco } from "../types/analiseDeVendas";
+
+import { FOLGA_PARA_DIVULGAR, analisarCanais, analisarProdutos } from "./analisarVendas";
+
 import { montarEmOperacao, rankearProdutos, resumirDia } from "./calcularDashboard";
 
 const DIAS_DO_RANKING = 7;
@@ -20,7 +24,12 @@ export class DashboardService {
   constructor(
     private readonly repository: DashboardRepositoryPort,
     // Avisos que vêm de outros módulos (financeiro, estoque). Cada um falha sozinho.
-    private readonly fontesDeAlertas: (() => Promise<AlertaDoDashboard[]>)[] = []
+    private readonly fontesDeAlertas: (() => Promise<AlertaDoDashboard[]>)[] = [],
+    // Margem registrada de cada produto por canal (vem da Precificação).
+    private readonly fonteDeMargens?: () => Promise<{
+      margens: MargemDoPreco[];
+      margemMinimaPercentual: number;
+    }>
   ) {}
 
   async carregar(
@@ -67,6 +76,43 @@ export class DashboardService {
       alertas,
       atualizadoEm: agora.toISOString(),
       novosParados,
+    };
+  }
+
+  // Vendas dos últimos N dias por canal e por produto, com a margem do preço
+  // praticado, para decidir promoção e divulgação.
+  async analisarVendas(dias = 30, agora: Date = new Date()): Promise<AnaliseDeVendas> {
+    const periodo = Math.min(Math.max(Math.floor(dias) || 30, 1), 365);
+
+    const fim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+
+    fim.setDate(fim.getDate() + 1);
+
+    const inicio = new Date(fim);
+
+    inicio.setDate(inicio.getDate() - periodo);
+
+    const [pedidos, margens] = await Promise.all([
+      this.repository.listarPedidos(inicio, fim),
+      this.fonteDeMargens ? this.fonteDeMargens() : Promise.resolve({ margens: [], margemMinimaPercentual: 20 }),
+    ]);
+
+    const canais = analisarCanais(pedidos);
+
+    const ultimoDia = new Date(fim);
+
+    ultimoDia.setDate(ultimoDia.getDate() - 1);
+
+    return {
+      de: texto(inicio),
+      ate: texto(ultimoDia),
+      dias: periodo,
+      pedidos: canais.reduce((soma, canal) => soma + canal.pedidos, 0),
+      faturamento: Math.round(canais.reduce((soma, canal) => soma + canal.valor, 0) * 100) / 100,
+      canais,
+      produtos: analisarProdutos(pedidos, margens.margens, margens.margemMinimaPercentual),
+      margemMinimaPercentual: margens.margemMinimaPercentual,
+      folgaParaDivulgar: FOLGA_PARA_DIVULGAR,
     };
   }
 

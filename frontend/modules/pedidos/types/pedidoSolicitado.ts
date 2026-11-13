@@ -38,9 +38,20 @@ export interface PedidoSolicitado {
 
   identificadorExterno?: string;
 
-  clienteId: string;
+  // Pedido de marketplace não leva cliente nem endereço: o servidor usa o
+  // cliente do canal e a plataforma entrega.
+  clienteId?: string;
 
-  enderecoEntrega: EnderecoPedido;
+  enderecoEntrega?: EnderecoPedido;
+
+  // Obrigatório nos canais iFood, 99Food e Keeta.
+  marketplace?: {
+    // Código do pedido na plataforma (para achar o repasse depois)
+    codigo: string;
+
+    // Nome do cliente final, só para consulta
+    nomeCliente?: string;
+  };
 
   // Distância até o endereço (km). O servidor calcula a taxa por ela.
   distanciaEntregaKm: number | null;

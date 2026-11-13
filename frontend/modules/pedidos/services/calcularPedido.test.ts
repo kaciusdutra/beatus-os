@@ -66,6 +66,21 @@ function recusa(acao: () => unknown, trecho: string, mensagem: string) {
 }
 
 function executarTestes(): void {
+  // Marketplace: a plataforma entrega, então não há distância nem taxa, e o preço é o do canal.
+  const marketplace = calcularPedidoNoServidor({
+    canal: "IFOOD",
+    itens: [{ produtoId: "agnus", quantidade: 2 }],
+    distanciaEntregaKm: null,
+    semEntrega: true,
+    produtos: PRODUTOS,
+    precos: PRECOS,
+  });
+
+  verificar(marketplace.taxaEntrega === 0, "marketplace sem taxa de entrega");
+  verificar(marketplace.total === 130 && marketplace.subtotal === 130, "marketplace usa o preço do iFood (2 × 65)");
+  verificar(marketplace.regraEntregaAplicada === "ENTREGA_DO_MARKETPLACE", "regra de entrega do marketplace registrada");
+  recusa(() => calcular([{ produtoId: "agnus", quantidade: 1 }], null, "IFOOD"), "distância", "sem marketplace a distância continua obrigatória");
+
   // Exemplo do plano: dois itens de R$ 50 mais taxa de R$ 10 = R$ 110
   const dois = calcular([{ produtoId: "agnus", quantidade: 2 }]);
 

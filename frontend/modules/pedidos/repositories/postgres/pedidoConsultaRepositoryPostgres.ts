@@ -21,6 +21,7 @@ type LinhaDeLista = {
   cliente: { id: string; nome: string; telefone: string };
   itens: { quantidade: number }[];
   pagamentos: { forma: string; status: string }[];
+  codigoExterno?: string | null;
 };
 
 function mapearListado(pedido: LinhaDeLista): PedidoListado {
@@ -40,6 +41,7 @@ function mapearListado(pedido: LinhaDeLista): PedidoListado {
     quantidadeItens: pedido.itens.reduce((soma, item) => soma + item.quantidade, 0),
     formaPagamento: pedido.pagamentos[0]?.forma,
     pagamentoStatus: pedido.pagamentos[0]?.status,
+    codigoExterno: pedido.codigoExterno ?? undefined,
   };
 }
 
@@ -129,6 +131,11 @@ export class PedidoConsultaRepositoryPostgres
       taxaEntrega: Number(pedido.taxaEntrega),
       distanciaEntregaKm:
         pedido.distanciaEntregaKm === null ? undefined : Number(pedido.distanciaEntregaKm),
+      nomeClienteExterno: pedido.nomeClienteExterno ?? undefined,
+      entregaPor: pedido.entregaPor ?? undefined,
+      liquidoEsperado: pedido.liquidoEsperado === null ? undefined : Number(pedido.liquidoEsperado),
+      conferenciaStatus: pedido.conferenciaStatus ?? undefined,
+      valorRecebido: pedido.valorRecebido === null ? undefined : Number(pedido.valorRecebido),
       endereco,
       itens: pedido.itens.map((item) => ({
         id: item.id,
