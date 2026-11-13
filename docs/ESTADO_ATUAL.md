@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 12/11/2026 | `4ae7578` | S2: pedido seguro no servidor (preço da Precificação por canal, taxa, total e número calculados no servidor; número sem repetição; PDV lê o cardápio do cadastro); regra 3.8 |
 | 12/11/2026 | `d39461b` | G08 8I: combo como produto principal (grupo de escolha com custo pelo pior caso, desconto máximo, margem contra o avulso, meta de CMV); migração; regra 7.29 |
 | 12/11/2026 | `6adc76b` | G08 8H: simulador de promoção, economia do combo e aviso de impacto (migração); Precificação e Custos fixos dentro do Financeiro; regra 7.28 |
 | 12/11/2026 | `9749df5` | G08 8G: tela de precificação com preço por margem (20, 25, 30 e 35%), CMV, markup e margem líquida por produto e canal; parâmetros, canais e preços (migração); regra 7.27 |
