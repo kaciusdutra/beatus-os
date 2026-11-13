@@ -70,7 +70,11 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] Adicionais conforme a regra: só ingredientes do próprio burger, com código e preço próprios; tirar ingrediente sem alterar o preço.
 - [ ] Bloquear a cobrança no PDV para pedidos eletrônicos e exigir todos os campos nos manuais (conferir o que já existe).
 - [ ] Acréscimo em pedido que ainda está em produção, pago à parte.
-- [ ] Regra de pagamento: **cliente novo não paga na entrega**. Hoje `core/payment/paymentRules.ts` está com `permitirPagamentoNaEntrega: true`.
+- [x] Regra de pagamento: **cliente novo não paga na entrega** (13/11/2026): `permitirPagamentoNaEntrega` ficou `false` e o servidor recusa pedido sem pagamento aprovado. O benefício só virá com a fidelização. Regra 4.2.
+- [x] **Telas Pedidos e Clientes migradas para o banco (G03, sem migração):** consulta de pedidos com filtros e detalhe; clientes com busca, edição de nome, e-mail e nascimento, endereços e últimos pedidos. Regras 13.1 a 13.3.
+- [ ] **Remover o legado `localStorage` de pedidos e clientes** (decisão H da S5, já aprovada): `modules/pedidos/services/pedidoRepository.ts`, `modules/pedidos/components/PedidoCard.tsx` e `modules/clientes/services/clienteRepository.ts` não são mais usados pelas telas. Depende da autorização do Kacius para apagar os arquivos.
+- [ ] **Cadastro de cliente fora do PDV** (nome, telefone, CPF, endereço) e **edição de endereços** pela tela Clientes: hoje o cliente novo só entra pelo PDV e os endereços só se consultam.
+- [ ] **Clube de vantagens (fidelização):** libera o pagamento na entrega para o cliente fidelizado (regra 4.3, em espera).
 - [ ] Exceção para cliente recorrente ligada ao clube de vantagens (em espera, desligada).
 - [ ] Geração de Pix (QR Code e copia e cola) e de link de cartão nos canais próprios.
 

@@ -41,9 +41,12 @@ export interface PaymentExceptionRules {
  * Os limites ficam preparados para serem
  * configurados posteriormente pelo sistema.
  */
+// Decisão do Kacius (13/11/2026): cliente novo não paga na entrega, e nem depois
+// da primeira compra: o benefício só virá com a fidelização (clube de vantagens,
+// ainda desligado). Enquanto o clube não existir, ninguém paga na entrega.
 export const paymentExceptionRules: PaymentExceptionRules = {
   permitirPagamentoNaEntrega:
-    true,
+    false,
 
   limiteValorNaEntrega:
     null,

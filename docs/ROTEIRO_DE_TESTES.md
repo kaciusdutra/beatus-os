@@ -158,6 +158,23 @@ Endereços diretos: `/financeiro/contas-a-pagar` e `/financeiro/capital-de-giro`
 | 90 | Veja a **projeção do caixa** | Uma linha por dia, com vendas esperadas, títulos, custos fixos e saldo; linhas negativas em vermelho e aviso com a data |
 | 91 | `/atividades` | Aparecem a criação dos títulos, o pagamento, o cancelamento e o saldo inicial, com quem fez |
 
+## Parte 10: Pedidos, clientes e pagamento
+
+Endereços diretos: `/pedidos` e `/clientes`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 92 | Lance um pedido no PDV e abra `/pedidos` | O pedido aparece na lista, com situação, canal, cliente e total |
+| 93 | Use os atalhos **Hoje**, **7 dias**, **30 dias** e **Tudo**; busque pelo número e pelo nome do cliente | A lista e o resumo (quantidade, valor, ticket médio) acompanham o filtro |
+| 94 | Filtre por situação **Cancelado** | Só os cancelados; o valor vendido do resumo não os conta |
+| 95 | Clique em um pedido | Abre o detalhe: itens, observação, subtotal, entrega, total, endereço, pagamento e o histórico (lançado, em preparo, pronto, ticket) |
+| 96 | Cancele um pedido na Cozinha e volte a `/pedidos` | O pedido aparece como cancelado, com o motivo no histórico |
+| 97 | Abra `/clientes` e busque pelo nome, pelo telefone e pelo CPF | A lista filtra; cada cliente mostra pedidos, ticket médio e último pedido |
+| 98 | Abra um cliente | Aparecem os dados, os endereços e os últimos pedidos com o total |
+| 99 | Mude o nome ou o e-mail e **Salvar**; tente um e-mail inválido | Salva com aviso verde; o e-mail inválido é recusado |
+| 100 | **Inativar cliente** e depois **Reativar** | O selo "inativo" aparece e some; o registro fica em `/atividades` |
+| 101 | Tente chamar `POST /api/pedidos` com pagamento "na entrega" (ou confira no PDV) | O PDV só deixa lançar com pagamento aprovado; o servidor recusa pagar na entrega |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

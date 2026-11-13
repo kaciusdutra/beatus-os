@@ -352,10 +352,10 @@ export class LancarPedidoServicePostgres {
         };
 
         // Regra de pagamento no servidor: só entra na cozinha com pagamento
-        // aprovado ou quando for pagar na entrega.
+        // aprovado (pagar na entrega só quando a fidelização existir).
         if (!podeEntrarNaOperacao(pedido)) {
           throw new ErroDePedido(
-            "O pedido só entra na operação com o pagamento aprovado ou para pagar na entrega."
+            "O pedido só entra na operação com o pagamento aprovado. Pagar na entrega não está liberado: é um benefício da fidelização."
           );
         }
 

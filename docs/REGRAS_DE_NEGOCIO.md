@@ -44,8 +44,8 @@
 ## 4. Pagamento
 
 1. O pagamento é **sempre antecipado**. O pedido só é liberado depois do pagamento creditado, como no iFood.
-2. **Cliente novo não paga na entrega.**
-3. Exceção futura, **em espera**: permitir pagamento na entrega para cliente recorrente, ligada ao clube de vantagens.
+2. **Cliente novo não paga na entrega.** Cliente novo é quem nunca comprou. Nem depois da primeira compra ele ganha o pagamento na entrega: o benefício só vem com a **fidelização** (decisão do Kacius em 13/11/2026). Enquanto o clube de vantagens não existir, **ninguém paga na entrega**, e o servidor recusa qualquer pedido que não tenha pagamento aprovado.
+3. Exceção futura, **em espera**: permitir pagamento na entrega para cliente fidelizado, ligada ao clube de vantagens.
 4. Nos canais próprios, o pagamento é por Pix (QR Code e copia e cola) e por link de cartão.
 5. Taxas de pagamento (Pix, transferência, cartão) e impostos vão **embutidos no preço**, seja qual for a forma de pagamento. Os pagamentos por Pix compensam os pagos no crédito.
 
@@ -211,3 +211,10 @@
 9. **Capital de giro:** o **saldo inicial** do caixa é informado pelo Kacius (valor e data); o saldo de hoje é esse saldo mais as entradas e menos as saídas do fluxo de caixa desde a data dele. A tela mostra o saldo, os títulos vencidos, a vencer hoje e a pagar em até 7, 15 e 30 dias (os vencidos entram, pois precisam ser pagos já), o prazo médio com os fornecedores e a **projeção diária de 30 dias**: vendas esperadas pela **média dos últimos 28 dias por dia da semana** (hoje, sem venda às segundas e terças), títulos pelo vencimento e custos fixos rateados por dia. A projeção é uma estimativa: não inclui compras futuras à vista nem o repasse dos marketplaces.
 10. **Alertas de capital de giro (calculados pelo sistema, sem IA):** título vencido, título vencendo hoje ou nos próximos 3 dias, caixa projetado negativo (com a data), caixa baixo e falta do saldo inicial. A **Beatriz** (inteligência) usará esses mesmos números para explicar e sugerir ajustes (renegociar vencimento, antecipar vendas, reforçar o caixa), numa segunda etapa, quando a chave da Anthropic estiver configurada. *(13/11/2026)*
 
+## 13. Consulta de pedidos e clientes
+
+*(decisões do Kacius em 13/11/2026)*
+
+1. A tela **Pedidos** é de **consulta**: lista todos os pedidos de qualquer situação, com busca por número, cliente ou telefone e filtro por situação, canal e período, e mostra o detalhe (itens, valores, entrega, pagamento e o histórico do Registro de atividades). **Mudar a situação e cancelar ficam na Cozinha**, que exige o motivo e cuida do estoque.
+2. O resumo da lista (quantidade, valor vendido e ticket médio) **não conta os pedidos cancelados** no valor.
+3. A tela **Clientes** lista e busca por nome, telefone, CPF ou e-mail, mostra endereços e os últimos pedidos, e permite corrigir **nome, e-mail e data de nascimento** ou inativar o cliente. **Telefone e CPF identificam o cliente e não mudam por essa tela.** Quantidade de pedidos, total e ticket médio são calculados dos pedidos reais, sem os cancelados. Cliente novo entra pelo PDV, na hora do pedido. Toda edição entra no Registro de atividades.
