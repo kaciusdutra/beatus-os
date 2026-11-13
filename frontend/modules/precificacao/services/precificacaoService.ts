@@ -148,7 +148,11 @@ export class PrecificacaoService {
   async salvarPreco(
     produtoId: string,
     canal: CanalDeVenda,
-    preco: number | null
+    preco: number | null,
+    referencia?: {
+      custoReferencia?: number | null;
+      margemReferencia?: number | null;
+    }
   ): Promise<void> {
     if (!produtoId.trim()) {
       throw new Error("Produto é obrigatório.");
@@ -168,10 +172,22 @@ export class PrecificacaoService {
       throw new Error("O preço deve ser maior que zero.");
     }
 
+    const custoReferencia = referencia?.custoReferencia ?? undefined;
+
+    const margemReferencia = referencia?.margemReferencia ?? undefined;
+
+    for (const valor of [custoReferencia, margemReferencia]) {
+      if (valor !== undefined && !Number.isFinite(valor)) {
+        throw new Error("A referência de custo ou margem é inválida.");
+      }
+    }
+
     await this.repository.salvarPreco({
       produtoId,
       canal,
       preco: Math.round(preco * 100) / 100,
+      custoReferencia,
+      margemReferencia,
     });
   }
 }

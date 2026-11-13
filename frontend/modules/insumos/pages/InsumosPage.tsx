@@ -648,19 +648,7 @@ export default function InsumosPage() {
             Itens de compras
           </Link>
 
-          <Link
-            href="/precificacao/custos-fixos"
-            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            Custos fixos
-          </Link>
 
-          <Link
-            href="/precificacao"
-            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            Precificação
-          </Link>
 
           <button
             type="button"

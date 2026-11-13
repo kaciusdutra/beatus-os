@@ -24,6 +24,19 @@ import {
 } from "../services/calcularPreco";
 
 import {
+  avisoDeImpacto,
+  parametrosDoCanal,
+} from "../services/calcularPromocao";
+
+import AlertasDeImpacto, {
+  type AlertaDeImpacto,
+} from "./AlertasDeImpacto";
+
+import SimuladorDePromocao, {
+  type LinhaSimulavel,
+} from "./SimuladorDePromocao";
+
+import {
   CANAIS_DE_VENDA,
   type CanalDeVenda,
   type CanalPrecificacaoDados,
@@ -238,7 +251,32 @@ export default function PrecificacaoPage() {
     }
   }
 
-  async function salvarPreco(produtoId: string, valor: string) {
+  async function salvarPreco(
+    produtoId: string,
+    valor: string,
+    referencia?: { custo: number; margem: number },
+    opcoes?: { canal?: CanalDeVenda; forcar?: boolean }
+  ) {
+    const canal = opcoes?.canal ?? canalAtivo;
+
+    // Sair do campo sem mudar o preço não pode apagar a referência do aviso.
+    const anterior = dados?.precos.find(
+      (preco) => preco.produtoId === produtoId && preco.canal === canal
+    );
+
+    if (
+      !opcoes?.forcar &&
+      valor.trim() !== "" &&
+      anterior &&
+      anterior.preco === Math.round(numero(valor) * 100) / 100
+    ) {
+      return;
+    }
+
+    if (!opcoes?.forcar && valor.trim() === "" && !anterior) {
+      return;
+    }
+
     try {
       setErro("");
       setAviso("");
@@ -247,11 +285,15 @@ export default function PrecificacaoPage() {
         "/api/precificacao/precos",
         {
           produtoId,
-          canal: canalAtivo,
+          canal,
           preco: valor.trim() === "" ? null : numero(valor),
+          custoReferencia: referencia?.custo ?? null,
+          margemReferencia: referencia?.margem ?? null,
         },
         "Não foi possível salvar o preço."
       );
+
+      await carregar();
     } catch (error) {
       setErro(
         error instanceof Error
@@ -261,7 +303,11 @@ export default function PrecificacaoPage() {
     }
   }
 
-  function usarPreco(produtoId: string, preco: number) {
+  function usarPreco(
+    produtoId: string,
+    preco: number,
+    referencia?: { custo: number; margem: number }
+  ) {
     const valor = texto(preco);
 
     setPrecosDigitados((anterior) => ({
@@ -269,7 +315,7 @@ export default function PrecificacaoPage() {
       [`${produtoId}|${canalAtivo}`]: valor,
     }));
 
-    void salvarPreco(produtoId, valor);
+    void salvarPreco(produtoId, valor, referencia);
   }
 
   // Custo de cada ficha de produto, com os insumos atuais.
@@ -334,6 +380,110 @@ export default function PrecificacaoPage() {
     dados.canais.find((item) => item.canal === canalAtivo) ??
     dados.canais[0];
 
+  // Produtos de cada combo: itens da ficha que são fichas de outro produto.
+  const linhasSimulaveis: LinhaSimulavel[] = (() => {
+    if (!fichas) {
+      return [];
+    }
+
+    return linhas.map(({ ficha, produtoId, custo }) => ({
+      produtoId,
+      nome: ficha.nome,
+      custoFicha: custo?.completo ? custo.custoTotal : undefined,
+      componentes: ficha.itens.flatMap((item) => {
+        const usada =
+          item.tipo === "PREPARACAO"
+            ? fichas.fichas.find(
+                (candidata) => candidata.id === item.preparacaoId
+              )
+            : undefined;
+
+        return usada?.tipo === "PRODUTO" && usada.produtoId
+          ? [
+              {
+                produtoId: usada.produtoId,
+                nome: usada.nome,
+                quantidade: item.quantidade,
+              },
+            ]
+          : [];
+      }),
+    }));
+  })();
+
+  // Aviso de impacto: o custo mudou desde que o preço foi fixado.
+  const alertas: AlertaDeImpacto[] = (() => {
+    if (!dados) {
+      return [];
+    }
+
+    const lista: AlertaDeImpacto[] = [];
+
+    for (const preco of dados.precos) {
+      const linha = linhas.find(
+        (item) => item.produtoId === preco.produtoId
+      );
+
+      const canalDoPreco = dados.canais.find(
+        (item) => item.canal === preco.canal
+      );
+
+      if (!linha || !linha.custo?.completo || !canalDoPreco) {
+        continue;
+      }
+
+      const parametrosCanal = parametrosDoCanal(
+        dados.parametros,
+        canalDoPreco
+      );
+
+      const custosPedido = {
+        custoFicha: linha.custo.custoTotal,
+        embalagemPedido: dados.parametros.embalagemPedido,
+        custoFixoPorPedido: dados.custoFixoPorPedido,
+        itensPorPedido: dados.parametros.itensPorPedidoEstimados,
+        taxaCanalPorPedido: parametrosCanal.taxaCanalPorPedido,
+      };
+
+      const resultadoAtual = resultadoDoPreco(
+        preco.preco,
+        custosPedido,
+        parametrosCanal.percentuais
+      );
+
+      if (!resultadoAtual) {
+        continue;
+      }
+
+      const custoAtual = custoTotalDoProduto(custosPedido);
+
+      const aviso = avisoDeImpacto({
+        custoReferencia: preco.custoReferencia,
+        margemReferencia: preco.margemReferencia,
+        custoAtual,
+        margemAtual: resultadoAtual.margemPercentual,
+        margemMinimaPercentual: dados.parametros.margemMinimaPercentual,
+      });
+
+      if (aviso) {
+        lista.push({
+          chave: `${preco.produtoId}|${preco.canal}`,
+          produtoId: preco.produtoId,
+          canal: preco.canal,
+          nome: linha.ficha.nome,
+          preco: preco.preco,
+          custoReferencia: preco.custoReferencia,
+          custoAtual,
+          margemReferencia: preco.margemReferencia,
+          margemAtual: resultadoAtual.margemPercentual,
+          aviso,
+        });
+      }
+    }
+
+    return lista;
+  })();
+
   const taxaCanalPorPedido =
     canal.pedidosMensaisEstimados > 0
       ? canal.taxaMensal / canal.pedidosMensaisEstimados
@@ -354,10 +504,10 @@ export default function PrecificacaoPage() {
     <div className="space-y-6">
       <div>
         <Link
-          href="/insumos"
+          href="/financeiro"
           className="text-sm font-medium text-slate-500 hover:text-slate-700"
         >
-          ← Insumos
+          ← Financeiro
         </Link>
 
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
@@ -393,6 +543,21 @@ export default function PrecificacaoPage() {
           canais&quot; para os preços refletirem a realidade.
         </div>
       )}
+
+      <AlertasDeImpacto
+        alertas={alertas}
+        onAceitar={(alerta) =>
+          void salvarPreco(
+            alerta.produtoId,
+            texto(alerta.preco),
+            {
+              custo: alerta.custoAtual,
+              margem: alerta.margemAtual,
+            },
+            { canal: alerta.canal, forcar: true }
+          )
+        }
+      />
 
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <button
@@ -448,7 +613,7 @@ export default function PrecificacaoPage() {
             <p className="text-xs text-slate-500">
               Custo fixo por pedido (da tela{" "}
               <Link
-                href="/precificacao/custos-fixos"
+                href="/financeiro/custos-fixos"
                 className="font-semibold text-sky-700 underline"
               >
                 Custos fixos
@@ -598,6 +763,19 @@ export default function PrecificacaoPage() {
                     )
                   : undefined;
 
+              const referenciaDe = (preco: number) => {
+                const resultadoDoValor = custos
+                  ? resultadoDoPreco(preco, custos, percentuais)
+                  : undefined;
+
+                return custos && resultadoDoValor
+                  ? {
+                      custo: custoTotalDoProduto(custos),
+                      margem: resultadoDoValor.margemPercentual,
+                    }
+                  : undefined;
+              };
+
               const abaixoDaMinima =
                 resultado !== undefined &&
                 resultado.margemPercentual <
@@ -642,7 +820,11 @@ export default function PrecificacaoPage() {
                         }))
                       }
                       onBlur={(evento) =>
-                        void salvarPreco(produtoId, evento.target.value)
+                        void salvarPreco(
+                          produtoId,
+                          evento.target.value,
+                          referenciaDe(numero(evento.target.value))
+                        )
                       }
                       placeholder="R$"
                       className={`${CLASSE_CAMPO} w-28`}
@@ -709,7 +891,11 @@ export default function PrecificacaoPage() {
                             type="button"
                             title="Usar este preço"
                             onClick={() =>
-                              usarPreco(produtoId, precoComercial(exato))
+                              usarPreco(
+                                produtoId,
+                                precoComercial(exato),
+                                referenciaDe(precoComercial(exato))
+                              )
                             }
                             className="cursor-pointer rounded-lg px-2 py-1 font-semibold hover:bg-slate-100"
                           >
@@ -727,6 +913,14 @@ export default function PrecificacaoPage() {
           </tbody>
         </table>
       </section>
+
+      <SimuladorDePromocao
+        linhas={linhasSimulaveis}
+        parametros={parametros}
+        canais={dados.canais}
+        precos={dados.precos}
+        custoFixoPorPedido={dados.custoFixoPorPedido}
+      />
 
       <p className="text-xs text-slate-500">
         Os preços das colunas &quot;Preço p/ margem&quot; sobem até o

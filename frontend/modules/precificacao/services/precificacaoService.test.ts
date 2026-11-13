@@ -156,6 +156,20 @@ async function executarTestes(): Promise<void> {
     "o preço do mesmo produto e canal é substituído"
   );
 
+  // Referência de custo e margem guardada junto com o preço
+  await service.salvarPreco("produto-1", "SITE", 49.9, {
+    custoReferencia: 14,
+    margemReferencia: 30.1,
+  });
+
+  const comReferencia = (await service.listarPrecos())[0];
+
+  verificar(
+    comReferencia.custoReferencia === 14 &&
+      comReferencia.margemReferencia === 30.1,
+    "a referência acompanha o preço"
+  );
+
   await service.salvarPreco("produto-1", "SITE", null);
 
   verificar(

@@ -55,6 +55,11 @@ export interface PrecoDoProduto {
   canal: CanalDeVenda;
 
   preco: number;
+
+  // Custo total do produto e margem quando o preço foi fixado (aviso de impacto).
+  custoReferencia?: number;
+
+  margemReferencia?: number;
 }
 
 export const PARAMETROS_PADRAO: ParametrosPrecificacao = {

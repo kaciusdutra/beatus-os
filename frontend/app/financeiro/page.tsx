@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { verificarAcesso } from "@/core/permissions/accessControl";
 
 export default function FinanceiroPage() {
@@ -43,6 +45,36 @@ export default function FinanceiroPage() {
           Estrutura inicial do módulo financeiro
           do Beatus OS.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Link
+          href="/financeiro/precificacao"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Precificação
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Preço, CMV, markup e margem por produto e canal, com
+            as margens de 20, 25, 30 e 35%.
+          </p>
+        </Link>
+
+        <Link
+          href="/financeiro/custos-fixos"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Custos fixos
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Aluguel, energia, gás, mão de obra e outros custos do
+            mês, e o custo fixo por pedido.
+          </p>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

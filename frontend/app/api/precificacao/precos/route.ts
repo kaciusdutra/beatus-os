@@ -16,7 +16,17 @@ export async function PUT(request: Request) {
       corpo?.canal as CanalDeVenda,
       corpo?.preco === null || corpo?.preco === ""
         ? null
-        : Number(corpo?.preco)
+        : Number(corpo?.preco),
+      {
+        custoReferencia:
+          typeof corpo?.custoReferencia === "number"
+            ? corpo.custoReferencia
+            : null,
+        margemReferencia:
+          typeof corpo?.margemReferencia === "number"
+            ? corpo.margemReferencia
+            : null,
+      }
     );
 
     return NextResponse.json({ sucesso: true });

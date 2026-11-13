@@ -463,6 +463,11 @@ model PrecoProduto {
 
   preco Decimal @db.Decimal(12, 2)
 
+  // Custo total do produto e margem no momento em que o preço foi fixado.
+  // Servem ao aviso de impacto (o custo mudou desde então).
+  custoReferencia  Decimal? @db.Decimal(12, 4)
+  margemReferencia Decimal? @db.Decimal(8, 4)
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

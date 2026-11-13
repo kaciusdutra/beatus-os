@@ -119,6 +119,14 @@ export class PrecificacaoRepositoryPostgres
         produtoId: linha.produtoId,
         canal: linha.canal as CanalDeVenda,
         preco: Number(linha.preco),
+        custoReferencia:
+          linha.custoReferencia !== null
+            ? Number(linha.custoReferencia)
+            : undefined,
+        margemReferencia:
+          linha.margemReferencia !== null
+            ? Number(linha.margemReferencia)
+            : undefined,
       }));
   }
 
@@ -136,8 +144,14 @@ export class PrecificacaoRepositoryPostgres
         produtoId: preco.produtoId,
         canal: preco.canal,
         preco: preco.preco,
+        custoReferencia: preco.custoReferencia ?? null,
+        margemReferencia: preco.margemReferencia ?? null,
       },
-      update: { preco: preco.preco },
+      update: {
+        preco: preco.preco,
+        custoReferencia: preco.custoReferencia ?? null,
+        margemReferencia: preco.margemReferencia ?? null,
+      },
     });
   }
 

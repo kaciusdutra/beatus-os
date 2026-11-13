@@ -248,10 +248,10 @@ export default function CustosFixosPage() {
     <div className="space-y-6">
       <div>
         <Link
-          href="/insumos"
+          href="/financeiro"
           className="text-sm font-medium text-slate-500 hover:text-slate-700"
         >
-          ← Insumos
+          ← Financeiro
         </Link>
 
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
