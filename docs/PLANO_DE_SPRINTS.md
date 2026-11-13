@@ -67,6 +67,8 @@ S6 upload + backup (depois que a G07 fechar)
 
 ## S3: Login e perfis de acesso
 
+> **Adiada para o final (12/11/2026):** o Kacius quer fechar primeiro todas as telas e funcionalidades; depois se setorizam os acessos. No início só ele e o irmão usam o sistema.
+
 **Objetivo:** só quem entrou vê o sistema, e cada pessoa vê o que seu perfil permite.
 
 **Escopo:** autenticação com biblioteca consolidada (a escolher na sprint), usuário e sessão no banco, `core/permissions/*` aplicado nas rotas de API, contexto de empresa vindo da sessão. Esta sprint altera o schema (dono único).
