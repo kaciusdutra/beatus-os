@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 13/11/2026 | `6a4d7ab` | G10: estrutura da integração com marketplaces (caixa de eventos, aceite automático, vínculo de itens, cancelamento, consulta periódica, avisos e simulação); adaptador do iFood em esqueleto; regras 16.1 a 16.7 (migração) |
 | 13/11/2026 | `d956dbf` | G03: pedido de marketplace sem cliente, conferência do repasse (entra no caixa na conferência) e análise de vendas por canal e produto com etiquetas de promoção (migração); regras 14.7, 14.8 e 15.1 a 15.5 |
 | 13/11/2026 | `6524599` | G03: dashboard com dados reais (pedidos, canais, mais vendidos, operação, avisos do financeiro e do estoque, fonte de cada número); regras 14.1 a 14.6 (sem migração) |
 | 13/11/2026 | `f412f6f` | G03: telas Pedidos e Clientes lendo o banco (consulta, filtros, detalhe, edição de cliente) e pagamento na entrega bloqueado até a fidelização; regras 4.2 e 13.1 a 13.3 (sem migração) |
