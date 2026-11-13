@@ -175,6 +175,21 @@ Endereços diretos: `/pedidos` e `/clientes`.
 | 100 | **Inativar cliente** e depois **Reativar** | O selo "inativo" aparece e some; o registro fica em `/atividades` |
 | 101 | Tente chamar `POST /api/pedidos` com pagamento "na entrega" (ou confira no PDV) | O PDV só deixa lançar com pagamento aprovado; o servidor recusa pagar na entrega |
 
+## Parte 11: Dashboard
+
+Endereço: `/` (primeira tela).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 102 | Abra o Dashboard | Sem a faixa de "dados de demonstração"; os números vêm dos pedidos reais |
+| 103 | Lance um pedido no PDV e volte ao Dashboard (ele se atualiza em até 30 s) | Pedidos hoje, faturamento e ticket médio sobem; o canal aparece em "Vendas por canal hoje" |
+| 104 | Cancele um pedido na Cozinha | Ele sai do faturamento e do ticket médio; o cartão "Pedidos hoje" avisa quantos cancelados ficaram de fora |
+| 105 | Passe o mouse em "Fonte dos dados" de cada cartão | Aparece de onde o número vem |
+| 106 | Veja "Fluxo da operação" e "Mais vendidos" | Os números batem com a Cozinha e com os pedidos dos últimos 7 dias |
+| 107 | Deixe um pedido novo parado por mais de 10 minutos | O Assistente avisa do pedido esperando na fila |
+| 108 | Com um título vencido ou um item abaixo do mínimo | Aparece em "Atenção", com o botão Resolver |
+| 109 | Abra em TV, tablet ou celular | Tudo cabe; em TV de 1920×1080 não há barra de rolagem |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

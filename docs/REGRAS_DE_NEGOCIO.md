@@ -218,3 +218,14 @@
 1. A tela **Pedidos** é de **consulta**: lista todos os pedidos de qualquer situação, com busca por número, cliente ou telefone e filtro por situação, canal e período, e mostra o detalhe (itens, valores, entrega, pagamento e o histórico do Registro de atividades). **Mudar a situação e cancelar ficam na Cozinha**, que exige o motivo e cuida do estoque.
 2. O resumo da lista (quantidade, valor vendido e ticket médio) **não conta os pedidos cancelados** no valor.
 3. A tela **Clientes** lista e busca por nome, telefone, CPF ou e-mail, mostra endereços e os últimos pedidos, e permite corrigir **nome, e-mail e data de nascimento** ou inativar o cliente. **Telefone e CPF identificam o cliente e não mudam por essa tela.** Quantidade de pedidos, total e ticket médio são calculados dos pedidos reais, sem os cancelados. Cliente novo entra pelo PDV, na hora do pedido. Toda edição entra no Registro de atividades.
+
+## 14. Dashboard
+
+*(13/11/2026)*
+
+1. O dashboard mostra **só os indicadores principais do momento**; os detalhes ficam nos módulos, abertos a partir dele. Ele se atualiza sozinho a cada 30 segundos e cabe em tela cheia (TV de 32", computador, tablet e celular), sem barra de rolagem em 1920×1080.
+2. **Indicadores do dia** (calendário local, sem os pedidos cancelados): pedidos, faturamento (total dos pedidos, com a taxa de entrega), **ticket médio do dia** (faturamento ÷ pedidos) e entregues. Os cancelados aparecem à parte, só como contagem.
+3. **Em operação:** pedidos de qualquer dia que ainda não foram entregues nem cancelados (novos, em preparo, prontos e em rota). Atalho para a Cozinha.
+4. **Vendas por canal hoje** (valor, pedidos e % do faturamento) e **mais vendidos nos últimos 7 dias** (por faturamento, sem cancelados e sem adicionais), para orientar promoções e margens.
+5. **Atenção:** avisos do financeiro (título vencido, vencendo hoje ou em até 3 dias, caixa projetado negativo) e do estoque (itens abaixo do mínimo), cada um com o caminho para resolver. Um aviso que falha não derruba o painel.
+6. **Fonte de cada número:** o cartão mostra, ao passar o mouse, de onde o número vem. A mensagem do Assistente avisa de pedido novo parado há mais de 10 minutos na fila.

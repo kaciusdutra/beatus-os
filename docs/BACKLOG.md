@@ -171,10 +171,10 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## Dashboard
 
-- [ ] Só os indicadores principais do momento: ticket médio do dia e vendas por canal. Os detalhes ficam em módulos acessados a partir dele.
-- [ ] Ranking de produtos para orientar promoções e margens.
-- [ ] Tela cheia, sem barra de rolagem, adaptada a TV de 32" com touch, computador, tablet e celular.
-- [ ] Mostrar a fonte de cada número ao passar o mouse.
+- [x] **Dashboard real (13/11/2026, sem migração):** indicadores do dia, vendas por canal, mais vendidos em 7 dias, fluxo da operação, avisos do financeiro e do estoque, fonte de cada número ao passar o mouse e tela sem rolagem em 1920×1080. Regras 14.1 a 14.6.
+- [ ] **Margem no ranking de produtos:** mostrar a margem de cada produto (da Precificação) ao lado das vendas, para decidir promoções.
+- [ ] **Conferir o dashboard em TV de 32" com touch, tablet e celular** (testado em 1920×1080 e em tela estreita).
+- [ ] **Avisos de validade no dashboard** (cartões vencidos ou vencendo no quadro do estoque), junto da integração do checklist (G04).
 
 ## G10: Entrega, integrações e automação
 
