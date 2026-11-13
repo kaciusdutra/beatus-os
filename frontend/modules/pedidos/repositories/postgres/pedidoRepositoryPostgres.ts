@@ -123,31 +123,77 @@ export class PedidoRepositoryPostgres {
 
           itens: {
             create:
-              pedido.itens.map(
-                (item) => ({
-                  id:
-                    crypto.randomUUID(),
+              pedido.itens.flatMap(
+                (item) => {
+                  const adicionais =
+                    item.adicionais ?? [];
 
-                  produtoId:
-                    item.produtoId ??
-                    null,
+                  const subtotalAdicionais =
+                    adicionais.reduce(
+                      (soma, adicional) =>
+                        soma +
+                        adicional.subtotal,
+                      0
+                    );
 
-                  nome:
-                    item.nome,
+                  // O adicional é um produto com preço próprio: vira uma
+                  // linha do pedido, e o item fica só com o seu valor.
+                  return [
+                    {
+                      id:
+                        crypto.randomUUID(),
 
-                  quantidade:
-                    item.quantidade,
+                      produtoId:
+                        item.produtoId ??
+                        null,
 
-                  precoUnitario:
-                    item.precoUnitario,
+                      nome:
+                        item.nome,
 
-                  subtotal:
-                    item.subtotal,
+                      quantidade:
+                        item.quantidade,
 
-                  observacao:
-                    item.observacao ??
-                    null,
-                })
+                      precoUnitario:
+                        item.precoUnitario,
+
+                      subtotal:
+                        Math.round(
+                          (item.subtotal -
+                            subtotalAdicionais) *
+                            100
+                        ) / 100,
+
+                      observacao:
+                        item.observacao ??
+                        null,
+                    },
+
+                    ...adicionais.map(
+                      (adicional) => ({
+                        id:
+                          crypto.randomUUID(),
+
+                        produtoId:
+                          adicional.id,
+
+                        nome:
+                          `+ ${adicional.nome}`,
+
+                        quantidade:
+                          adicional.quantidade,
+
+                        precoUnitario:
+                          adicional.precoUnitario,
+
+                        subtotal:
+                          adicional.subtotal,
+
+                        observacao:
+                          null,
+                      })
+                    ),
+                  ];
+                }
               ),
           },
         },

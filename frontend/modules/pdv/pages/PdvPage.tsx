@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -11,26 +12,25 @@ import PdvClienteModal from "../components/PdvClienteModal";
 import PdvNovoEnderecoModal from "../components/PdvNovoEnderecoModal";
 
 import {
-  produtosMock,
-} from "../data/produtosMock";
-
-import {
   EntradaPedido,
   FormaPagamento,
   StatusPagamento,
   CanalPedido,
-  Pedido,
   ModalidadePagamento,
 } from "@/modules/pedidos/types/pedido";
+
+import type {
+  PedidoSolicitado,
+} from "@/modules/pedidos/types/pedidoSolicitado";
+
+import {
+  canaisDePreco,
+} from "@/modules/pedidos/services/calcularPedido";
 
 import {
   ItemComanda,
   ProdutoPDV,
 } from "../types/pdv";
-
-import {
-  gerarNumeroPedido,
-} from "@/modules/pedidos/services/pedidoRepository";
 
 import {
   calcularEntrega,
@@ -143,13 +143,102 @@ export default function PdvPage() {
       null
     );
 
+  // Catálogo do cadastro de produtos, com o preço da Precificação para o
+  // canal do pedido (regra 6.6). O servidor recalcula tudo no lançamento.
+  const [catalogo, setCatalogo] =
+    useState<{
+      produtos: {
+        id: string;
+        nome: string;
+        descricao: string;
+        categoria: string;
+        ativo: boolean;
+      }[];
+
+      precos: {
+        produtoId: string;
+        canal: string;
+        preco: number;
+      }[];
+    }>({
+      produtos: [],
+      precos: [],
+    });
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [respostaProdutos, respostaPrecos] =
+          await Promise.all([
+            fetch("/api/produtos", {
+              cache: "no-store",
+            }),
+
+            fetch("/api/precificacao", {
+              cache: "no-store",
+            }),
+          ]);
+
+        const dadosProdutos =
+          await respostaProdutos.json();
+
+        const dadosPrecos =
+          await respostaPrecos.json();
+
+        setCatalogo({
+          produtos:
+            dadosProdutos.produtos ??
+            [],
+
+          precos:
+            dadosPrecos.precos ??
+            [],
+        });
+      } catch {
+        setMensagem(
+          "Não foi possível carregar o cardápio."
+        );
+      }
+    })();
+  }, []);
+
   const produtosAtivos = useMemo(
     () =>
-      produtosMock.filter(
-        (produto) =>
-          produto.ativo
-      ),
-    []
+      catalogo.produtos
+        .filter(
+          (produto) =>
+            produto.ativo &&
+            produto.categoria.toUpperCase() !==
+              "ADICIONAL"
+        )
+        .flatMap((produto) => {
+          const preco =
+            canaisDePreco(origem)
+              .map(
+                (canal) =>
+                  catalogo.precos.find(
+                    (item) =>
+                      item.produtoId ===
+                        produto.id &&
+                      item.canal === canal
+                  )?.preco
+              )
+              .find(
+                (valor) =>
+                  valor !== undefined &&
+                  valor > 0
+              );
+
+          return preco === undefined
+            ? []
+            : [
+                {
+                  ...produto,
+                  preco,
+                },
+              ];
+        }),
+    [catalogo, origem]
   );
 
   const distanciaEntregaKm =
@@ -1189,52 +1278,16 @@ export default function PdvPage() {
         );
     }
 
-    const origemPagamento =
-      entrada ===
-      "MANUAL"
-        ? "PDV_INTERNO"
-        : entrada ===
-            "API"
-          ? "MARKETPLACE"
-          : "CHECKOUT_ONLINE";
+    // S2: a tela só informa o que o cliente escolheu. Preço, subtotal, taxa
+    // de entrega, total, número e datas são calculados pelo servidor.
+    const pedido: PedidoSolicitado = {
+      id: crypto.randomUUID(),
 
-    const pedido:
-      Pedido = {
-      id:
-        crypto.randomUUID(),
-
-      numero:
-        gerarNumeroPedido(),
-
-      canal:
-        origem,
+      canal: origem,
 
       entrada,
 
-      cliente: {
-        clienteId:
-          clienteAtualizado.id,
-
-        nome:
-          clienteAtualizado.nome,
-
-        telefone:
-          clienteAtualizado.telefone,
-
-        endereco: [
-          enderecoSelecionado.logradouro,
-          numero.trim(),
-          complemento.trim(),
-          enderecoSelecionado.bairro,
-          enderecoSelecionado.cidade,
-          enderecoSelecionado.estado,
-          enderecoSelecionado.cep
-            ? `CEP ${enderecoSelecionado.cep}`
-            : undefined,
-        ]
-          .filter(Boolean)
-          .join(", "),
-      },
+      clienteId: clienteAtualizado.id,
 
       enderecoEntrega: {
         enderecoId:
@@ -1243,133 +1296,52 @@ export default function PdvPage() {
         rotulo:
           enderecoClienteSelecionado?.rotulo,
 
-        cep:
-          enderecoSelecionado.cep,
+        cep: enderecoSelecionado.cep,
 
         logradouro:
           enderecoSelecionado.logradouro,
 
-        numero:
-          numero.trim(),
+        numero: numero.trim(),
 
         complemento:
-          complemento.trim() ||
-          undefined,
+          complemento.trim() || undefined,
 
-        bairro:
-          enderecoSelecionado.bairro,
+        bairro: enderecoSelecionado.bairro,
 
-        cidade:
-          enderecoSelecionado.cidade,
+        cidade: enderecoSelecionado.cidade,
 
-        estado:
-          enderecoSelecionado.estado,
+        estado: enderecoSelecionado.estado,
 
-        latitude:
-          enderecoSelecionado.latitude,
+        latitude: enderecoSelecionado.latitude,
 
-        longitude:
-          enderecoSelecionado.longitude,
+        longitude: enderecoSelecionado.longitude,
       },
-
-      itens:
-        itens.map(
-          (item) => ({
-            produtoId:
-              item.produtoId,
-
-            nome:
-              item.nome,
-
-            quantidade:
-              item.quantidade,
-
-            precoUnitario:
-              item.precoUnitario,
-
-            subtotal:
-              item.subtotal,
-
-            adicionais:
-              item.adicionais?.map(
-                (adicional) => ({
-                  id:
-                    adicional.id,
-
-                  nome:
-                    adicional.nome,
-
-                  quantidade:
-                    adicional.quantidade,
-
-                  precoUnitario:
-                    adicional.precoUnitario,
-
-                  subtotal:
-                    adicional.subtotal,
-                })
-              ),
-
-            observacao:
-              item.observacao,
-          })
-        ),
-
-      subtotal,
-
-      descontos:
-        0,
-
-      taxaEntrega,
-
-      total,
 
       distanciaEntregaKm,
 
-      regraEntregaAplicada:
-        entrega.regraAplicada,
+      itens: itens.map((item) => ({
+        produtoId: item.produtoId,
+
+        quantidade: item.quantidade,
+
+        observacao: item.observacao,
+
+        adicionais: item.adicionais?.map(
+          (adicional) => ({
+            produtoId: adicional.id,
+
+            quantidade: adicional.quantidade,
+          })
+        ),
+      })),
 
       pagamento: {
-        modalidade:
-          modalidadePagamento,
+        modalidade: modalidadePagamento,
 
-        forma:
-          formaPagamento,
+        forma: formaPagamento,
 
-        status:
-          statusPagamento,
-
-        origem:
-          origemPagamento,
-
-        valor:
-          total,
-
-        cobrancaNoPdvHabilitada:
-          cobrancaNoPdvHabilitada,
-
-        confirmacaoAutomatica:
-          entrada !==
-          "MANUAL",
-
-        criadoEm:
-          agora,
-
-        aprovadoEm:
-          statusPagamento ===
-          "APROVADO"
-            ? agora
-            : undefined,
+        status: statusPagamento,
       },
-
-      statusOperacional:
-        "NOVO",
-
-      criadoEm:
-        agora,
-
-      atualizadoEm:
-        agora,
     };
 
     try {
@@ -1470,6 +1442,19 @@ export default function PdvPage() {
               {mensagem && (
                 <div className="mb-5 rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 shadow-sm">
                   {mensagem}
+                </div>
+              )}
+
+              {catalogo.produtos.filter(
+                (produto) =>
+                  produto.ativo &&
+                  produto.categoria.toUpperCase() !==
+                    "ADICIONAL"
+              ).length >
+                produtosAtivos.length && (
+                <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Alguns produtos não aparecem porque ainda não têm preço
+                  neste canal. Defina o preço em Financeiro → Precificação.
                 </div>
               )}
 

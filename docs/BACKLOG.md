@@ -107,7 +107,12 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Promoções salvas** (nome, canal, período): o 8H só simula. Salvar e aplicar no PDV entra com a migração do PDV (S2 e G03). *(12/11/2026)*
 - [ ] **Aviso de impacto fora da tela de precificação:** hoje ele aparece ao abrir a Precificação; avisar também logo depois de confirmar uma entrada de compra que mexeu no custo. *(12/11/2026)*
 - [ ] **Estratégia de preço do iFood** (pedido do Kacius em 12/11/2026, a rever com a conversa que ele vai exportar): baixar um pouco a margem para entrar no iFood com certo custo, sem pulverizar os preços entre canais e sem prejuízo. A tela do 8G já mostra a margem de qualquer preço por canal; falta definir a regra (preço único ou por canal, margem mínima no iFood).
-- [ ] **Preços da precificação no PDV:** o PDV continua lendo o preço do cadastro do produto; ligar aos preços por canal entra com a migração do PDV (S2 e G03).
+- [x] **Preços da precificação no PDV** (concluído na S2): o PDV e o servidor leem o preço da Precificação por canal.
+- [x] **S2 concluída: pedido seguro no servidor.** O servidor calcula preço, subtotal, taxa, total e número do pedido; a tela só envia produto, quantidade, adicionais e endereço. Regra 3.8.
+- [ ] **Distância de entrega calculada no servidor:** hoje a distância vem da busca de endereço (simulada) e o servidor calcula a taxa por ela; quando houver geocodificação real, o servidor deve calcular a distância pelas coordenadas do endereço. *(S2, 12/11/2026)*
+- [ ] **Autoria do pagamento aprovado:** o servidor aceita o status de pagamento enviado pela tela (o operador aprova no PDV); com o login da S3, gravar quem aprovou e travar por perfil. *(S2, 12/11/2026)*
+- [ ] **Remover o código legado do PDV** (com autorização): `modules/pdv/data/produtosMock.ts` e `gerarNumeroPedido` em `modules/pedidos/services/pedidoRepository.ts` não são mais usados pelo PDV. *(S2, 12/11/2026)*
+- [ ] **Pedidos de teste da S2:** o cliente `[TESTE S2] Cliente` e os pedidos dele ficaram no banco de teste; sem rota de exclusão, ficam até a limpeza dos dados de teste. *(S2, 12/11/2026)*
 - [ ] **Preços do soft open:** o Kacius vai passar a lista dos preços praticados (direto e iFood) para carregar como preço praticado e comparar com o custo das fichas. Referência: Agnus R$ 44,90 direto e cerca de R$ 60,02 no iFood (44,90 ÷ 0,748).
 - [ ] **Custo fixo por pedido com pedidos reais:** hoje a base é a estimativa digitada; depois de alguns meses de pedidos, usar a média real do PDV. Entra com a precificação (8G). *(12/11/2026)*
 - [ ] **Leitura por foto não traz impostos:** só o XML preenche ICMS-ST, IPI, seguro e outras despesas; na foto e na digitação manual eles são digitados. *(12/11/2026)*
