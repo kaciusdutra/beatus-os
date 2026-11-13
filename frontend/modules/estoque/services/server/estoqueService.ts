@@ -65,7 +65,7 @@ export class EstoqueService {
   }
 
   // Insumos e fichas atuais, no formato que o cálculo de custo e de consumo usam.
-  private async carregarContexto(): Promise<{
+  async carregarContexto(): Promise<{
     contexto: ContextoCustoFicha;
     fichas: Awaited<
       ReturnType<

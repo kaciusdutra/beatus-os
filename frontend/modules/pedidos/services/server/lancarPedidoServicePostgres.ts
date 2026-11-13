@@ -25,6 +25,10 @@ import type {
 } from "../../types/pedidoSolicitado";
 
 import {
+  registrarAtividade,
+} from "@/modules/atividades/services/server/atividadeService";
+
+import {
   PedidoRepositoryPostgres,
 } from "../../repositories/postgres/pedidoRepositoryPostgres";
 
@@ -39,6 +43,9 @@ import {
 
 export interface LancarPedidoPostgresInput {
   pedido: PedidoSolicitado;
+
+  // Quem lançou (o operador escolhido no topo da tela).
+  operador?: string | null;
 }
 
 export interface LancarPedidoPostgresResult {
@@ -90,7 +97,7 @@ export class LancarPedidoServicePostgres {
       tentativa++
     ) {
       try {
-        return await this.executarUmaVez(input.pedido);
+        return await this.executarUmaVez(input.pedido, input.operador);
       } catch (error) {
         if (!ehConflitoDeNumero(error)) {
           throw error;
@@ -104,7 +111,8 @@ export class LancarPedidoServicePostgres {
   }
 
   private async executarUmaVez(
-    solicitado: PedidoSolicitado
+    solicitado: PedidoSolicitado,
+    operador?: string | null
   ): Promise<LancarPedidoPostgresResult> {
     const empresaId =
       this.contexto.empresaId;
@@ -364,6 +372,24 @@ export class LancarPedidoServicePostgres {
             pedidoCriado.id,
             pedido.pagamento
           );
+
+        // O pedido entrou na fila da cozinha: gera o ticket e registra.
+        await tx.filaImpressao.create({
+          data: {
+            empresaId,
+            pedidoId: pedidoCriado.id,
+            tipo: "TICKET_COZINHA",
+          },
+        });
+
+        await registrarAtividade(tx, {
+          entidade: "PEDIDO",
+          acao: "LANCADO",
+          resumo: `Pedido ${pedidoCriado.numero} lançado (${pedido.canal}): ${pedido.itens.length} item(ns), R$ ${pedido.total.toFixed(2)}.`,
+          referenciaId: pedidoCriado.id,
+          referenciaNumero: String(pedidoCriado.numero),
+          operador,
+        });
 
         const clienteAtualizado =
           await tx.cliente.update({

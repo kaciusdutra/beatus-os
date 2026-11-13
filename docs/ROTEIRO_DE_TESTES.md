@@ -109,6 +109,21 @@ Endereços diretos: `/estoque/quadro`, `/estoque/gavetas`, `/estoque/etiqueta`.
 | 62 | **Descartar** um cartão, com motivo | O cartão diminui e o estoque da preparação cai (perda) |
 | 63 | No cartão, **Etiqueta** → escolha o tamanho do rolo e imprima | Etiqueta com nome, lote, gaveta, preparo, validade, temperatura e, para descongelado e sobra, NÃO RECONGELAR; fica no Registro de atividades |
 
+## Parte 7: Cozinha, cancelamento e ticket
+
+Endereço direto: `/cozinha`. Antes, tenha um produto com ficha e preço no canal, e uma preparação levada à cozinha em `/estoque/quadro`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 64 | Lance um pedido no PDV com pagamento aprovado | Ele aparece em **Novos (fila)** em `/cozinha`, com ticket pendente |
+| 65 | **Iniciar preparo** | O pedido vai para Em preparo e o estoque baixa pela ficha (insumos e a preparação da cozinha) |
+| 66 | Tente cancelar sem motivo | Recusa: o motivo é obrigatório |
+| 67 | Cancele um pedido **Em preparo** devolvendo só um insumo fechado (ex.: pão) | Só o que foi marcado volta ao saldo; o resto vira perda |
+| 68 | Cancele um pedido ainda em **Novos** | Nada mexe no estoque |
+| 69 | **Pronto**, **Saiu para entrega**, **Entregue** | O pedido percorre as colunas; entregue não pode ser cancelado |
+| 70 | **Ticket** → Imprimir | Ticket de 80 mm com número, itens, observações, cliente e total; a fila marca IMPRESSO |
+| 71 | `/atividades` | Aparecem o lançamento, as mudanças de status e os cancelamentos, com quem fez |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

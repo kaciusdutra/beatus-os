@@ -8,6 +8,14 @@ import {
 } from "@/modules/pedidos/services/server/lancarPedidoServicePostgres";
 
 import {
+  operadorDaRequisicao,
+} from "@/modules/atividades/services/operador";
+
+import {
+  getOperacaoPedidoService,
+} from "@/modules/pedidos/services/server/operacaoPedidoService";
+
+import {
   ErroDePedido,
 } from "@/modules/pedidos/services/calcularPedido";
 
@@ -32,6 +40,20 @@ function resposta(
       status,
     }
   );
+}
+
+// Pedidos em andamento (para a cozinha): novo, em preparo, pronto e em rota.
+export async function GET() {
+  try {
+    const pedidos =
+      await getOperacaoPedidoService().listarParaCozinha();
+
+    return NextResponse.json({ sucesso: true, pedidos });
+  } catch (error) {
+    console.error("ERRO AO LISTAR OS PEDIDOS:", error);
+
+    return resposta("Não foi possível listar os pedidos.", 500);
+  }
 }
 
 // Lança um pedido (sprint S2). A tela só informa o que o cliente escolheu:
@@ -209,6 +231,7 @@ export async function POST(
     const resultado =
       await lancarPedidoService.executar({
         pedido,
+        operador: operadorDaRequisicao(request),
       });
 
     return NextResponse.json(
