@@ -41,6 +41,15 @@ export default function ProducaoPage() {
 
   const [observacao, setObservacao] = useState("");
 
+  // Para onde o lote vai: freezer (padrão) ou geladeira, e em quais gavetas.
+  const [congelar, setCongelar] = useState(true);
+
+  const [gavetas, setGavetas] = useState<
+    { id: string; nome: string; fichaTecnicaId?: string; ativo: boolean }[]
+  >([]);
+
+  const [divisao, setDivisao] = useState<Record<string, string>>({});
+
   const [previsao, setPrevisao] = useState<PrevisaoDeProducao | null>(null);
 
   const [erro, setErro] = useState("");
@@ -103,7 +112,29 @@ export default function ProducaoPage() {
     })();
   }, [carregarLotes]);
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const resposta = await fetch("/api/estoque/gavetas", {
+          cache: "no-store",
+        });
+
+        const dados = await resposta.json();
+
+        setGavetas(dados.gavetas ?? []);
+      } catch {
+        setGavetas([]);
+      }
+    })();
+  }, []);
+
   const preparacao = preparacoes.find((item) => item.id === fichaId);
+
+  const gavetasDaPreparacao = gavetas.filter(
+    (gaveta) =>
+      gaveta.ativo &&
+      (!gaveta.fichaTecnicaId || gaveta.fichaTecnicaId === fichaId)
+  );
 
   function escolher(id: string) {
     setFichaId(id);
@@ -166,6 +197,13 @@ export default function ProducaoPage() {
           quantidadeProduzida: Number(produzida.replace(",", ".")),
           validade,
           observacao,
+          congelar,
+          gavetas: Object.entries(divisao)
+            .filter(([, quantidade]) => quantidade.trim() !== "")
+            .map(([gavetaId, quantidade]) => ({
+              gavetaId,
+              quantidade: Number(quantidade.replace(",", ".")),
+            })),
         }),
       });
 
@@ -188,6 +226,7 @@ export default function ProducaoPage() {
 
       setProduzida("");
       setObservacao("");
+      setDivisao({});
 
       await carregarLotes();
     } catch (error) {
@@ -332,6 +371,57 @@ export default function ProducaoPage() {
                   placeholder="Opcional"
                   className={CLASSE_CAMPO}
                 />
+              </div>
+              <div className="md:col-span-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={congelar}
+                    onChange={(evento) => setCongelar(evento.target.checked)}
+                  />
+                  Guardar no freezer (a validade segue a temperatura do freezer)
+                </label>
+
+                {!congelar && (
+                  <p className="text-xs text-slate-500">
+                    Vai para a geladeira, com a validade em dias da ficha.
+                  </p>
+                )}
+
+                <p className="text-xs font-semibold text-slate-600">
+                  Divisão por gaveta (a soma deve ser o que rendeu; vazio = sem gaveta)
+                </p>
+
+                {gavetasDaPreparacao.length === 0 && (
+                  <p className="text-xs text-slate-500">
+                    Nenhuma gaveta para esta preparação. Crie em Estoque → Gavetas e regras.
+                  </p>
+                )}
+
+                <div className="grid gap-2 md:grid-cols-3">
+                  {gavetasDaPreparacao.map((gaveta) => (
+                    <div key={gaveta.id}>
+                      <label
+                        htmlFor={`g-${gaveta.id}`}
+                        className="mb-1 block text-xs text-slate-600"
+                      >
+                        {gaveta.nome}
+                      </label>
+
+                      <input
+                        id={`g-${gaveta.id}`}
+                        value={divisao[gaveta.id] ?? ""}
+                        onChange={(evento) =>
+                          setDivisao({
+                            ...divisao,
+                            [gaveta.id]: evento.target.value,
+                          })
+                        }
+                        className={CLASSE_CAMPO}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}

@@ -19,6 +19,13 @@ import { registrarAtividade } from "@/modules/atividades/services/server/ativida
 
 import { consumoDaFicha } from "../calcularConsumo";
 
+import {
+  diasDaRegra,
+  validadeDoCongelado,
+} from "../calcularValidade";
+
+import { getKanbanService } from "./kanbanService";
+
 import type {
   ItemDeEstoque,
   LoteDeProducao,
@@ -533,6 +540,12 @@ export class EstoqueService {
     validade?: string;
     observacao?: string;
     operador?: string | null;
+
+    // Onde o lote é guardado: freezer (padrão, validade do congelado) ou geladeira.
+    congelar?: boolean;
+
+    // Em quais gavetas o lote foi dividido (a soma deve ser o rendimento real).
+    gavetas?: { gavetaId: string; quantidade: number }[];
   }): Promise<{ lote: LoteDeProducao; avisos: string[] }> {
     if (
       !Number.isFinite(dados.quantidadeProduzida) ||
@@ -572,11 +585,60 @@ export class EstoqueService {
       }
     }
 
+    // Onde o lote entra e até quando vale (norma adotada, editável no sistema).
+    const kanban = getKanbanService();
+
+    const [regras, configuracao] = await Promise.all([
+      kanban.listarRegras(),
+      kanban.obterConfiguracao(),
+    ]);
+
+    const congelar = dados.congelar !== false;
+
+    const producaoEm = new Date();
+
+    const validadePadrao = congelar
+      ? validadeDoCongelado(
+          producaoEm,
+          regras,
+          configuracao.temperaturaFreezerC
+        ).validadeAte
+      : new Date(
+          producaoEm.getTime() +
+            (ficha.validadeDias ?? diasDaRegra(regras, "RESFRIADO_DEMAIS")) *
+              86400000
+        );
+
     const validade = dados.validade
       ? new Date(`${dados.validade}T12:00:00`)
-      : ficha.validadeDias
-        ? new Date(Date.now() + ficha.validadeDias * 86400000)
-        : undefined;
+      : validadePadrao;
+
+    const localDaEntrada = congelar ? "FREEZER" : "GELADEIRA";
+
+    // Divisão do lote em gavetas (opcional).
+    const divisao = dados.gavetas?.filter((item) => item.quantidade > 0) ?? [];
+
+    if (divisao.length > 0) {
+      const soma = divisao.reduce((total, item) => total + item.quantidade, 0);
+
+      if (Math.abs(soma - dados.quantidadeProduzida) > 0.001) {
+        throw new Error(
+          "A soma das gavetas deve ser igual ao que rendeu de verdade."
+        );
+      }
+
+      const existentes = await prisma.gavetaEstoque.findMany({
+        where: {
+          empresaId: this.empresaId,
+          ativo: true,
+          id: { in: divisao.map((item) => item.gavetaId) },
+        },
+      });
+
+      if (existentes.length !== new Set(divisao.map((item) => item.gavetaId)).size) {
+        throw new Error("Gaveta não encontrada ou inativa.");
+      }
+    }
 
     const lote = await prisma.$transaction(async (tx) => {
       const criado = await tx.producaoLote.create({
@@ -607,19 +669,32 @@ export class EstoqueService {
         });
       }
 
-      await tx.movimentoEstoque.create({
-        data: {
-          empresaId: this.empresaId,
-          itemTipo: "PREPARACAO",
-          fichaTecnicaId: ficha.id,
-          tipo: "PRODUCAO_ENTRADA",
-          quantidade: dados.quantidadeProduzida,
-          unidade: ficha.unidadeRendimento as string,
-          custoUnitario: arredondar(custoDoLote),
-          motivo: "Lote produzido",
-          producaoLoteId: criado.id,
-        },
-      });
+      const entradas =
+        divisao.length > 0
+          ? divisao.map((item) => ({
+              gavetaId: item.gavetaId as string | null,
+              quantidade: item.quantidade,
+            }))
+          : [{ gavetaId: null, quantidade: dados.quantidadeProduzida }];
+
+      for (const entrada of entradas) {
+        await tx.movimentoEstoque.create({
+          data: {
+            empresaId: this.empresaId,
+            itemTipo: "PREPARACAO",
+            fichaTecnicaId: ficha.id,
+            tipo: "PRODUCAO_ENTRADA",
+            quantidade: arredondar(entrada.quantidade),
+            unidade: ficha.unidadeRendimento as string,
+            custoUnitario: arredondar(custoDoLote),
+            motivo: "Lote produzido",
+            producaoLoteId: criado.id,
+            local: localDaEntrada,
+            gavetaId: entrada.gavetaId,
+            validadeAte: validade,
+          },
+        });
+      }
 
       await registrarAtividade(tx, {
         entidade: "PRODUCAO",

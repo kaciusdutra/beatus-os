@@ -33,6 +33,15 @@ export async function POST(request: Request) {
       observacao:
         typeof corpo?.observacao === "string" ? corpo.observacao : undefined,
       operador: operadorDaRequisicao(request),
+      congelar: corpo?.congelar !== false,
+      gavetas: Array.isArray(corpo?.gavetas)
+        ? corpo.gavetas.map(
+            (item: { gavetaId?: unknown; quantidade?: unknown }) => ({
+              gavetaId: typeof item?.gavetaId === "string" ? item.gavetaId : "",
+              quantidade: Number(item?.quantidade),
+            })
+          )
+        : undefined,
     });
 
     return NextResponse.json({ sucesso: true, ...resultado }, { status: 201 });

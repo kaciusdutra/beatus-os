@@ -34,6 +34,9 @@ model Empresa {
   lotesProducao           ProducaoLote[]
   registrosAtividade      RegistroAtividade[]
   filaImpressao           FilaImpressao[]
+  gavetasEstoque          GavetaEstoque[]
+  regrasValidade          RegraValidade[]
+  configuracaoEstoque     ConfiguracaoEstoque?
 
   @@index([ativo])
 }
@@ -517,18 +520,102 @@ model MovimentoEstoque {
   pedidoId            String?
   producaoLoteId      String?
 
+  // Onde está o que este movimento move (kanban do estoque): FREEZER, GELADEIRA ou COZINHA.
+  local    String?
+  gavetaId String?
+
+  // Quando a gaveta foi para a geladeira para descongelar (a validade do resfriado conta daqui).
+  descongeladoEm DateTime?
+
+  // Até quando vale o que este movimento colocou no local (validade do lote naquele local).
+  validadeAte DateTime?
+
   criadoEm DateTime @default(now())
 
   empresa      Empresa       @relation(fields: [empresaId], references: [id])
   insumo       Insumo?       @relation(fields: [insumoId], references: [id], onDelete: Restrict)
   fichaTecnica FichaTecnica? @relation(fields: [fichaTecnicaId], references: [id], onDelete: Restrict)
   producaoLote ProducaoLote? @relation(fields: [producaoLoteId], references: [id], onDelete: Restrict)
+  gaveta       GavetaEstoque? @relation(fields: [gavetaId], references: [id], onDelete: Restrict)
 
   @@unique([entradaCompraItemId, tipo])
   @@index([empresaId, insumoId])
   @@index([empresaId, fichaTecnicaId])
   @@index([pedidoId])
   @@index([producaoLoteId])
+  @@index([empresaId, local])
+  @@index([gavetaId])
+}
+
+// Gaveta do freezer (ou da geladeira), com o nome da preparação que guarda.
+model GavetaEstoque {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  nome String
+
+  // Preparação que a gaveta guarda (opcional).
+  fichaTecnicaId String?
+
+  // Capacidade na unidade da preparação; vazio enquanto não for medida.
+  capacidade Decimal? @db.Decimal(14, 4)
+
+  ativo Boolean @default(true)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa      Empresa            @relation(fields: [empresaId], references: [id])
+  fichaTecnica FichaTecnica?      @relation(fields: [fichaTecnicaId], references: [id])
+  movimentos   MovimentoEstoque[]
+
+  @@unique([empresaId, nome])
+  @@index([empresaId])
+}
+
+// Prazos de validade editáveis (norma sanitária adotada pelo Kacius), com a fonte.
+model RegraValidade {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // CONGELADO_ABAIXO_18, CONGELADO_18_A_11, RESFRIADO_CARNE_MOIDA...
+  categoria String
+
+  descricao String
+
+  // CONGELADO ou RESFRIADO
+  conservacao String
+
+  // Texto da condição (ex.: "abaixo de -18 °C", "até 4 °C").
+  temperatura String
+
+  dias Int
+
+  fonte String?
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, categoria])
+  @@index([empresaId])
+}
+
+// Temperaturas reais do freezer e da geladeira: definem qual validade vale.
+model ConfiguracaoEstoque {
+  id String @id @default(uuid())
+
+  empresaId String @unique
+
+  // Vazio = ainda não medida (o sistema usa a validade mais curta).
+  temperaturaFreezerC   Decimal? @db.Decimal(6, 2)
+  temperaturaGeladeiraC Decimal? @db.Decimal(6, 2)
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
 }
 
 // Lote de uma preparação produzido na cozinha (blend, molhos, geleias).
@@ -732,6 +819,7 @@ model FichaTecnica {
   itensComoPreparacao FichaTecnicaItem[] @relation("FichaTecnicaPreparacao")
   movimentosEstoque   MovimentoEstoque[]
   lotesProducao       ProducaoLote[]
+  gavetasEstoque      GavetaEstoque[]
 
   @@index([empresaId])
   @@index([empresaId, produtoId])

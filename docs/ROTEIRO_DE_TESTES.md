@@ -92,6 +92,23 @@ Endereços diretos: `/estoque`, `/producao`, `/atividades`.
 | 52 | `/atividades` | Aparecem compra confirmada ou cancelada, contagem, perda e lote, com quem fez e quando |
 | 53 | Filtre por área e pelo número de um documento | Só as linhas daquele documento |
 
+## Parte 6: Quadro do estoque, gavetas, validade e etiquetas
+
+Endereços diretos: `/estoque/quadro`, `/estoque/gavetas`, `/estoque/etiqueta`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 54 | `/estoque/gavetas` → informe a **temperatura do freezer** (ex.: -20) e da geladeira e salve | Salva; o Registro de atividades mostra a mudança |
+| 55 | Crie uma **gaveta** com o nome da preparação (ex.: Blend Beatus) | Aparece na lista; nome repetido é recusado |
+| 56 | Confira a tabela de **prazos de validade** e edite um prazo | O prazo salvo vale para os próximos lotes |
+| 57 | `/producao` → escolha a preparação, informe o rendimento e **divida por gaveta** | A soma das gavetas tem de ser igual ao rendimento; o lote entra no freezer com a validade da temperatura |
+| 58 | `/estoque/quadro` | O lote aparece na coluna "No freezer", na gaveta certa, com a validade |
+| 59 | No cartão do freezer, **Descer para a geladeira** | O cartão vai para "Descongelando" e a validade passa a contar do descongelamento |
+| 60 | Tente voltar um cartão descongelado para o freezer | Não existe botão e a API recusa: não pode recongelar |
+| 61 | **Levar para a cozinha** e depois **Sobrou (guardar na geladeira)** com parte da quantidade | O cartão se divide entre "Na cozinha" e "Sobra" |
+| 62 | **Descartar** um cartão, com motivo | O cartão diminui e o estoque da preparação cai (perda) |
+| 63 | No cartão, **Etiqueta** → escolha o tamanho do rolo e imprima | Etiqueta com nome, lote, gaveta, preparo, validade, temperatura e, para descongelado e sobra, NÃO RECONGELAR; fica no Registro de atividades |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

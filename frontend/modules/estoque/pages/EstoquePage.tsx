@@ -217,6 +217,13 @@ export default function EstoquePage() {
 
         <div className="flex gap-3">
           <Link
+            href="/estoque/quadro"
+            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+          >
+            Quadro (kanban)
+          </Link>
+
+          <Link
             href="/producao"
             className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
           >
