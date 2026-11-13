@@ -25,10 +25,23 @@ export async function POST(
     const { id } =
       await context.params;
 
+    // O corpo é opcional: { formaPagamento, pagoEm? }
+    const corpo = await request.json().catch(() => ({}));
+
     const entrada =
       await entradaCompraService.confirmarEntradaCompra(
         id,
-        operadorDaRequisicao(request)
+        operadorDaRequisicao(request),
+        {
+          forma:
+            typeof corpo?.formaPagamento === "string"
+              ? corpo.formaPagamento
+              : undefined,
+          pagoEm:
+            typeof corpo?.pagoEm === "string"
+              ? corpo.pagoEm
+              : undefined,
+        }
       );
 
     return NextResponse.json({

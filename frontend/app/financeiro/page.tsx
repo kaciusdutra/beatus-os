@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { verificarAcesso } from "@/core/permissions/accessControl";
 
+import ResumoDoMes from "@/modules/financeiro/components/ResumoDoMes";
+
 export default function FinanceiroPage() {
   const acesso = verificarAcesso(
     "financeiro.visualizar"
@@ -42,12 +44,25 @@ export default function FinanceiroPage() {
         </h1>
 
         <p className="mt-2 text-slate-500">
-          Estrutura inicial do módulo financeiro
-          do Beatus OS.
+          Caixa, custos fixos e precificação do Beatus OS.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Link
+          href="/financeiro/fluxo-de-caixa"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Fluxo de caixa
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            O que entrou e o que saiu por período, com lançamentos
+            avulsos de despesas e receitas.
+          </p>
+        </Link>
+
         <Link
           href="/financeiro/precificacao"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
@@ -77,37 +92,7 @@ export default function FinanceiroPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Faturamento
-          </p>
-
-          <p className="mt-2 text-3xl font-bold">
-            R$ 1.864,50
-          </p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Entradas
-          </p>
-
-          <p className="mt-2 text-3xl font-bold">
-            R$ 0,00
-          </p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Saídas
-          </p>
-
-          <p className="mt-2 text-3xl font-bold">
-            R$ 0,00
-          </p>
-        </div>
-      </div>
+      <ResumoDoMes />
     </div>
   );
 }

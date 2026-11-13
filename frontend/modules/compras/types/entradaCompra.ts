@@ -199,6 +199,11 @@ export interface EntradaCompra {
 
   valorOutrasDespesas?: number;
 
+  // Pagamento à vista, informado na confirmação (Financeiro).
+  formaPagamento?: string;
+
+  pagoEm?: string;
+
   valorTotal: number;
 
   documentoArquivo?: string;
@@ -234,3 +239,5 @@ export interface HistoricoPrecoInsumoRegistro {
 
   criadoEm: string;
 }
+// Formas de pagamento à vista aceitas na confirmação da compra.
+export const FORMAS_DE_PAGAMENTO_DA_COMPRA = ["PIX", "DINHEIRO", "CARTAO"];

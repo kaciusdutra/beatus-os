@@ -1754,10 +1754,31 @@ async function executarTestes() {
   // CONFIRMAÇÃO
   // --------------------------------------------------
 
+  // Forma de pagamento inválida é recusada antes de confirmar.
+  let formaRecusada = false;
+
+  try {
+    await service.confirmarEntradaCompra(criada.id, null, { forma: "BOLETO" });
+  } catch {
+    formaRecusada = true;
+  }
+
+  if (!formaRecusada) {
+    throw new Error("Falha: forma de pagamento inválida deve ser recusada.");
+  }
+
   const confirmada =
     await service.confirmarEntradaCompra(
-      criada.id
+      criada.id,
+      null,
+      { forma: "pix" }
     );
+
+  if (confirmada.formaPagamento !== "PIX" || !confirmada.pagoEm) {
+    throw new Error(
+      "Falha: a confirmação deve guardar a forma (PIX) e a data do pagamento."
+    );
+  }
 
   if (
     confirmada.status !==

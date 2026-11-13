@@ -154,8 +154,10 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G09: Financeiro
 
-- [ ] Contas a pagar nascendo das entradas de compra, classificadas pelo destino de cada item.
-- [ ] Contas a receber, caixa, fluxo de caixa, conciliação e DRE.
+- [x] **Fluxo de caixa concluído (bloco 1, migração `add_financeiro_lancamentos_e_pagamento_compra`):** entradas dos pagamentos aprovados dos pedidos, saídas das compras confirmadas por destino, lançamentos avulsos (cancelam, não se apagam), custos fixos previstos no mês e resumo real na tela Financeiro (saiu o número de demonstração). Regras 12.1 a 12.6.
+- [ ] **Contas a pagar com vencimento e parcelas:** só quando houver compra a prazo (hoje tudo é à vista).
+- [ ] **CMV real, DRE e conciliação:** CMV a partir da baixa de estoque dos pedidos, DRE do mês, conciliação com extrato (marketplaces e banco) e exportação para o contador. Contas a receber dos marketplaces (repasse do iFood, 99Food e Keeta), quando as integrações existirem.
+- [ ] **Compras: pagar depois da confirmação** (e dar baixa na data do pagamento) e editar a forma de pagamento de compras já confirmadas.
 - [ ] O financeiro nasce dos dados da operação, não é um módulo isolado.
 
 ## Dashboard

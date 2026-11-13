@@ -241,6 +241,8 @@ function mapearEntrada(
     valorIpi?: unknown;
     valorSeguro?: unknown;
     valorOutrasDespesas?: unknown;
+    formaPagamento?: string | null;
+    pagoEm?: Date | null;
     valorTotal: unknown;
     documentoArquivo: string | null;
     observacao: string | null;
@@ -342,6 +344,10 @@ function mapearEntrada(
     valorSeguro: Number(entrada.valorSeguro ?? 0),
 
     valorOutrasDespesas: Number(entrada.valorOutrasDespesas ?? 0),
+
+    formaPagamento: entrada.formaPagamento ?? undefined,
+
+    pagoEm: entrada.pagoEm ? entrada.pagoEm.toISOString() : undefined,
 
 
     valorTotal:
@@ -861,6 +867,9 @@ export class EntradaCompraRepositoryPostgres
 
               valorOutrasDespesas: entrada.valorOutrasDespesas ?? 0,
 
+              formaPagamento: entrada.formaPagamento ?? null,
+
+              pagoEm: entrada.pagoEm ? new Date(entrada.pagoEm) : null,
 
               valorTotal:
                 entrada.valorTotal,

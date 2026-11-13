@@ -205,6 +205,8 @@ const ROTULO_ORIGEM: Record<string, string> = {
 export default function EntradaCompraPage({
   params,
 }: Props) {
+  const [formaPagamento, setFormaPagamento] = useState("PIX");
+
   const [entradaId, setEntradaId] = useState<string | null>(
     null,
   );
@@ -599,16 +601,13 @@ export default function EntradaCompraPage({
         )}/${acao}`,
         {
           method: "POST",
-          headers:
-            acao === "cancelar"
-              ? { "Content-Type": "application/json" }
-              : undefined,
+          headers: { "Content-Type": "application/json" },
           body:
             acao === "cancelar"
               ? JSON.stringify({
                   motivo: motivoCancelamento.trim(),
                 })
-              : undefined,
+              : JSON.stringify({ formaPagamento }),
         },
       );
 
@@ -1302,6 +1301,26 @@ export default function EntradaCompraPage({
                 {formatarMoeda(entrada.valorTotal)} de{" "}
                 {nomeFornecedor}?
               </p>
+
+              <div className="max-w-xs">
+                <label
+                  htmlFor="forma-pagamento-compra"
+                  className="mb-1 block text-xs font-semibold text-slate-700"
+                >
+                  Pago à vista com
+                </label>
+
+                <select
+                  id="forma-pagamento-compra"
+                  value={formaPagamento}
+                  onChange={(evento) => setFormaPagamento(evento.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                >
+                  <option value="PIX">Pix</option>
+                  <option value="DINHEIRO">Dinheiro</option>
+                  <option value="CARTAO">Cartão</option>
+                </select>
+              </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button

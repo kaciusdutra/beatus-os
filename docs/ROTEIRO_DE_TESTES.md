@@ -124,6 +124,22 @@ Endereço direto: `/cozinha`. Antes, tenha um produto com ficha e preço no cana
 | 70 | **Ticket** → Imprimir | Ticket de 80 mm com número, itens, observações, cliente e total; a fila marca IMPRESSO |
 | 71 | `/atividades` | Aparecem o lançamento, as mudanças de status e os cancelamentos, com quem fez |
 
+## Parte 8: Fluxo de caixa
+
+Endereço direto: `/financeiro/fluxo-de-caixa`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 72 | Abra **Financeiro** | Os três cartões (entradas, saídas e saldo do mês) mostram números reais, e há o atalho **Fluxo de caixa** |
+| 73 | Em uma entrada de compra em rascunho, **Confirmar entrada** | Aparece o seletor **Pago à vista com** (Pix, Dinheiro ou Cartão); depois de confirmada, a compra entra nas saídas |
+| 74 | `/financeiro/fluxo-de-caixa` → **Este mês** | Entradas = pagamentos aprovados dos pedidos; saídas = compras confirmadas e avulsos; saldo = entradas menos saídas |
+| 75 | Confira as listas **por canal**, **por forma** e **saídas por categoria** | As somas batem com os cartões; o frete e os impostos da compra aparecem à parte |
+| 76 | **+ Lançamento avulso**: despesa de gás, R$ 130,50, dinheiro | Aparece nos movimentos e nas saídas; valor zero é recusado |
+| 77 | **Cancelar** o lançamento, sem motivo e depois com motivo | Sem motivo recusa; com motivo ele sai do saldo e aparece em "cancelados" |
+| 78 | Cancele um pedido na cozinha e volte ao fluxo | O pedido cancelado deixa de contar como entrada |
+| 79 | Com **Este mês** marcado, veja o saldo | Aparece o saldo com os custos fixos do mês descontados |
+| 80 | `/atividades` | Aparecem o lançamento e o cancelamento, com quem fez |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

@@ -8,6 +8,7 @@ import {
   StatusEntradaCompra,
   TipoDocumentoEntradaCompra,
   VinculoItemCompra,
+  FORMAS_DE_PAGAMENTO_DA_COMPRA,
 } from "../types/entradaCompra";
 
 import {
@@ -828,8 +829,17 @@ export class EntradaCompraService {
 
   async confirmarEntradaCompra(
     entradaId: string,
-    operador?: string | null
+    operador?: string | null,
+    pagamento?: { forma?: string; pagoEm?: string }
   ): Promise<EntradaCompra> {
+    const forma = pagamento?.forma?.trim().toUpperCase();
+
+    if (forma && !FORMAS_DE_PAGAMENTO_DA_COMPRA.includes(forma)) {
+      throw new Error(
+        "Forma de pagamento inválida. Use PIX, DINHEIRO ou CARTAO."
+      );
+    }
+
     const existente =
       await this.repository.buscarPorId(
         entradaId
@@ -871,6 +881,13 @@ export class EntradaCompraService {
 
         status:
           "CONFIRMADA",
+
+        // Pagamento à vista: a data é a informada ou o momento da confirmação.
+        formaPagamento: forma || undefined,
+
+        pagoEm: forma
+          ? pagamento?.pagoEm || new Date().toISOString()
+          : undefined,
 
         atualizadoEm:
           new Date().toISOString(),

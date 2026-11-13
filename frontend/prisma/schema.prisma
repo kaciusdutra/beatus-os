@@ -37,6 +37,7 @@ model Empresa {
   gavetasEstoque          GavetaEstoque[]
   regrasValidade          RegraValidade[]
   configuracaoEstoque     ConfiguracaoEstoque?
+  lancamentosFinanceiros  LancamentoFinanceiro[]
 
   @@index([ativo])
 }
@@ -106,6 +107,10 @@ model EntradaCompra {
   valorOutrasDespesas Decimal @default(0) @db.Decimal(12, 2)
 
   valorTotal    Decimal @default(0) @db.Decimal(12, 2)
+
+  // Pagamento à vista, preenchido na confirmação (Financeiro, G09).
+  formaPagamento String?
+  pagoEm         DateTime?
 
   documentoArquivo String?
   observacao       String?
@@ -889,4 +894,39 @@ model UnidadeMedida {
   @@unique([empresaId, abreviacao])
   @@index([empresaId])
   @@index([empresaId, ativo])
+}
+
+// Lançamento manual do caixa (Financeiro, G09): despesa ou receita avulsa.
+// Entradas de pedidos e saídas de compras NÃO são copiadas para cá: o fluxo
+// de caixa as lê de Pagamento e EntradaCompra. Nunca é apagado, só cancelado.
+model LancamentoFinanceiro {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // ENTRADA ou SAIDA
+  tipo String
+
+  categoria String
+
+  descricao String
+
+  valor Decimal @db.Decimal(12, 2)
+
+  data DateTime
+
+  // PIX, DINHEIRO, CARTAO
+  forma String?
+
+  observacao String?
+
+  cancelado          Boolean @default(false)
+  motivoCancelamento String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId, data])
 }
