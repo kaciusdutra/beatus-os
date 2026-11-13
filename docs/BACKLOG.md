@@ -182,7 +182,10 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Adaptador do iFood de verdade (G10):** depende de o Kacius criar a conta de desenvolvedor, colocar `IFOOD_CLIENT_ID` e `IFOOD_CLIENT_SECRET` no `.env` e trazer a documentação oficial e um exemplo real de pedido (o portal bloqueou a leitura automática). Inclui a homologação que o iFood exige do integrador e a delimitação da área de entrega.
 - [ ] **Adaptadores do 99Food e do Keeta** (o Keeta usa o padrão Open Delivery, parecido com o do iFood).
 - [ ] **Agendador no servidor:** hoje a consulta ao iFood só roda com a Cozinha aberta; em produção, um agendador (ou `instrumentation` do Next) precisa consultar a cada 30 s mesmo sem tela aberta.
-- [ ] **Corrigir pedidos já criados quando um item for ligado:** hoje o vínculo vale para os pedidos seguintes; os anteriores continuam com a linha sem produto.
+- [x] **Vínculo automático e correção dos pedidos em Novo ao ligar um item** (13/11/2026). Regras 16.7 e 16.8.
+- [x] **Conferência do dia por canal** (Financeiro, 13/11/2026, sem migração). Regras 18.1 a 18.4.
+- [ ] **Fechar o dia:** gravar a conferência do dia como fechada (quem fechou e quando) e bloquear mudanças nos pedidos daquele dia, se o Kacius quiser.
+- [ ] **Corrigir a baixa de pedidos já em preparo** quando o item é ligado depois: hoje só os pedidos em Novo são corrigidos; os demais teriam de ter a baixa ajustada à mão (contagem).
 - [ ] **Conferência do repasse automática** com o extrato/pagamentos da plataforma, quando houver API de financeiro.
 - [ ] **Conferir o dashboard em TV de 32" com touch, tablet e celular** (testado em 1920×1080 e em tela estreita).
 - [ ] **Avisos de validade no dashboard** (cartões vencidos ou vencendo no quadro do estoque), junto da integração do checklist (G04).

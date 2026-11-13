@@ -199,11 +199,19 @@ export default function IntegracaoMarketplacePage() {
     try {
       setErro("");
 
-      await chamar(
+      const dados = await chamar(
         `/api/integracoes/marketplace/${canal}/vinculos`,
         "PATCH",
         { id: vinculo.id, produtoId },
         "Não foi possível ligar o item."
+      );
+
+      const atualizados = dados.vinculo?.pedidosAtualizados ?? 0;
+
+      setMensagem(
+        produtoId
+          ? `Item ligado. ${atualizados > 0 ? `${atualizados} pedido(s) novo(s) na fila passam a baixar estoque.` : "Os próximos pedidos já baixam estoque por ele."}`
+          : "Item desligado do produto."
       );
 
       await carregar();

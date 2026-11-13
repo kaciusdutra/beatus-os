@@ -75,6 +75,8 @@ export interface VinculoDeItem {
   nomeExterno?: string;
   produtoId?: string;
   produtoNome?: string;
+  // Ao ligar: quantos pedidos ainda não iniciados passaram a usar o produto (e baixam estoque).
+  pedidosAtualizados?: number;
 }
 
 export interface PendenciasDaIntegracao {

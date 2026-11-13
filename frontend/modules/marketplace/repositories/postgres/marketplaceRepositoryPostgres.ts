@@ -6,6 +6,8 @@ import { Prisma } from "@/lib/generated/prisma/client";
 
 import type { EmpresaContext } from "@/core/context/empresaContext";
 
+import { combinarItemComProduto } from "../../services/combinarItemComProduto";
+
 import type {
   ConfiguracaoSalva,
   MarketplaceRepositoryPort,
@@ -223,24 +225,46 @@ export class MarketplaceRepositoryPostgres implements MarketplaceRepositoryPort 
   ): Promise<Map<string, string | null>> {
     const resultado = new Map<string, string | null>();
 
+    // Produtos do cardápio para a ligação automática (por código ou nome).
+    const produtos = (
+      await prisma.produto.findMany({
+        where: { empresaId: this.empresaId, ativo: true },
+        select: { id: true, nome: true, categoria: true },
+      })
+    )
+      .filter((produto) => produto.categoria.trim().toUpperCase() !== "ADICIONAL")
+      .map((produto) => ({ id: produto.id, nome: produto.nome }));
+
     for (const item of itens) {
-      const vinculo = await prisma.vinculoItemMarketplace.upsert({
-        where: {
-          empresaId_canal_codigoItemExterno: {
-            empresaId: this.empresaId,
-            canal,
-            codigoItemExterno: item.codigoItemExterno,
-          },
-        },
-        // Item novo entra como pendente, esperando o Kacius ligar a um produto.
-        create: {
+      const chave = {
+        empresaId_canal_codigoItemExterno: {
           empresaId: this.empresaId,
           canal,
           codigoItemExterno: item.codigoItemExterno,
-          nomeExterno: item.nome,
         },
-        update: {},
-      });
+      };
+
+      let vinculo = await prisma.vinculoItemMarketplace.findUnique({ where: chave });
+
+      // Item novo, ou ainda pendente: liga sozinho só se não houver dúvida;
+      // senão fica pendente, esperando o Kacius.
+      if (!vinculo || !vinculo.produtoId) {
+        const produtoId = combinarItemComProduto(item, produtos);
+
+        vinculo = vinculo
+          ? produtoId
+            ? await prisma.vinculoItemMarketplace.update({ where: chave, data: { produtoId } })
+            : vinculo
+          : await prisma.vinculoItemMarketplace.create({
+              data: {
+                empresaId: this.empresaId,
+                canal,
+                codigoItemExterno: item.codigoItemExterno,
+                nomeExterno: item.nome,
+                produtoId,
+              },
+            });
+      }
 
       resultado.set(item.codigoItemExterno, vinculo.produtoId);
     }
@@ -283,7 +307,29 @@ export class MarketplaceRepositoryPostgres implements MarketplaceRepositoryPort 
       include: { produto: { select: { nome: true } } },
     });
 
-    return mapearVinculo(atualizado);
+    // Pedidos que ainda não foram para o preparo passam a usar o produto, então
+    // baixam estoque normalmente. Os que já estão em preparo (ou além) já
+    // tiveram a baixa feita sem este item e não são mexidos.
+    let pedidosAtualizados = 0;
+
+    if (produtoId && existente.nomeExterno) {
+      const itensDosPedidos = await prisma.pedidoItem.updateMany({
+        where: {
+          produtoId: null,
+          nome: existente.nomeExterno,
+          pedido: {
+            empresaId: this.empresaId,
+            canal: existente.canal,
+            statusOperacional: "NOVO",
+          },
+        },
+        data: { produtoId },
+      });
+
+      pedidosAtualizados = itensDosPedidos.count;
+    }
+
+    return { ...mapearVinculo(atualizado), pedidosAtualizados };
   }
 
   async contarPendencias(): Promise<PendenciasDaIntegracao> {

@@ -1,5 +1,7 @@
 import type { TituloPago } from "../types/contasAPagar";
 
+import type { PedidoDoDia } from "../types/conferenciaDoDia";
+
 import type {
   CompraPaga,
   LancamentoManual,
@@ -12,6 +14,9 @@ import type {
 export interface FinanceiroRepositoryPort {
   // Pagamentos aprovados de pedidos não cancelados, no período [de, ate).
   listarPagamentosRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]>;
+
+  // Pedidos criados no período [de, ate), de qualquer situação, com o que já foi pago (conferência do dia).
+  listarPedidosDoDia(de: Date, ate: Date): Promise<PedidoDoDia[]>;
 
   // Repasses de marketplace conferidos no período [de, ate): entrada no valor e na data recebidos.
   listarRepassesRecebidos(de: Date, ate: Date): Promise<PagamentoRecebido[]>;

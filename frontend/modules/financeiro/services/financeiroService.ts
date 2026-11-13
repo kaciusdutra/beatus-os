@@ -8,7 +8,11 @@ import type {
 
 import { FORMAS_DE_LANCAMENTO } from "../types/fluxoDeCaixa";
 
+import type { ConferenciaDoDia } from "../types/conferenciaDoDia";
+
 import { calcularFluxoDeCaixa, ehMesInteiro } from "./calcularFluxoDeCaixa";
+
+import { conferirDia } from "./conferirDia";
 
 const FORMATO_DATA = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -61,6 +65,22 @@ export class FinanceiroService {
       lancamentos,
       custosFixosPrevistos,
     });
+  }
+
+  // Conferência de um dia (AAAA-MM-DD) por canal: vendido, o que entrou, o que
+  // falta receber dos marketplaces e a diferença.
+  async conferenciaDoDia(data: string): Promise<ConferenciaDoDia> {
+    if (!dataValida(data)) {
+      throw new Error("Informe o dia com data válida (AAAA-MM-DD).");
+    }
+
+    const inicio = new Date(`${data}T00:00:00`);
+
+    const fim = new Date(inicio);
+
+    fim.setDate(fim.getDate() + 1);
+
+    return conferirDia(data, await this.repository.listarPedidosDoDia(inicio, fim));
   }
 
   // Lançamentos avulsos do período, inclusive os cancelados (para a tela mostrar o histórico).

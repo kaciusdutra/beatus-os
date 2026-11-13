@@ -252,7 +252,9 @@
 4. **Evento repetido nunca vira dois pedidos:** a caixa de entrada guarda cada evento por canal e identificador, e o código do pedido na plataforma também é único por canal. **Cancelamento pela plataforma** cancela o pedido no Beatus com a mesma regra da Cozinha (a baixa feita em preparo vira perda); cancelamento de pedido que já foi entregue, já cancelado ou que não é do Beatus é ignorado e registrado.
 5. **Consulta periódica:** a Cozinha consulta as plataformas ligadas a cada 30 segundos enquanto está aberta. O Dashboard avisa se a consulta parou (mais de 5 minutos sem contato ou com falha), se há evento com erro e se há item sem vínculo.
 6. **Credenciais** ficam só no `.env` do servidor (`IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`), nunca no banco nem na tela. Sem elas, a integração fica em **modo simulação**, que testa o caminho inteiro por uma tela de simulação. Sair da simulação exige as credenciais.
-7. **Estado do adaptador do iFood:** o esqueleto está pronto, mas ainda **não fala com o iFood**: o formato dos pedidos, os endereços e o prazo do aceite precisam ser lidos da documentação oficial (developer.ifood.com.br), com credenciais da conta de desenvolvedor do Kacius e um exemplo real de pedido. Só o arquivo do adaptador muda quando isso chegar. O 99Food e o Keeta ainda não têm adaptador.
+7. **O pedido do marketplace é um pedido como os outros (decisão do Kacius em 13/11/2026):** entra na mesma fila, passa pelos mesmos status e **baixa o estoque do mesmo jeito**, pela ficha do produto, ao iniciar o preparo. O marketplace só se distingue pelo **canal** (e pelo cliente fixo do canal), porque o preço, a comissão e a forma de o dinheiro chegar são diferentes. Os valores do iFood podem diferir dos de WhatsApp e do site, mas a cozinha é a mesma.
+8. **Vínculo automático dos itens:** item novo da plataforma é ligado sozinho a um produto quando o código é o id do produto, ou quando o nome (sem acento, maiúsculas e o que vier entre parênteses, como "(iFood)") bate com **um único** produto; com dúvida, fica pendente. **Ao ligar um item pendente**, os pedidos dele que ainda estão em **Novo** passam a usar o produto e baixam estoque; os que já foram para o preparo não são mexidos (a baixa já foi feita sem o item).
+9. **Estado do adaptador do iFood:** o esqueleto está pronto, mas ainda **não fala com o iFood**: o formato dos pedidos, os endereços e o prazo do aceite precisam ser lidos da documentação oficial (developer.ifood.com.br), com credenciais da conta de desenvolvedor do Kacius e um exemplo real de pedido. Só o arquivo do adaptador muda quando isso chegar. O 99Food e o Keeta ainda não têm adaptador.
 
 ## 17. Fidelização de clientes (decisões do Kacius em 13/11/2026; a construir)
 
@@ -260,3 +262,12 @@
 2. Os **benefícios** a oferecer são todos os que fizerem sentido, **aplicados aos poucos** conforme a fidelização avança: pagar na entrega (regra 4.3), desconto em %, brinde, cupom de aniversário e os demais que forem possíveis. Depois o Kacius divide os clientes em **categorias**.
 3. O sistema deve **apontar o melhor benefício a propor** a cada perfil e **sugerir campanhas**, olhando a margem do que o cliente compra (Precificação). Proposta inicial de cliente recorrente: 3 ou mais pedidos nos últimos 60 dias (a confirmar).
 4. Os dados de cliente do iFood têm restrições de uso pela plataforma; por isso a fidelização parte dos clientes dos canais próprios e do convite na embalagem.
+
+## 18. Conferência do dia por canal
+
+*(decisão do Kacius em 13/11/2026)*
+
+1. Ao conferir o dia, os valores precisam **bater com as entradas, por canal**. A tela **Conferência do dia** (Financeiro) mostra, para o dia escolhido, uma linha por canal (WhatsApp, site, PDV, iFood, 99Food, Keeta): **pedidos**, **vendido** (total dos pedidos, sem cancelados), **entrou**, **a receber**, **comissão** e **diferença**, mais o total do dia.
+2. **Entrou:** nos canais próprios, os pagamentos aprovados dos pedidos; nos marketplaces, os **repasses já conferidos** (regra 15.4). **A receber:** o que a plataforma ainda deve (total menos comissão dos pedidos ainda não conferidos). **Diferença:** entrou menos o esperado; nos canais próprios é o que faltou de pagamento, nos marketplaces é o recebido menos o líquido esperado.
+3. A conta sempre fecha: **vendido = entrou + a receber + comissão − diferença**. A tela avisa "✓ a conta fecha" ou "⚠ não fecha". Pedido cancelado fica fora das vendas e só aparece como contagem e valor.
+4. O dia é o da **criação do pedido** (vendas). O **fluxo de caixa** continua pela data do dinheiro: pagamento aprovado nos canais próprios e repasse conferido nos marketplaces.

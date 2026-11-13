@@ -224,6 +224,21 @@ Endereço direto: `/integracoes/marketplace` (também pelos botões "Marketplace
 | 128 | Simule o **cancelamento** de um pedido (Cozinha → pedido novo) | O pedido fica cancelado, com o motivo "Cancelado pelo IFOOD" no histórico |
 | 129 | **Consultar agora** | Em simulação ou desligada, responde que não consulta |
 
+## Parte 14: Marketplace como pedido normal e conferência do dia
+
+Endereços diretos: `/integracoes/marketplace` e `/financeiro/conferencia-do-dia`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 130 | Simule um pedido do iFood com um item cujo nome seja igual ao de um produto (ex.: "Sanctum (iFood)") | O item é ligado sozinho ao produto e não fica pendente |
+| 131 | Simule um pedido com um item sem correspondência e ligue-o a um produto na tela | O pedido que ainda está em Novo passa a usar o produto; a mensagem diz quantos pedidos foram corrigidos |
+| 132 | Na Cozinha, **Iniciar preparo** no pedido do iFood | O estoque baixa pela ficha, igual a um pedido do PDV (veja em Estoque ou no consumo do pedido) |
+| 133 | `/financeiro/conferencia-do-dia` no dia dos pedidos | Uma linha por canal, com pedidos, vendido, entrou, a receber, comissão e diferença |
+| 134 | Confira o canal iFood antes e depois de conferir o repasse | Antes: "aguardando" com o valor a receber; depois: o recebido sobe em "entrou" e a diferença aparece |
+| 135 | Confira o rodapé "Total do dia" | Mostra "✓ a conta fecha" (vendido = entrou + a receber + comissão − diferença) |
+| 136 | Cancele um pedido e volte à conferência | Ele sai de "vendido" e aparece só como cancelado |
+| 137 | Use ← e → para trocar de dia | A conferência acompanha o dia |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

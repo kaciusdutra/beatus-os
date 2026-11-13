@@ -64,6 +64,20 @@ export default function FinanceiroPage() {
         </Link>
 
         <Link
+          href="/financeiro/conferencia-do-dia"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Conferência do dia
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Pedidos de todos os canais do dia: vendido, o que entrou,
+            o que falta receber e a diferença.
+          </p>
+        </Link>
+
+        <Link
           href="/financeiro/analise-de-vendas"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
         >

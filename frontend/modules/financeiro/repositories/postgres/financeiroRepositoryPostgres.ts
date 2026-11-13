@@ -10,6 +10,8 @@ import type { FinanceiroRepositoryPort } from "../financeiroRepositoryPort";
 
 import type { TituloPago } from "../../types/contasAPagar";
 
+import type { PedidoDoDia } from "../../types/conferenciaDoDia";
+
 import type {
   CompraPaga,
   LancamentoManual,
@@ -80,6 +82,36 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
       forma: pagamento.forma,
       valor: Number(pagamento.valor),
       data: (pagamento.aprovadoEm ?? pagamento.criadoEm).toISOString(),
+    }));
+  }
+
+  async listarPedidosDoDia(de: Date, ate: Date): Promise<PedidoDoDia[]> {
+    const pedidos = await prisma.pedido.findMany({
+      where: {
+        empresaId: this.contexto.empresaId,
+        criadoEm: { gte: de, lt: ate },
+      },
+      select: {
+        canal: true,
+        statusOperacional: true,
+        total: true,
+        comissaoEsperada: true,
+        liquidoEsperado: true,
+        conferenciaStatus: true,
+        valorRecebido: true,
+        pagamentos: { where: { status: "APROVADO" }, select: { valor: true } },
+      },
+    });
+
+    return pedidos.map((pedido) => ({
+      canal: pedido.canal,
+      status: pedido.statusOperacional,
+      total: Number(pedido.total),
+      pagamentoAprovado: pedido.pagamentos.reduce((soma, pagamento) => soma + Number(pagamento.valor), 0),
+      comissaoEsperada: pedido.comissaoEsperada === null ? undefined : Number(pedido.comissaoEsperada),
+      liquidoEsperado: pedido.liquidoEsperado === null ? undefined : Number(pedido.liquidoEsperado),
+      conferenciaStatus: pedido.conferenciaStatus ?? undefined,
+      valorRecebido: pedido.valorRecebido === null ? undefined : Number(pedido.valorRecebido),
     }));
   }
 
