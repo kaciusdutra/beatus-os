@@ -72,6 +72,26 @@ Endereços diretos: `/financeiro`, `/financeiro/custos-fixos`, `/financeiro/prec
 | 39 | **Simulador de promoção**: escolha um produto, desconto de 15% | Por canal: preço, margem, lucro por pedido e pedidos a mais para compensar |
 | 40 | Escolha um **combo** (produto que usa outros produtos) | Economia do cliente, desconto máximo, preço mínimo e margem contra o avulso |
 
+## Parte 5: Estoque, produção e registro de atividades
+
+Endereços diretos: `/estoque`, `/producao`, `/atividades`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 41 | No topo, troque o **Operador** (Kacius, Irmão) | A escolha fica guardada; o registro grava esse nome |
+| 42 | Confirme uma entrada de compra com itens ligados a insumos, depois abra `/estoque` | O saldo do insumo subiu na quantidade convertida |
+| 43 | Em Itens de compras, **Recalcular custos das compras** | Compras antigas também entram no estoque |
+| 44 | No Estoque, **Contar** um insumo e informe o que você contou, com motivo | O saldo vira o contado; a diferença aparece no histórico como ajuste |
+| 45 | **Perda** de um item, com motivo | O saldo cai e o histórico mostra "Perda" |
+| 46 | **Mínimo** de um insumo acima do saldo | A linha fica "abaixo do mínimo" e conta nos alertas |
+| 47 | **Histórico** de um item | Entradas, saídas, produção, contagens e perdas, da mais nova para a mais antiga |
+| 48 | Cancele uma entrada de compra confirmada | O estoque dela sai de volta (aparece como "Compra cancelada") |
+| 49 | `/producao` → escolha uma preparação (ex.: Blend) e a quantidade | Lista o que vai sair do estoque, com o saldo antes e depois |
+| 50 | Informe **quanto rendeu de verdade** e **Registrar lote** | Entra o rendimento real na preparação; o custo por unidade do lote aparece na lista |
+| 51 | Veja o saldo da preparação em `/estoque` → aba Preparações | O blend tem saldo e custo por unidade do último lote |
+| 52 | `/atividades` | Aparecem compra confirmada ou cancelada, contagem, perda e lote, com quem fez e quando |
+| 53 | Filtre por área e pelo número de um documento | Só as linhas daquele documento |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

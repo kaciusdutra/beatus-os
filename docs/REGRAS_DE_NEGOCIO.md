@@ -178,3 +178,16 @@
    - A Beatriz envia um link de indicação, que leva ao cardápio online.
    - Os benefícios são consequência da fidelização: o Beatus vende hambúrgueres, não benefícios.
 8. Ela só entra depois que os dados dos outros módulos estiverem confiáveis (G11).
+
+## 11. Estoque, produção e registro de atividades
+
+*(decisões do Kacius em 12/11/2026)*
+
+1. **O saldo é a soma dos movimentos.** Cada entrada e saída de estoque é um movimento que nunca é editado nem apagado; o saldo de um item é a soma dos seus movimentos. Insumos e embalagens ficam na unidade de compra do insumo; as **preparações têm estoque próprio**, na unidade de rendimento da ficha.
+2. **Entrada pela compra:** a entrada de compra confirmada dá entrada no estoque de cada item ligado a um insumo, na quantidade convertida (regras 7.23 e 7.24). Cada item entra uma vez só. O botão "Recalcular custos das compras" também dá entrada nas compras confirmadas antes do estoque existir. **Cancelar a entrada** tira do estoque o que ela trouxe.
+3. **Produção de lote:** produzir uma preparação baixa os insumos (e outras preparações) pela ficha, proporcionalmente ao que foi planejado, e dá entrada na preparação pelo **rendimento real** informado depois de pronta. O custo por unidade do lote é o custo dos insumos consumidos dividido pelo que realmente rendeu. O estoque pode ficar negativo (a tela avisa), para a falta de uma contagem não travar a cozinha.
+4. **O que sai do estoque pela ficha:** a quantidade da ficha dividida pelo aproveitamento (perda de limpeza do insumo e perda de cocção do item, como no custo). A venda de um produto baixa a **preparação** usada (por exemplo o blend), nunca o insumo de novo; produto dentro de produto (combo) baixa o que o outro produto baixa. Itens com **opção de escolha** não baixam sozinhos, porque o pedido ainda não guarda a escolha do cliente.
+5. **Contagem (inventário):** o Kacius informa o que contou; o sistema ajusta a diferença com um motivo obrigatório. **Perda** também exige motivo. Há **estoque mínimo** por item, com alerta.
+6. **Baixa por venda e cancelamento (a construir com a cozinha):** a baixa acontece quando o cozinheiro inicia o preparo (**Em preparo**), e não ao entrar na fila. Cancelamento: em **Novo** (fila) nada a devolver; em **Em preparo ou Pronto** a baixa fica e o consumo vira **perda** com o motivo "pedido cancelado", e só volta ao estoque o que a cozinha marcar na hora; em **Em rota ou Entregue** nada volta. Todo cancelamento exige motivo. A passagem para **Em preparo** é manual (o cozinheiro inicia). O pedido entra na fila (Novo) quando o pagamento é aprovado e gera o ticket da cozinha.
+7. **Registro de atividades:** pedidos, compras, estoque, produção e (quando existirem) preços e financeiro gravam uma linha com quando, quem, a área, a ação e um resumo legível, na mesma transação da ação. O registro só recebe linhas novas: ninguém edita nem apaga. A tela **Registro de atividades** filtra por área, número do pedido ou documento e datas.
+8. **Quem fez (provisório):** até o login existir, o topo da tela tem o seletor **Operador** (Kacius ou Irmão); o nome escolhido vai em cada requisição e é gravado no registro. Com o login (S3, no final), o nome passa a vir do usuário.

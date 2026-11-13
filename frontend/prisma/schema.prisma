@@ -30,6 +30,10 @@ model Empresa {
   configuracaoPrecificacao ConfiguracaoPrecificacao?
   canaisPrecificacao      CanalPrecificacao[]
   precosProduto           PrecoProduto[]
+  movimentosEstoque       MovimentoEstoque[]
+  lotesProducao           ProducaoLote[]
+  registrosAtividade      RegistroAtividade[]
+  filaImpressao           FilaImpressao[]
 
   @@index([ativo])
 }
@@ -325,6 +329,7 @@ model Pedido {
   empresa         Empresa      @relation(fields: [empresaId], references: [id])
   enderecoEntrega Endereco?    @relation(fields: [enderecoEntregaId], references: [id], onDelete: Restrict)
   itens           PedidoItem[]
+  filaImpressao   FilaImpressao[]
 
   @@unique([empresaId, numero])
   @@index([empresaId])
@@ -482,6 +487,139 @@ model PrecoProduto {
   @@index([produtoId])
 }
 
+// Cada entrada ou saída de estoque. O saldo é a soma dos movimentos.
+// Quantidade positiva entra; negativa sai. Insumo na unidade de compra do insumo;
+// preparação na unidade de rendimento da ficha.
+model MovimentoEstoque {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // INSUMO ou PREPARACAO
+  itemTipo String
+
+  insumoId       String?
+  fichaTecnicaId String?
+
+  // ENTRADA_COMPRA, ESTORNO_COMPRA, PRODUCAO_CONSUMO, PRODUCAO_ENTRADA, BAIXA_VENDA,
+  // ESTORNO_VENDA, AJUSTE_CONTAGEM, PERDA
+  tipo String
+
+  quantidade Decimal @db.Decimal(14, 4)
+  unidade    String
+
+  // Custo por unidade no momento do movimento (valoriza o estoque).
+  custoUnitario Decimal? @db.Decimal(14, 4)
+
+  motivo String?
+
+  entradaCompraItemId String?
+  pedidoId            String?
+  producaoLoteId      String?
+
+  criadoEm DateTime @default(now())
+
+  empresa      Empresa       @relation(fields: [empresaId], references: [id])
+  insumo       Insumo?       @relation(fields: [insumoId], references: [id], onDelete: Restrict)
+  fichaTecnica FichaTecnica? @relation(fields: [fichaTecnicaId], references: [id], onDelete: Restrict)
+  producaoLote ProducaoLote? @relation(fields: [producaoLoteId], references: [id], onDelete: Restrict)
+
+  @@unique([entradaCompraItemId, tipo])
+  @@index([empresaId, insumoId])
+  @@index([empresaId, fichaTecnicaId])
+  @@index([pedidoId])
+  @@index([producaoLoteId])
+}
+
+// Lote de uma preparação produzido na cozinha (blend, molhos, geleias).
+model ProducaoLote {
+  id String @id @default(uuid())
+
+  empresaId      String
+  fichaTecnicaId String
+
+  // Quanto da receita foi preparado, na unidade de rendimento (ex.: 3000 g).
+  quantidadePlanejada Decimal @db.Decimal(14, 4)
+
+  // Quanto rendeu de verdade depois de pronto (ex.: 2800 g).
+  quantidadeProduzida Decimal @db.Decimal(14, 4)
+
+  unidade String
+
+  // Custo por unidade deste lote (custo dos insumos consumidos / quantidade produzida).
+  custoUnitario Decimal? @db.Decimal(14, 4)
+
+  validade   DateTime?
+  observacao String?
+
+  criadoEm DateTime @default(now())
+
+  empresa      Empresa      @relation(fields: [empresaId], references: [id])
+  fichaTecnica FichaTecnica @relation(fields: [fichaTecnicaId], references: [id])
+  movimentos   MovimentoEstoque[]
+
+  @@index([empresaId, fichaTecnicaId])
+  @@index([empresaId, criadoEm])
+}
+
+// Registro de atividades: só se acrescenta, nunca se edita nem se apaga.
+// Responde "o que aconteceu, quando e quem fez".
+model RegistroAtividade {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // PEDIDO, ENTRADA_COMPRA, ESTOQUE, PRODUCAO, PRECO, FINANCEIRO, FICHA...
+  entidade String
+
+  // Ex.: LANCADO, EM_PREPARO, PRONTO, EM_ROTA, ENTREGUE, CANCELADO, CONFIRMADA, CONTAGEM...
+  acao String
+
+  // Texto pronto para ler (ex.: "Pedido 42 cancelado em preparo. Motivo: cliente desistiu").
+  resumo String
+
+  referenciaId     String?
+  referenciaNumero String?
+
+  // Quem fez: o operador escolhido no topo da tela (depois, o usuário do login).
+  operador String?
+
+  // Dados antes e depois, quando fizer sentido.
+  detalhes Json?
+
+  criadoEm DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId, criadoEm])
+  @@index([empresaId, entidade, referenciaId])
+}
+
+// Tickets esperando impressão (cozinha). O impressor lê esta fila quando existir.
+model FilaImpressao {
+  id String @id @default(uuid())
+
+  empresaId String
+  pedidoId  String
+
+  // TICKET_COZINHA
+  tipo String
+
+  // PENDENTE, IMPRESSO, FALHOU
+  status String @default("PENDENTE")
+
+  tentativas Int @default(0)
+
+  criadoEm   DateTime  @default(now())
+  impressoEm DateTime?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  pedido  Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, status])
+  @@index([pedidoId])
+}
+
 model Insumo {
   id String @id @default(uuid())
 
@@ -504,6 +642,9 @@ model Insumo {
   // Perda de limpeza do insumo (casca, osso, aparas), em %. Vale em qualquer ficha.
   perdaLimpeza Decimal @default(0) @db.Decimal(8, 4)
 
+  // Estoque mínimo, na unidade de compra do insumo (avisa quando o saldo cai abaixo).
+  estoqueMinimo Decimal? @db.Decimal(14, 4)
+
   fornecedorId String?
 
   ativo Boolean @default(true)
@@ -523,6 +664,7 @@ model Insumo {
 
   fichaTecnicaItens FichaTecnicaItem[]
   historicoPrecos   HistoricoPrecoInsumo[]
+  movimentosEstoque MovimentoEstoque[]
 
   itensEntradaCompra       EntradaCompraItem[]
   classificacoesItemCompra ClassificacaoItemCompra[]
@@ -581,10 +723,15 @@ model FichaTecnica {
   porcaoQuantidade Decimal? @db.Decimal(12, 4)
   porcaoUnidade    String?
 
+  // Estoque mínimo da preparação, na unidade de rendimento.
+  estoqueMinimo Decimal? @db.Decimal(14, 4)
+
   empresa             Empresa            @relation(fields: [empresaId], references: [id])
   produto             Produto?           @relation(fields: [produtoId], references: [id])
   itens               FichaTecnicaItem[]
   itensComoPreparacao FichaTecnicaItem[] @relation("FichaTecnicaPreparacao")
+  movimentosEstoque   MovimentoEstoque[]
+  lotesProducao       ProducaoLote[]
 
   @@index([empresaId])
   @@index([empresaId, produtoId])
@@ -611,7 +758,7 @@ model FichaTecnicaItem {
   atualizadoEm    DateTime @updatedAt
 
   fichaTecnica FichaTecnica  @relation(fields: [fichaTecnicaId], references: [id], onDelete: Cascade)
-  insumo       Insumo?       @relation(fields: [insumoId], references: [id])
+  insumo       Insumo?       @relation(fields: [insumoId], references: [id], onDelete: Restrict)
   preparacao   FichaTecnica? @relation("FichaTecnicaPreparacao", fields: [preparacaoId], references: [id])
 
   @@index([fichaTecnicaId])

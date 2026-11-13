@@ -4,6 +4,10 @@ import {
 } from "next/server";
 
 import {
+  operadorDaRequisicao,
+} from "@/modules/atividades/services/operador";
+
+import {
   criarEntradaCompraServicePostgres,
 } from "@/modules/compras/services/server/entradaCompraServiceFactory";
 
@@ -61,7 +65,8 @@ export async function POST(
     const entrada =
       await entradaCompraService.cancelarEntradaCompra(
         id,
-        body.motivo.trim()
+        body.motivo.trim(),
+        operadorDaRequisicao(request)
       );
 
     return NextResponse.json({

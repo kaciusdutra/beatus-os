@@ -1,8 +1,29 @@
 "use client";
 
+import { useEffect, useSyncExternalStore } from "react";
+
 import { currentUser } from "@/core/permissions/currentUser";
 
+import {
+  OPERADORES,
+  assinarOperador,
+  guardarOperador,
+  instalarOperadorNasRequisicoes,
+  lerOperador,
+} from "@/shared/operador/operador";
+
 export default function Topbar() {
+  // Operador provisório até o login existir (grava o nome no registro de atividades).
+  const operador = useSyncExternalStore(
+    assinarOperador,
+    lerOperador,
+    () => OPERADORES[0]
+  );
+
+  useEffect(() => {
+    instalarOperadorNasRequisicoes();
+  }, []);
+
   const nome = currentUser.nome;
   const inicial = nome.charAt(0).toUpperCase();
 
@@ -28,6 +49,22 @@ export default function Topbar() {
 
       {/* Área do usuário */}
       <div className="flex items-center gap-4">
+        {/* Operador */}
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          Operador
+          <select
+            value={operador}
+            onChange={(evento) => guardarOperador(evento.target.value)}
+            className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm font-semibold text-slate-800"
+          >
+            {OPERADORES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </label>
+
         {/* Notificações */}
         <button
           type="button"

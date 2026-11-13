@@ -35,6 +35,10 @@ import {
   InsumoRepositoryPort,
 } from "@/modules/insumos/repositories/insumoRepositoryPort";
 
+import type {
+  EstoqueDaCompraPort,
+} from "./estoqueDaCompraPort";
+
 import {
   aplicarPrecoNoInsumo,
   calcularCustoDaCompra,
@@ -593,7 +597,9 @@ export class EntradaCompraService {
       FornecedorRepositoryPort,
 
     private readonly insumoRepository:
-      InsumoRepositoryPort
+      InsumoRepositoryPort,
+
+    private readonly estoque?: EstoqueDaCompraPort
   ) {}
 
   async buscarPorId(
@@ -821,7 +827,8 @@ export class EntradaCompraService {
   }
 
   async confirmarEntradaCompra(
-    entradaId: string
+    entradaId: string,
+    operador?: string | null
   ): Promise<EntradaCompra> {
     const existente =
       await this.repository.buscarPorId(
@@ -890,6 +897,14 @@ export class EntradaCompraService {
       resultado;
 
     const { avisos } = await this.aplicarCustosDaEntrada(final);
+
+    await this.estoque?.registrarAtividade({
+      acao: "CONFIRMADA",
+      resumo: `Entrada de compra${final.numeroDocumento ? ` ${final.numeroDocumento}` : ""} confirmada: ${final.itens.length} item(ns), R$ ${final.valorTotal.toFixed(2)}.`,
+      referenciaId: final.id,
+      referenciaNumero: final.numeroDocumento,
+      operador,
+    });
 
     return { ...final, avisosCusto: avisos };
   }
@@ -980,12 +995,15 @@ export class EntradaCompraService {
       return { avisos, processados };
     }
 
-    const jaRegistrados = new Set(
+    const jaRegistrados = new Map(
       (
         await this.repository.buscarHistoricoDosItens(
           itens.map((item) => item.id)
         )
-      ).map((registro) => registro.entradaCompraItemId)
+      ).map((registro) => [
+        registro.entradaCompraItemId,
+        registro,
+      ])
     );
 
     const dataCompra =
@@ -1021,7 +1039,32 @@ export class EntradaCompraService {
     const freteTotal = entrada.valorFrete > 0 ? entrada.valorFrete : 0;
 
     for (const item of itens) {
-      if (jaRegistrados.has(item.id) || !item.insumoId) {
+      if (!item.insumoId) {
+        continue;
+      }
+
+      // Já tem custo registrado: garante só a entrada no estoque (idempotente),
+      // que cobre as compras confirmadas antes do estoque existir.
+      if (jaRegistrados.has(item.id)) {
+        if (
+          item.quantidadeConvertida !== undefined &&
+          item.unidadeConvertida
+        ) {
+          try {
+            await this.estoque?.registrarEntrada({
+              entradaCompraItemId: item.id,
+              insumoId: item.insumoId,
+              quantidade: item.quantidadeConvertida,
+              unidade: item.unidadeConvertida,
+              custoUnitario:
+                jaRegistrados.get(item.id)?.precoPorUnidade ?? 0,
+              documento: entrada.numeroDocumento,
+            });
+          } catch {
+            // o estoque não bloqueia a compra
+          }
+        }
+
         continue;
       }
 
@@ -1078,6 +1121,16 @@ export class EntradaCompraService {
           resultado.quantidadeConvertida,
           resultado.unidadeConvertida
         );
+
+        // Bloco do estoque: a compra confirmada entra no estoque do insumo.
+        await this.estoque?.registrarEntrada({
+          entradaCompraItemId: item.id,
+          insumoId: insumo.id,
+          quantidade: resultado.quantidadeConvertida,
+          unidade: resultado.unidadeConvertida,
+          custoUnitario: resultado.precoPorUnidade,
+          documento: entrada.numeroDocumento,
+        });
 
         const historico = ordenarHistorico(
           await this.repository.listarHistoricoPorInsumo(
@@ -1577,7 +1630,8 @@ export class EntradaCompraService {
 
   async cancelarEntradaCompra(
     entradaId: string,
-    motivo: string
+    motivo: string,
+    operador?: string | null
   ): Promise<EntradaCompra> {
     const existente =
       await this.repository.buscarPorId(
@@ -1629,6 +1683,20 @@ export class EntradaCompraService {
 
     // Bloco 8C: o custo volta para a compra anterior.
     await this.reverterCustosDaEntrada(existente);
+
+    // O que entrou no estoque por esta compra sai de volta.
+    await this.estoque?.estornarEntradas(
+      existente.itens.map((item) => item.id),
+      operador
+    );
+
+    await this.estoque?.registrarAtividade({
+      acao: "CANCELADA",
+      resumo: `Entrada de compra${existente.numeroDocumento ? ` ${existente.numeroDocumento}` : ""} cancelada. Motivo: ${motivo.trim()}`,
+      referenciaId: existente.id,
+      referenciaNumero: existente.numeroDocumento,
+      operador,
+    });
 
     return resultadoCancelamento;
   }

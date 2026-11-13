@@ -47,7 +47,7 @@ export function calcularAproveitamento(
 }
 
 // Quanto da unidade de compra a ficha usa.
-function quantidadeNaUnidadeDeCompra(
+export function quantidadeNaUnidadeDeCompra(
   dados: DadosCustoItem
 ): number {
   const direta = converterSeCompativel(

@@ -3,6 +3,10 @@ import {
 } from "next/server";
 
 import {
+  operadorDaRequisicao,
+} from "@/modules/atividades/services/operador";
+
+import {
   criarEntradaCompraServicePostgres,
 } from "@/modules/compras/services/server/entradaCompraServiceFactory";
 
@@ -10,7 +14,7 @@ const entradaCompraService =
   criarEntradaCompraServicePostgres();
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: {
     params: Promise<{
       id: string;
@@ -23,7 +27,8 @@ export async function POST(
 
     const entrada =
       await entradaCompraService.confirmarEntradaCompra(
-        id
+        id,
+        operadorDaRequisicao(request)
       );
 
     return NextResponse.json({
