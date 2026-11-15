@@ -308,6 +308,28 @@ Endereço direto: `/operacao` (menu Checklist) e `/operacao/editar` (editar a li
 | 177 | Em `/atividades` (área Operação) | Aparecem itens marcados, conclusão, reabertura e mudanças na lista, com quem fez |
 | 178 | Numa segunda ou terça (dia de produção) abra `/operacao` | Vem o checklist "Dia de produção" com o estoque do dia |
 
+## Parte 19: Modo celular e QR
+
+Endereços: `/celular` (modo celular), `/estoque/qr` (imprimir QR dos insumos) e `/q/insumo/<id>`, `/q/lote/<id>` (o que o QR abre). Para testar a câmera é preciso abrir o sistema por https; sem isso, use o campo "cole o link do QR".
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 179 | No celular (ou com a janela estreita), abra o sistema | O menu lateral vira uma gaveta, aberta pelo botão ☰; nada passa da largura da tela |
+| 180 | Abra `/celular` | Checklist de hoje, ler QR, temperatura, ajustes para amanhã e conferidos de hoje |
+| 181 | Em Estoque, clique em **QR dos insumos**, marque dois insumos e imprima (ou veja a prévia) | Uma etiqueta por insumo, com QR, nome e unidade, no tamanho do rolo escolhido |
+| 182 | Leia o QR de um insumo (ou cole o link) | Abre a ficha: nome, saldo, mínimo e últimos movimentos |
+| 183 | Toque em **Está certo** | Aparece "Conferido hoje às ... por ..."; o item entra em "Conferido hoje" |
+| 184 | **Contar**, com a quantidade e sem motivo | O saldo muda e o movimento "Ajuste de contagem" aparece nos movimentos |
+| 185 | **Perda** sem motivo | Recusa pedindo o motivo |
+| 186 | **Anotar para amanhã** com um texto | Aparece em "Ajustes para amanhã" no `/celular` |
+| 187 | No quadro do estoque, abra a etiqueta de um lote | A etiqueta traz o QR; o campo "Endereço do sistema dentro do QR" fica nos controles |
+| 188 | Leia o QR do lote | Mostra onde o lote está agora, a quantidade e a validade, com mover, descartar e etiqueta |
+| 189 | No checklist de **abertura**, veja o painel "Do dia anterior" | Lista o que foi anotado e ainda não resolvido; **Resolvido** tira da lista |
+| 190 | No mesmo checklist, use **Conferir o estoque pelo QR** | A ficha do item abre ali; o item entra em "Conferido hoje" |
+| 191 | No checklist de **fechamento**, anote um ajuste para amanhã | Aparece na lista; no dia seguinte, na abertura, em "Do dia anterior" |
+| 192 | Em `/atividades`, filtre a área Operação e a área Estoque | Aparecem os ajustes anotados e resolvidos e as conferências, com quem fez |
+| 193 | Abra o endereço do QR de um item que foi desativado | Mensagem "Item não encontrado", sem erro técnico |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

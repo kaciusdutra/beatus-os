@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 
 import Link from "next/link";
 
+import CampoEnderecoDoQr, { useEnderecoDoQr } from "@/modules/qr/components/CampoEnderecoDoQr";
+
+import QrImagem from "@/modules/qr/components/QrImagem";
+
+import { linkDoQr } from "@/modules/qr/services/qr";
+
 import type { DadosDaEtiqueta } from "../types/estoque";
 
 interface Props {
@@ -17,9 +23,9 @@ interface Props {
 
 // Tamanhos de etiqueta comuns em rolo (largura x altura, em mm) e o corpo do texto.
 const TAMANHOS = [
-  { valor: "60x40", largura: 60, altura: 40, fonte: 8.5 },
-  { valor: "100x50", largura: 100, altura: 50, fonte: 11 },
-  { valor: "50x30", largura: 50, altura: 30, fonte: 7 },
+  { valor: "60x40", largura: 60, altura: 40, fonte: 8.5, qr: 18 },
+  { valor: "100x50", largura: 100, altura: 50, fonte: 11, qr: 26 },
+  { valor: "50x30", largura: 50, altura: 30, fonte: 7, qr: 13 },
 ] as const;
 
 function dataHora(iso?: string): string {
@@ -41,6 +47,8 @@ export default function EtiquetaPage({ parametros }: Props) {
     useState<(typeof TAMANHOS)[number]["valor"]>("60x40");
 
   const [copias, setCopias] = useState("1");
+
+  const enderecoDoQr = useEnderecoDoQr();
 
   useEffect(() => {
     void (async () => {
@@ -173,6 +181,8 @@ export default function EtiquetaPage({ parametros }: Props) {
               />
             </div>
 
+            {parametros.producaoLoteId && <CampoEnderecoDoQr />}
+
             <button
               type="button"
               onClick={() => void imprimir()}
@@ -211,6 +221,8 @@ export default function EtiquetaPage({ parametros }: Props) {
                   <span>{etiqueta.loteCodigo}</span>
                 </div>
 
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1mm" }}>
+                  <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: `${medidas.fonte + 2}pt`, marginTop: "0.5mm" }}>
                   {etiqueta.nome}
                 </div>
@@ -233,6 +245,15 @@ export default function EtiquetaPage({ parametros }: Props) {
                 </div>
 
                 <div>Resp.: {etiqueta.responsavel ?? "—"}</div>
+                  </div>
+
+                  {parametros.producaoLoteId && enderecoDoQr && (
+                    <QrImagem
+                      conteudo={linkDoQr(enderecoDoQr, "lote", parametros.producaoLoteId)}
+                      style={{ width: `${medidas.qr}mm`, height: `${medidas.qr}mm`, flexShrink: 0 }}
+                    />
+                  )}
+                </div>
 
                 {etiqueta.avisos.map((aviso) => (
                   <div

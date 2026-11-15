@@ -78,7 +78,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Fidelização de clientes (próximo bloco, regras 17.1 a 17.4):** (1) **cartão-convite para a embalagem** com um código de campanha, que o cliente do marketplace cita ao pedir direto (WhatsApp) para ganhar o benefício da primeira compra, e o sistema mede quantos vieram do marketplace; (2) cliente recorrente e categorias, calculados dos pedidos reais; (3) **sugestão do melhor benefício** por perfil, pela margem; (4) campanhas com lista de clientes e mensagem pronta; (5) benefícios aplicados aos poucos: pagar na entrega (regra 4.3), desconto em %, brinde, cupom de aniversário. Exige mexer no cálculo de desconto do pedido e provavelmente nova migração. QR code no cartão depende de autorização para uma biblioteca nova.
 - [ ] Exceção para cliente recorrente ligada ao clube de vantagens (em espera, desligada).
 - [x] **Pix copia e cola nos canais próprios (15/11/2026, migração `add_pix_configuracao_financeira`):** chave configurável, valor calculado no servidor, painel no PDV, confirmação manual e txid no histórico do pedido. Regras 19.1 a 19.6.
-- [ ] **QR code do Pix em imagem** (e o QR do cartão-convite da embalagem): depende de autorização para uma biblioteca nova. Hoje só o copia e cola.
+- [ ] **QR code do Pix em imagem** (e o QR do cartão-convite da embalagem): a biblioteca `qrcode` já está no projeto (autorizada em 15/11/2026); falta ligar ao painel do Pix e ao cartão-convite. Hoje só o copia e cola.
 - [ ] **Link de cartão e confirmação automática do Pix:** exigem um banco ou intermediário de pagamento com API e webhook (credenciais no `.env`); o ponto de encaixe é o status do pagamento do pedido.
 - [ ] **Cobrança Pix antes do pedido existir (WhatsApp/Beatriz):** hoje o pedido só é lançado depois de pago; para a Beatriz cobrar e só então lançar, será preciso guardar a cobrança pendente (e, no futuro, um estado "aguardando pagamento").
 
@@ -91,6 +91,8 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Remover componentes sem uso da tela antiga de horários** (`OperationScheduleCard`), com autorização.
 - [x] Mostrar o estoque atualizado do dia na abertura do sistema (painel "Estoque do dia" no checklist, regra 8.14).
 - [x] Diário da operação gravado em logs (Registro de atividades, área Operação).
+
+- [x] **Modo celular com QR (pedido do Kacius em 15/11/2026), implementado:** tela do celular, QR por insumo e por lote, leitor, conferência na abertura e ajustes para amanhã no fechamento (regras 21.1 a 21.7). Falta, fora desta entrega: **hospedagem em https** (para a câmera) e **login e permissões** (S3) antes de abrir o acesso de fora. Texto original do pedido: PWA dentro do mesmo sistema para o checklist, a temperatura e o estoque do dia no celular; **QR por insumo** (abre a ficha do item: saldo, validade, baixa, descarte) **e QR por cartão/lote do quadro** (abre o cartão: conferir, descongelar, descartar), lidos pela câmera. Tudo grava no banco e no Registro de atividades. Pensado para **funcionários futuros**: as telas e rotas já nascem separadas por papel, e as restrições entram com o login e as permissões (S3). Depende de: (1) **hospedagem em HTTPS**, que o cardápio online já exige (a câmera só funciona em HTTPS); (2) **autorização de uma biblioteca de QR** (leitura no iPhone e geração das etiquetas; junta com a etiqueta do lote e o cartão-convite); (3) **login e permissões** antes de abrir o acesso fora do estabelecimento. Etapa 1 (sem dependências): telas do checklist e da temperatura bem usáveis no celular.
 
 ## G05 e G06: Produção e estoque
 
@@ -126,7 +128,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [x] **Estoque e produção, bloco 2 concluído** (migração `add_kanban_gavetas_validade_etiquetas`): quadro kanban do estoque das preparações (freezer, geladeira, descongelando, cozinha, sobra, descartar), gavetas nomeadas, validade pela temperatura do freezer com prazos editáveis (Portaria CVS 3/2026, a conferir), produção com divisão por gaveta e etiquetas para imprimir (lote congelado, descongelado, sobra, resfriado). Regras 11.9 a 11.12.
 - [ ] **Conferir a tabela de validade no texto oficial da CVS 3/2026:** os prazos vieram de uma transcrição na internet; confirmar o art. 44 no PDF oficial e ajustar em Estoque → Gavetas e regras. *(Kacius)*
 - [ ] **Medir a temperatura do freezer e a capacidade de cada gaveta** e informar em Estoque → Gavetas e regras (sem a temperatura vale 30 dias). *(Kacius)*
-- [ ] **QR code na etiqueta:** exige uma biblioteca nova no projeto (depende de autorização). Hoje a etiqueta leva o código do lote em texto. *(12/11/2026)*
+- [x] **QR code na etiqueta (feito junto do modo celular; biblioteca `qrcode` autorizada em 15/11/2026):** Hoje a etiqueta leva o código do lote em texto. *(12/11/2026)*
 - [ ] **Impressora térmica de etiquetas:** hoje a etiqueta sai pela impressão do navegador, no tamanho do rolo. Quando a impressora for comprada, ajustar o papel nas configurações dela ou ligar impressão direta. *(12/11/2026)*
 - [x] **Baixa por venda a partir da coluna "Na cozinha"** (primeiro a vencer, primeiro a sair): feita com a cozinha. *(12/11/2026)*
 - [ ] **Quadro kanban: arrastar e soltar** os cartões (hoje há botões por cartão). *(12/11/2026)*

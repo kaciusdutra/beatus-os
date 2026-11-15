@@ -12,7 +12,12 @@ import {
   lerOperador,
 } from "@/shared/operador/operador";
 
-export default function Topbar() {
+interface Props {
+  // Abre o menu lateral (só aparece no celular).
+  onMenu?: () => void;
+}
+
+export default function Topbar({ onMenu }: Props) {
   // Operador provisório até o login existir (grava o nome no registro de atividades).
   const operador = useSyncExternalStore(
     assinarOperador,
@@ -35,23 +40,34 @@ export default function Topbar() {
         : "Usuário";
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm print:hidden">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 shadow-sm sm:px-6 print:hidden">
       {/* Identificação do sistema */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">
-          Central de Operações
-        </h2>
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={onMenu}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg lg:hidden"
+          aria-label="Abrir o menu"
+        >
+          ☰
+        </button>
 
-        <p className="text-xs text-slate-500">
-          Beatus OS
-        </p>
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-bold text-slate-800 sm:text-xl">
+            Central de Operações
+          </h2>
+
+          <p className="hidden text-xs text-slate-500 sm:block">
+            Beatus OS
+          </p>
+        </div>
       </div>
 
       {/* Área do usuário */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Operador */}
         <label className="flex items-center gap-2 text-xs text-slate-500">
-          Operador
+          <span className="hidden sm:inline">Operador</span>
           <select
             value={operador}
             onChange={(evento) => guardarOperador(evento.target.value)}
@@ -68,7 +84,7 @@ export default function Topbar() {
         {/* Notificações */}
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg transition hover:bg-slate-50"
+          className="hidden h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg transition hover:bg-slate-50 sm:flex"
           aria-label="Notificações"
         >
           🔔

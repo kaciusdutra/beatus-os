@@ -6,6 +6,10 @@ import Link from "next/link";
 
 import { useSystem } from "@/core/system/SystemContext";
 
+import ConferirPorQr from "@/modules/qr/components/ConferirPorQr";
+
+import AjustesParaAmanha from "../components/AjustesParaAmanha";
+
 import { carregarChecklistDoServidor } from "../services/checklistService";
 
 import type { ChecklistDoDia, ChecklistDoTipo, EstoqueDoDia } from "../services/checklistDoDiaService";
@@ -338,6 +342,10 @@ export default function OperacaoPage() {
           <p className="mt-1 text-sm font-semibold text-slate-700">{TEXTO_DO_ESTADO[systemState.operation] ?? ""}</p>
         </div>
 
+        <Link href="/celular" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+          📱 Modo celular
+        </Link>
+
         <Link href="/operacao/editar" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
           Editar a lista
         </Link>
@@ -373,7 +381,11 @@ export default function OperacaoPage() {
 
       {atual && (
         <>
+          {(atual.tipo === "ABERTURA" || atual.tipo === "PRODUCAO") && <AjustesParaAmanha modo="VER" />}
+
           {(atual.tipo === "ABERTURA" || atual.tipo === "PRODUCAO") && estoque && <EstoqueDoDiaPainel estoque={estoque} />}
+
+          {(atual.tipo === "ABERTURA" || atual.tipo === "PRODUCAO") && <ConferirPorQr />}
 
           <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -411,6 +423,8 @@ export default function OperacaoPage() {
                 <Item key={item.id} item={item} bloqueado={atual.concluido} onMarcar={marcar} />
               ))}
             </ul>
+
+            {atual.tipo === "FECHAMENTO" && <AjustesParaAmanha modo="ANOTAR" />}
 
             {!atual.concluido && (
               <button

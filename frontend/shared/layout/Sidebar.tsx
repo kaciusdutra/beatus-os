@@ -7,7 +7,13 @@ import { useSystem } from "@/core/system/SystemContext";
 import { moduleRegistry } from "@/core/modules/moduleRegistry";
 import { verificarAcesso } from "@/core/permissions/accessControl";
 
-export default function Sidebar() {
+interface Props {
+  // No celular o menu é uma gaveta: `aberto` mostra, `onNavegar` fecha ao tocar num link.
+  aberto?: boolean;
+  onNavegar?: () => void;
+}
+
+export default function Sidebar({ aberto = false, onNavegar }: Props) {
   const pathname = usePathname();
 
   const { systemState } = useSystem();
@@ -58,7 +64,11 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex min-h-screen w-64 shrink-0 flex-col bg-slate-950 text-white print:hidden">
+    <aside
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-slate-950 text-white transition-transform duration-200 lg:static lg:z-auto lg:min-h-screen lg:translate-x-0 print:hidden ${
+        aberto ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       {/* Identidade */}
       <div className="border-b border-slate-800 p-6">
         <div className="text-xl font-bold">
@@ -141,6 +151,18 @@ export default function Sidebar() {
           })}
         </ul>
       </nav>
+
+      <div className="border-t border-slate-800 p-4">
+        <Link
+          href="/celular"
+          onClick={onNavegar}
+          className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition hover:bg-slate-800"
+        >
+          <span>📱</span>
+
+          <span>Modo celular</span>
+        </Link>
+      </div>
 
       {/* Estado operacional */}
       <div className="border-t border-slate-800 p-4">
