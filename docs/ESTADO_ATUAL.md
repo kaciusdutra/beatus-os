@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 15/11/2026 | `PENDENTE` | G04 bloco 2: checklist persistido e editável (abertura, fechamento e dia de produção), itens automáticos (temperatura, cartões vencidos, estoque mínimo), estoque do dia, concluir e reabrir, aviso no Dashboard e diário; só avisa, não bloqueia (migração); regras 8.11 a 8.14 |
+| 15/11/2026 | `e1cf704` | G04 bloco 2: checklist persistido e editável (abertura, fechamento e dia de produção), itens automáticos (temperatura, cartões vencidos, estoque mínimo), estoque do dia, concluir e reabrir, aviso no Dashboard e diário; só avisa, não bloqueia (migração); regras 8.11 a 8.14 |
 | 15/11/2026 | `4d1478a` | G04 bloco 1: horários persistidos (padrão da rotina), exceções por dia ou período, calendário com feriados e pendência em dia de produção, estado da operação vindo do banco e diário; tela em Configurações → Horários (migração); regras 8.7 a 8.10 |
 | 15/11/2026 | `d54d58d` | G11: núcleo da Beatriz (IA anota o pedido; o sistema confere com o cardápio e calcula os valores; casos sensíveis vão para uma pessoa; tela de teste); ainda sem teste com a IA real; regras 20.1 a 20.8 (sem migração) |
 | 15/11/2026 | `a12c9b4` | G03: Pix copia e cola nos canais próprios (chave configurável, valor calculado no servidor, painel no PDV, confirmação manual, txid no histórico) (migração); regras 19.1 a 19.6 |
