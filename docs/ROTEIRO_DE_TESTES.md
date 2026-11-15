@@ -435,6 +435,10 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 255 | Cancele o pedido na Cozinha | A página mostra o aviso de cancelado, sem linha do tempo |
 | 256 | Em um pedido do site ou do WhatsApp, mude na Cozinha para Em preparo, Pronto, Em rota e Entregue | No detalhe do pedido (Pedidos), "Avisos ao cliente" mostra 3 avisos: em preparo, a caminho e entregue, "aguardando envio"; Pronto não gera aviso |
 | 257 | Faça o mesmo em um pedido do iFood | Nenhum aviso |
+| 258 | Abra `/cardapio?utm_source=instagram&utm_medium=paid&utm_campaign=clube-outubro&utm_content=video_1` | O site abre normal (nada aparece na tela) |
+| 259 | Faça um pedido pelo checkout, pague no sandbox e abra o detalhe do pedido em Pedidos | Aparece "Campanha · instagram / paid / clube-outubro / video_1" |
+| 260 | Faça outro pedido de um navegador que nunca abriu link de anúncio | O detalhe do pedido não mostra campanha |
+| 261 | Faça um pedido pelo PDV | O detalhe do pedido não mostra campanha |
 
 ## O que anotar
 
