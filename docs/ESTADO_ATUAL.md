@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 15/11/2026 | `4d1478a` | G04 bloco 1: horários persistidos (padrão da rotina), exceções por dia ou período, calendário com feriados e pendência em dia de produção, estado da operação vindo do banco e diário; tela em Configurações → Horários (migração); regras 8.7 a 8.10 |
 | 15/11/2026 | `d54d58d` | G11: núcleo da Beatriz (IA anota o pedido; o sistema confere com o cardápio e calcula os valores; casos sensíveis vão para uma pessoa; tela de teste); ainda sem teste com a IA real; regras 20.1 a 20.8 (sem migração) |
 | 15/11/2026 | `a12c9b4` | G03: Pix copia e cola nos canais próprios (chave configurável, valor calculado no servidor, painel no PDV, confirmação manual, txid no histórico) (migração); regras 19.1 a 19.6 |
 | 13/11/2026 | `b02dc61` | Marketplace como pedido normal: vínculo automático dos itens, correção dos pedidos em Novo ao ligar e conferência do dia por canal (vendido, entrou, a receber, comissão, diferença); regras 16.7, 16.8 e 18.1 a 18.4 (sem migração) |
