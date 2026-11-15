@@ -405,6 +405,9 @@ export class LancarPedidoServicePostgres {
             valor:
               calculado.total,
 
+            transacaoExterna:
+              solicitado.pagamento?.transacaoExterna,
+
             cobrancaNoPdvHabilitada:
               entrada === "MANUAL",
 
@@ -456,6 +459,11 @@ export class LancarPedidoServicePostgres {
         // Marketplace: guarda o código, a entrega da plataforma e o que ela deve
         // repassar (total menos a comissão do canal), aguardando conferência.
         let complementoDoResumo = "";
+
+        // Pagamento por Pix: o identificador da cobrança fica no histórico do pedido.
+        if (!ehMarketplace && solicitado.pagamento?.transacaoExterna) {
+          complementoDoResumo = ` Pix ${solicitado.pagamento.transacaoExterna}.`;
+        }
 
         if (ehMarketplace) {
           const canalDePreco = await tx.canalPrecificacao.findFirst({

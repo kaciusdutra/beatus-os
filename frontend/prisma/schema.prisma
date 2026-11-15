@@ -1009,6 +1009,12 @@ model ConfiguracaoFinanceira {
   saldoInicial   Decimal   @default(0) @db.Decimal(12, 2)
   saldoInicialEm DateTime?
 
+  // Pix do Beatus (G03): a chave e os dados do recebedor para gerar o Pix copia e cola.
+  // A chave Pix não é segredo (aparece para o cliente); nada de credencial aqui.
+  pixChave          String?
+  pixNomeRecebedor  String?
+  pixCidade         String?
+
   atualizadoEm DateTime @updatedAt
 
   empresa Empresa @relation(fields: [empresaId], references: [id])

@@ -79,5 +79,8 @@ export interface PedidoSolicitado {
     forma: FormaPagamento;
 
     status: StatusPagamento;
+
+    // Identificador da cobrança Pix (txid), guardado no histórico do pedido.
+    transacaoExterna?: string;
   };
 }

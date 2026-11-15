@@ -10,6 +10,7 @@ import PdvCatalogo from "../components/PdvCatalogo";
 import PdvComanda from "../components/PdvComanda";
 import PdvClienteModal from "../components/PdvClienteModal";
 import PdvComandaMarketplace from "../components/PdvComandaMarketplace";
+import type { PixDoPdv } from "../components/PdvPix";
 import PdvNovoEnderecoModal from "../components/PdvNovoEnderecoModal";
 
 import {
@@ -62,6 +63,13 @@ export default function PdvPage() {
 
   const [origem, setOrigem] =
     useState<CanalPedido>("PDV");
+
+  // Pix gerado para o pedido; vale só enquanto o pedido não mudar (assinatura).
+  const [pixGerado, setPixGerado] = useState<(PixDoPdv & { assinatura: string }) | null>(null);
+
+  const [gerandoPix, setGerandoPix] = useState(false);
+
+  const [erroDoPix, setErroDoPix] = useState("");
 
   const [entrada, setEntrada] =
     useState<EntradaPedido>(
@@ -1249,6 +1257,70 @@ export default function PdvPage() {
     };
   }
 
+  // O que define o pedido para o Pix: se mudar, o código gerado deixa de valer.
+  const assinaturaDoPedido = JSON.stringify([
+    origem,
+    distanciaEntregaKm,
+    itens.map((item) => [
+      item.produtoId,
+      item.quantidade,
+      (item.adicionais ?? []).map((adicional) => [adicional.id, adicional.quantidade]),
+    ]),
+  ]);
+
+  const pixDoPedido =
+    pixGerado && pixGerado.assinatura === assinaturaDoPedido ? pixGerado : null;
+
+  // O valor do Pix é o total calculado pelo servidor, nunca o da tela.
+  async function gerarPix() {
+    try {
+      setGerandoPix(true);
+
+      setErroDoPix("");
+
+      const resposta = await fetch("/api/pix/cobranca", {
+        method: "POST",
+
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify({
+          canal: origem,
+
+          distanciaEntregaKm,
+
+          itens: itens.map((item) => ({
+            produtoId: item.produtoId,
+
+            quantidade: item.quantidade,
+
+            adicionais: item.adicionais?.map((adicional) => ({
+              produtoId: adicional.id,
+
+              quantidade: adicional.quantidade,
+            })),
+          })),
+        }),
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados.sucesso) {
+        throw new Error(dados.mensagem ?? "Não foi possível gerar o Pix.");
+      }
+
+      setPixGerado({
+        copiaECola: dados.cobranca.copiaECola,
+        total: dados.cobranca.valor,
+        txid: dados.cobranca.txid,
+        assinatura: assinaturaDoPedido,
+      });
+    } catch (error) {
+      setErroDoPix(error instanceof Error ? error.message : "Não foi possível gerar o Pix.");
+    } finally {
+      setGerandoPix(false);
+    }
+  }
+
   async function lancarPedido() {
     setMensagem(null);
 
@@ -1425,6 +1497,10 @@ export default function PdvPage() {
         forma: formaPagamento,
 
         status: statusPagamento,
+
+        // Identificador do Pix, quando o pagamento foi por Pix cobrado aqui.
+        transacaoExterna:
+          formaPagamento === "PIX" ? (pixDoPedido?.txid ?? undefined) : undefined,
       },
     };
 
@@ -1469,6 +1545,8 @@ export default function PdvPage() {
       );
 
       setItens([]);
+
+      setPixGerado(null);
 
       limparCliente();
 
@@ -1694,6 +1772,16 @@ export default function PdvPage() {
               onLancarPedido={
                 lancarPedido
               }
+
+              pix={pixDoPedido}
+
+              gerandoPix={gerandoPix}
+
+              erroDoPix={erroDoPix}
+
+              onGerarPix={gerarPix}
+
+              onPixRecebido={() => setStatusPagamento("APROVADO")}
             />
             )}
           </div>

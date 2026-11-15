@@ -77,7 +77,10 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] **Cadastro de cliente fora do PDV** (nome, telefone, CPF, endereço) e **edição de endereços** pela tela Clientes: hoje o cliente novo só entra pelo PDV e os endereços só se consultam.
 - [ ] **Fidelização de clientes (próximo bloco, regras 17.1 a 17.4):** (1) **cartão-convite para a embalagem** com um código de campanha, que o cliente do marketplace cita ao pedir direto (WhatsApp) para ganhar o benefício da primeira compra, e o sistema mede quantos vieram do marketplace; (2) cliente recorrente e categorias, calculados dos pedidos reais; (3) **sugestão do melhor benefício** por perfil, pela margem; (4) campanhas com lista de clientes e mensagem pronta; (5) benefícios aplicados aos poucos: pagar na entrega (regra 4.3), desconto em %, brinde, cupom de aniversário. Exige mexer no cálculo de desconto do pedido e provavelmente nova migração. QR code no cartão depende de autorização para uma biblioteca nova.
 - [ ] Exceção para cliente recorrente ligada ao clube de vantagens (em espera, desligada).
-- [ ] Geração de Pix (QR Code e copia e cola) e de link de cartão nos canais próprios.
+- [x] **Pix copia e cola nos canais próprios (15/11/2026, migração `add_pix_configuracao_financeira`):** chave configurável, valor calculado no servidor, painel no PDV, confirmação manual e txid no histórico do pedido. Regras 19.1 a 19.6.
+- [ ] **QR code do Pix em imagem** (e o QR do cartão-convite da embalagem): depende de autorização para uma biblioteca nova. Hoje só o copia e cola.
+- [ ] **Link de cartão e confirmação automática do Pix:** exigem um banco ou intermediário de pagamento com API e webhook (credenciais no `.env`); o ponto de encaixe é o status do pagamento do pedido.
+- [ ] **Cobrança Pix antes do pedido existir (WhatsApp/Beatriz):** hoje o pedido só é lançado depois de pago; para a Beatriz cobrar e só então lançar, será preciso guardar a cobrança pendente (e, no futuro, um estado "aguardando pagamento").
 
 ## G04: Operação do restaurante
 

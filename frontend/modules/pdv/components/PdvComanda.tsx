@@ -25,6 +25,8 @@ import {
   ItemComanda,
 } from "../types/pdv";
 
+import PdvPix, { type PixDoPdv } from "./PdvPix";
+
 interface Props {
   itens: ItemComanda[];
 
@@ -113,6 +115,17 @@ interface Props {
   ) => void;
 
   onLancarPedido: () => void;
+
+  // Cobrança por Pix (opcional): o painel aparece quando a forma é PIX.
+  pix?: PixDoPdv | null;
+
+  gerandoPix?: boolean;
+
+  erroDoPix?: string;
+
+  onGerarPix?: () => void;
+
+  onPixRecebido?: () => void;
 }
 
 function normalizarTexto(
@@ -299,6 +312,11 @@ export default function PdvComanda({
   onAlterarQuantidade,
   onRemover,
   onLancarPedido,
+  pix = null,
+  gerandoPix = false,
+  erroDoPix = "",
+  onGerarPix,
+  onPixRecebido,
 }: Props) {
   const subtotal = itens.reduce(
     (total, item) =>
@@ -969,6 +987,19 @@ export default function PdvComanda({
                     </option>
                   </select>
                 </label>
+
+                {formaPagamento === "PIX" && onGerarPix && onPixRecebido && (
+                  <PdvPix
+                    pix={pix}
+                    gerando={gerandoPix}
+                    erro={erroDoPix}
+                    podeGerar={itens.length > 0 && entrega.status === "CALCULADO"}
+                    recebido={statusPagamento === "APROVADO"}
+                    totalDaTela={total}
+                    onGerar={onGerarPix}
+                    onRecebido={onPixRecebido}
+                  />
+                )}
               </div>
             ) : (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">

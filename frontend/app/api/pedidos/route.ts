@@ -242,6 +242,11 @@ export async function POST(
 
           status:
             pagamentoDoCorpo.status,
+
+          transacaoExterna:
+            typeof pagamentoDoCorpo.transacaoExterna === "string"
+              ? pagamentoDoCorpo.transacaoExterna.slice(0, 40)
+              : undefined,
         },
       };
 

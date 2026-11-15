@@ -271,3 +271,14 @@
 2. **Entrou:** nos canais próprios, os pagamentos aprovados dos pedidos; nos marketplaces, os **repasses já conferidos** (regra 15.4). **A receber:** o que a plataforma ainda deve (total menos comissão dos pedidos ainda não conferidos). **Diferença:** entrou menos o esperado; nos canais próprios é o que faltou de pagamento, nos marketplaces é o recebido menos o líquido esperado.
 3. A conta sempre fecha: **vendido = entrou + a receber + comissão − diferença**. A tela avisa "✓ a conta fecha" ou "⚠ não fecha". Pedido cancelado fica fora das vendas e só aparece como contagem e valor.
 4. O dia é o da **criação do pedido** (vendas). O **fluxo de caixa** continua pela data do dinheiro: pagamento aprovado nos canais próprios e repasse conferido nos marketplaces.
+
+## 19. Pix (canais próprios)
+
+*(decisões do Kacius em 15/11/2026)*
+
+1. O Beatus gera o **Pix copia e cola** de cada pedido dos canais próprios (PDV, WhatsApp, cardápio online), no padrão do Banco Central, com a **chave Pix do Beatus**, o nome do recebedor e a cidade, configurados em **Financeiro → Pix**. O dinheiro cai direto na conta do Kacius, sem intermediário e sem custo. Pedido de marketplace não usa Pix (a plataforma paga).
+2. O **valor do Pix é sempre o total calculado pelo servidor** (preço do canal mais a taxa de entrega, regra 3.8), nunca o que a tela mostra. Se a tela mostrar outro total, o Pix avisa e vale o do servidor. Preço ou total adulterado na requisição é ignorado.
+3. **Confirmação manual por enquanto:** o operador vê o valor cair no app do banco e marca **"Pagamento recebido"** no PDV, o que libera o lançamento (o pedido só entra na Cozinha com o pagamento aprovado, regra 4.1). O código gerado vale só para o pedido como estava: se os itens, o canal ou a distância mudarem, é preciso gerar de novo.
+4. Cada cobrança tem um **identificador (txid)**, que fica no **histórico do pedido** ("Pix BTS..."), para conferir depois com o extrato do banco.
+5. A tela de configuração tem um **Pix de teste de R$ 1,00**, para o Kacius colar no próprio banco e conferir que aparecem o nome e o valor certos antes de cobrar um cliente. A chave Pix não é segredo (o cliente a vê ao pagar), por isso fica no banco e não no `.env`.
+6. **Fica para depois:** QR code em imagem (exige uma biblioteca nova, ainda não autorizada), link de cartão e **confirmação automática do pagamento**, que dependem de um banco ou intermediário de pagamento com API (credenciais no `.env`, como no iFood).

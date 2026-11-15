@@ -239,6 +239,22 @@ Endereços diretos: `/integracoes/marketplace` e `/financeiro/conferencia-do-dia
 | 136 | Cancele um pedido e volte à conferência | Ele sai de "vendido" e aparece só como cancelado |
 | 137 | Use ← e → para trocar de dia | A conferência acompanha o dia |
 
+## Parte 15: Pix
+
+Endereço direto: `/financeiro/pix` (e o PDV).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 138 | `/financeiro/pix` → informe a **chave Pix** (a sua de verdade), o nome do recebedor e a cidade e **Salvar** | Salva e mostra o tipo da chave reconhecido; chave inválida é recusada |
+| 139 | **Gerar Pix de teste (R$ 1,00)** e copie o código | Aparece o código copia e cola |
+| 140 | No app do **seu banco**, Pix → copia e cola, cole o código (não precisa pagar) | O banco mostra o nome do recebedor e **R$ 1,00**; se aparecer outro nome ou erro, me avise antes de cobrar cliente |
+| 141 | No PDV, monte um pedido com endereço dentro da área e escolha pagamento **PIX** | Aparece o painel "Cobrança por Pix" na seção de pagamento |
+| 142 | **Gerar Pix** | Mostra o valor (itens + entrega, calculado pelo servidor), o código para copiar e o identificador |
+| 143 | Troque a quantidade de um item depois de gerar | O código some (o pedido mudou); gere de novo |
+| 144 | Cole o código no banco | O valor é o total do pedido |
+| 145 | Quando o dinheiro cair, **Pagamento recebido** e lance o pedido | O pedido entra na Cozinha; no histórico em `/pedidos` aparece "Pix BTS..." |
+| 146 | Escolha origem iFood no PDV | O Pix não é oferecido (a plataforma paga) |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

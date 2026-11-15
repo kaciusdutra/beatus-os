@@ -64,6 +64,19 @@ export default function FinanceiroPage() {
         </Link>
 
         <Link
+          href="/financeiro/pix"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            Pix
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Chave Pix do Beatus e o Pix copia e cola de cada pedido.
+          </p>
+        </Link>
+
+        <Link
           href="/financeiro/conferencia-do-dia"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
         >
