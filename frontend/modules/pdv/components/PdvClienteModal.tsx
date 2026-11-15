@@ -227,7 +227,7 @@ export default function PdvClienteModal({
         <div className="shrink-0 border-b border-slate-200 p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-orange-600">
+              <p className="text-xs font-bold uppercase tracking-wide text-ouro-700">
                 Novo cliente
               </p>
 
@@ -284,7 +284,7 @@ export default function PdvClienteModal({
                       )
                     }
                     placeholder="Nome completo"
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                   />
                 </div>
 
@@ -303,7 +303,7 @@ export default function PdvClienteModal({
                     inputMode="numeric"
                     maxLength={14}
                     placeholder="000.000.000-00"
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                   />
                 </div>
 
@@ -322,7 +322,7 @@ export default function PdvClienteModal({
                         event.target.value
                       )
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                   />
                 </div>
 
@@ -340,7 +340,7 @@ export default function PdvClienteModal({
                       )
                     }
                     placeholder="cliente@email.com"
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                   />
                 </div>
               </div>
@@ -450,7 +450,7 @@ export default function PdvClienteModal({
                           )
                         }
                         placeholder="Número"
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                       />
                     </div>
                   </div>
@@ -468,7 +468,7 @@ export default function PdvClienteModal({
                         )
                       }
                       placeholder="Apartamento, casa, referência..."
-                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                     />
                   </div>
                 </div>
@@ -496,7 +496,7 @@ export default function PdvClienteModal({
             <button
               type="button"
               onClick={salvar}
-              className="rounded-xl bg-orange-500 px-5 py-3 font-bold text-white hover:bg-orange-600"
+              className="rounded-xl bg-ouro-600 px-5 py-3 font-bold text-white hover:bg-ouro-700"
             >
               Salvar cliente
             </button>

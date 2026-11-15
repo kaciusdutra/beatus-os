@@ -312,10 +312,10 @@ export default function IntegracaoMarketplacePage() {
       )}
 
       {integracao?.modoSimulacao && (
-        <section className="space-y-3 rounded-2xl border border-dashed border-orange-300 bg-orange-50 p-5">
-          <h2 className="text-lg font-bold text-orange-900">Simular um pedido da plataforma</h2>
+        <section className="space-y-3 rounded-2xl border border-dashed border-ouro-300 bg-ouro-50 p-5">
+          <h2 className="text-lg font-bold text-ouro-900">Simular um pedido da plataforma</h2>
 
-          <p className="text-xs text-orange-800">
+          <p className="text-xs text-ouro-800">
             Testa o caminho inteiro: o pedido entra, é aceito e cai na fila da Cozinha. Use o código do item como ele aparece no
             cardápio da plataforma; item sem vínculo entra pelo preço informado.
           </p>
@@ -339,11 +339,11 @@ export default function IntegracaoMarketplacePage() {
           </div>
 
           <div className="flex gap-3">
-            <button type="button" onClick={() => setSimItens([...simItens, { codigoItemExterno: `SIM-${simItens.length + 1}`, nome: "", quantidade: "1", precoUnitario: "" }])} className="cursor-pointer text-xs font-semibold text-orange-900 underline">
+            <button type="button" onClick={() => setSimItens([...simItens, { codigoItemExterno: `SIM-${simItens.length + 1}`, nome: "", quantidade: "1", precoUnitario: "" }])} className="cursor-pointer text-xs font-semibold text-ouro-900 underline">
               + Outro item
             </button>
 
-            <button type="button" onClick={() => void simular()} className="cursor-pointer rounded-lg bg-orange-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-700">
+            <button type="button" onClick={() => void simular()} className="cursor-pointer rounded-lg bg-ouro-700 px-4 py-2 text-xs font-semibold text-white hover:bg-ouro-800">
               Simular pedido
             </button>
           </div>

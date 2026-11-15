@@ -160,7 +160,7 @@ export default function PdvNovoEnderecoModal({
         <div className="shrink-0 border-b border-slate-200 px-6 py-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-orange-600">
+              <p className="text-xs font-bold uppercase tracking-wide text-ouro-700">
                 Entrega
               </p>
 
@@ -277,7 +277,7 @@ export default function PdvNovoEnderecoModal({
                             )
                           }
                           placeholder="Número"
-                          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                         />
                       </label>
                     </div>
@@ -328,7 +328,7 @@ export default function PdvNovoEnderecoModal({
                           )
                         }
                         placeholder="Apartamento, casa, referência..."
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                       />
                     </label>
                   </div>
@@ -447,7 +447,7 @@ export default function PdvNovoEnderecoModal({
               onClick={
                 usarEndereco
               }
-              className="rounded-xl bg-orange-500 px-5 py-3 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-xl bg-ouro-600 px-5 py-3 font-bold text-white hover:bg-ouro-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               Usar este endereço
             </button>

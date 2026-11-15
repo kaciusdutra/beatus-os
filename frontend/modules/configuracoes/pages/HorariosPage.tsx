@@ -358,7 +358,7 @@ export default function HorariosPage() {
               type="button"
               onClick={() => escolherDia(item)}
               className={`min-h-16 cursor-pointer rounded-lg border p-1.5 text-left text-xs transition hover:brightness-95 ${classeDoDia(item)} ${
-                item.data === diaEscolhido ? "ring-2 ring-slate-900" : item.data === hoje ? "ring-2 ring-orange-400" : ""
+                item.data === diaEscolhido ? "ring-2 ring-slate-900" : item.data === hoje ? "ring-2 ring-ouro-400" : ""
               } ${item.feriadoEmDiaDeProducao ? "outline outline-2 outline-amber-400" : ""}`}
             >
               <span className="block text-sm font-bold">{Number(item.data.slice(8))}</span>

@@ -137,7 +137,7 @@ export default async function Home() {
                       </div>
 
                       <div className="mt-1 h-2 rounded-full bg-slate-100">
-                        <div className="h-2 rounded-full bg-orange-500" style={{ width: `${Math.round((canal.valor / maiorCanal) * 100)}%` }} />
+                        <div className="h-2 rounded-full bg-ouro-600" style={{ width: `${Math.round((canal.valor / maiorCanal) * 100)}%` }} />
                       </div>
                     </li>
                   ))}

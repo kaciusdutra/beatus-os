@@ -95,7 +95,7 @@ export default function PdvEndereco({
           }
           className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold ${
             modoBusca === "CEP"
-              ? "bg-orange-500 text-white"
+              ? "bg-ouro-600 text-white"
               : "bg-slate-100 text-slate-600"
           }`}
         >
@@ -111,7 +111,7 @@ export default function PdvEndereco({
           }
           className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold ${
             modoBusca === "ENDERECO"
-              ? "bg-orange-500 text-white"
+              ? "bg-ouro-600 text-white"
               : "bg-slate-100 text-slate-600"
           }`}
         >
@@ -129,7 +129,7 @@ export default function PdvEndereco({
               )
             }
             placeholder="CEP"
-            className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+            className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
           />
 
           <button
@@ -152,7 +152,7 @@ export default function PdvEndereco({
               )
             }
             placeholder="Rua, bairro ou cidade"
-            className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+            className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
           />
 
           <button
@@ -185,7 +185,7 @@ export default function PdvEndereco({
                     resultado
                   )
                 }
-                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-orange-400 hover:bg-orange-50"
+                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-ouro-400 hover:bg-ouro-50"
               >
                 <p className="font-semibold text-slate-800">
                   {resultado.logradouro}
@@ -206,7 +206,7 @@ export default function PdvEndereco({
 
                 {resultado.distanciaSimuladaKm !==
                   undefined && (
-                  <p className="mt-2 text-xs font-semibold text-orange-600">
+                  <p className="mt-2 text-xs font-semibold text-ouro-700">
                     Distância de teste:{" "}
                     {resultado.distanciaSimuladaKm.toFixed(
                       2

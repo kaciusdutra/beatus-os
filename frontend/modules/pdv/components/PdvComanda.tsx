@@ -459,7 +459,7 @@ export default function PdvComanda({
                       </button>
                     </div>
 
-                    <strong className="shrink-0 text-orange-600">
+                    <strong className="shrink-0 text-ouro-700">
                       R${" "}
                       {item.subtotal.toFixed(
                         2
@@ -493,12 +493,12 @@ export default function PdvComanda({
           </section>
 
           {/* SIMULAÇÃO */}
-          <section className="rounded-xl border border-dashed border-orange-300 bg-orange-50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">
+          <section className="rounded-xl border border-dashed border-ouro-300 bg-ouro-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-ouro-700">
               Simulação
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-orange-700">
+            <p className="mt-1 text-xs leading-5 text-ouro-800">
               Durante o desenvolvimento,
               origem e entrada podem ser
               simuladas. Em produção serão
@@ -606,7 +606,7 @@ export default function PdvComanda({
                     }
                   }}
                   placeholder="(92) 99999-9999"
-                  className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+                  className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
                 />
 
                 <button
@@ -668,7 +668,7 @@ export default function PdvComanda({
                   onClick={
                     onNovoEndereco
                   }
-                  className="text-xs font-bold text-orange-600"
+                  className="text-xs font-bold text-ouro-700"
                 >
                   + Novo endereço
                 </button>
@@ -704,8 +704,8 @@ export default function PdvComanda({
                           }
                           className={`w-full rounded-xl border p-4 text-left transition ${
                             selecionado
-                              ? "border-orange-400 bg-orange-50"
-                              : "border-slate-200 bg-white hover:border-orange-300"
+                              ? "border-ouro-400 bg-ouro-50"
+                              : "border-slate-200 bg-white hover:border-ouro-300"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -749,7 +749,7 @@ export default function PdvComanda({
                               </p>
                             </div>
 
-                            <span className="text-xs text-orange-600">
+                            <span className="text-xs text-ouro-700">
                               {selecionado
                                 ? "Selecionado"
                                 : "Usar"}
@@ -770,8 +770,8 @@ export default function PdvComanda({
               {/* ENDEREÇO NOVO DO PEDIDO */}
               {enderecoSelecionado &&
               !enderecoSalvoSelecionado ? (
-                <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-orange-600">
+                <div className="mt-3 rounded-xl border border-ouro-200 bg-ouro-50 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-ouro-700">
                     Endereço deste pedido
                   </p>
 
@@ -802,7 +802,7 @@ export default function PdvComanda({
                     }
                   </p>
 
-                  <p className="mt-2 text-xs font-semibold text-orange-700">
+                  <p className="mt-2 text-xs font-semibold text-ouro-800">
                     Este endereço está sendo usado nesta venda.
                   </p>
 
@@ -811,7 +811,7 @@ export default function PdvComanda({
                     onClick={
                       onNovoEndereco
                     }
-                    className="mt-3 text-xs font-bold text-orange-700"
+                    className="mt-3 text-xs font-bold text-ouro-800"
                   >
                     Alterar endereço
                   </button>
@@ -1081,7 +1081,7 @@ export default function PdvComanda({
             Total
           </span>
 
-          <span className="text-2xl font-bold text-orange-600">
+          <span className="text-2xl font-bold text-ouro-700">
             R${" "}
             {total.toFixed(
               2
@@ -1097,7 +1097,7 @@ export default function PdvComanda({
           onClick={
             onLancarPedido
           }
-          className="mt-4 w-full rounded-xl bg-orange-500 px-4 py-4 font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-4 w-full rounded-xl bg-ouro-600 px-4 py-4 font-bold text-white transition hover:bg-ouro-700 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {pedidoPodeSerLancado
             ? "Lançar pedido"

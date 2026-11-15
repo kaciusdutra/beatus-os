@@ -28,6 +28,10 @@ As cores estão em `frontend/app/globals.css`. O ícone do app (`public/icone-be
 - Topo do menu lateral (símbolo, "BEATUS", "BURGER DELIVERY") e item ativo do menu em dourado.
 - Ícone do app instalado no celular, aba do navegador e cor da barra do celular.
 
+## Dourado nas telas
+
+O laranja de destaque das telas (PDV, Marketplace, Horários, Dashboard) foi trocado pela escala dourada `ouro-50` a `ouro-900` (`ouro-500` é o dourado da marca). Botões cheios e textos usam um tom mais escuro (600 a 800) para manter a leitura sobre o branco. Fica de fora o componente legado `PedidoStatusBadge`, que será removido.
+
 ## Ainda não aplicado
 
-- Cores de destaque das telas de PDV, Pedidos e Operação (hoje laranja), etiquetas, cardápio online, comprovantes e cartão-convite.
+- Fontes Gelion e Satoshi, etiquetas, comprovantes, cartão-convite e cardápio online.

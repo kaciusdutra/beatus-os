@@ -10,6 +10,16 @@
   --color-foreground: var(--foreground);
   /* Marca Beatus (medidas do manual de identidade) */
   --color-ouro: #c3965b;
+  --color-ouro-50: #faf5ec;
+  --color-ouro-100: #f4e9d6;
+  --color-ouro-200: #ead7b5;
+  --color-ouro-300: #dfc293;
+  --color-ouro-400: #d1ab78;
+  --color-ouro-500: #c3965b;
+  --color-ouro-600: #a97d45;
+  --color-ouro-700: #8c6637;
+  --color-ouro-800: #70512c;
+  --color-ouro-900: #5a4224;
   --color-marca-preto: #000000;
   --color-marca-cinza: #d9d9d9;
   --font-sans: var(--font-geist-sans);

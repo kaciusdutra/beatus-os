@@ -89,7 +89,7 @@ export default function OperationOverviewCard() {
         return "text-blue-600";
 
       case "FECHAMENTO":
-        return "text-orange-600";
+        return "text-ouro-700";
 
       case "FECHADA":
       default:
@@ -109,7 +109,7 @@ export default function OperationOverviewCard() {
         return "bg-blue-50 border-blue-200";
 
       case "FECHAMENTO":
-        return "bg-orange-50 border-orange-200";
+        return "bg-ouro-50 border-ouro-200";
 
       case "FECHADA":
       default:

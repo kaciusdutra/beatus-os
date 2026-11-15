@@ -91,7 +91,7 @@ export default function PdvComandaMarketplace({
             value={codigo}
             onChange={(evento) => setCodigo(evento.target.value)}
             placeholder="Ex.: 7421"
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
           />
         </label>
 
@@ -100,7 +100,7 @@ export default function PdvComandaMarketplace({
           <input
             value={nomeCliente}
             onChange={(evento) => setNomeCliente(evento.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-orange-500"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 outline-none focus:border-ouro-500"
           />
         </label>
       </div>
@@ -141,7 +141,7 @@ export default function PdvComandaMarketplace({
                 </button>
               </div>
 
-              <strong className="shrink-0 text-orange-600">R$ {item.subtotal.toFixed(2)}</strong>
+              <strong className="shrink-0 text-ouro-700">R$ {item.subtotal.toFixed(2)}</strong>
             </div>
           </div>
         ))}
@@ -158,7 +158,7 @@ export default function PdvComandaMarketplace({
           type="button"
           disabled={!podeLancar}
           onClick={() => void lancar()}
-          className="mt-3 w-full cursor-pointer rounded-xl bg-orange-600 px-4 py-4 font-bold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-3 w-full cursor-pointer rounded-xl bg-ouro-700 px-4 py-4 font-bold text-white hover:bg-ouro-800 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           Lançar pedido do {ROTULO[origem] ?? "marketplace"}
         </button>

@@ -1588,7 +1588,7 @@ export default function PdvPage() {
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px] xl:items-start">
             <section className="min-w-0">
               <div className="mb-6">
-                <p className="text-sm font-semibold uppercase tracking-wider text-orange-600">
+                <p className="text-sm font-semibold uppercase tracking-wider text-ouro-700">
                   Ponto de Venda
                 </p>
 
