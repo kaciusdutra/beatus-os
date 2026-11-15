@@ -394,6 +394,21 @@ Antes: configure o `.env` (`docs/CHECKOUT_MERCADO_PAGO.md`), defina o **preço n
 | 235 | Com a casa fechada, tente finalizar | "Não estamos recebendo pedidos agora." e nenhum pagamento é aberto |
 | 236 | Veja o cadastro do cliente criado pelo site | Origem "cardápio online"; a data de nascimento e o e-mail entram só se foram informados |
 
+## Parte 23: Aviso de pedido novo na Cozinha
+
+Endereço: `/cozinha`. Deixe a Cozinha aberta (de preferência no tablet ou no computador da cozinha) e crie um pedido pago por outro canal (por exemplo, pelo PDV com Pix aprovado, ou pelo site).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 237 | Abra a Cozinha | O botão "Toque para ativar o som" aparece; ao abrir, os pedidos que já estavam na fila **não** disparam aviso |
+| 238 | Toque no botão do som | Ele vira "Som ligado" e toca um aviso de teste (3 toques) |
+| 239 | Crie um pedido com pagamento aprovado e espere até 5 segundos | Aparece a faixa verde "Pedido novo #N (canal)", o cartão fica destacado em verde e o som toca |
+| 240 | Veja a aba do navegador | O título mostra "(n) pedidos novos · Cozinha" com o total na fila |
+| 241 | Toque em **Entendi** | A faixa e o destaque saem; o pedido continua em "Novos" |
+| 242 | Com o som desligado, crie outro pedido | O aviso visual aparece, sem som |
+| 243 | Recarregue a página | A escolha do som (ligado ou desligado) continua; o som volta a pedir o toque para liberar |
+| 244 | Mude um pedido para "Em preparo" | Ele sai de "Novos" e não dispara aviso |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

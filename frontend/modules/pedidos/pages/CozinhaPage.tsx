@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 
 import type { PedidoDaCozinha } from "../services/server/operacaoPedidoService";
+
+import { marcarComoVistos, pedidosNovosDaFila, textoDoAlerta, tituloDaAba } from "../services/alertaDaCozinha";
 
 import ConsultaAutomaticaDoMarketplace from "@/modules/marketplace/components/ConsultaAutomaticaDoMarketplace";
 
@@ -29,6 +31,35 @@ const PROXIMO: Record<string, { status: string; rotulo: string } | undefined> = 
   PRONTO: { status: "EM_ROTA", rotulo: "Saiu para entrega" },
   EM_ROTA: { status: "ENTREGUE", rotulo: "Entregue" },
 };
+
+// A cozinha confere a fila a cada poucos segundos: o pedido pago entra sozinho, sem aceite.
+const SEGUNDOS_ENTRE_CONSULTAS = 5;
+
+const CHAVE_DO_SOM = "beatus.cozinha.som";
+
+// Três toques curtos, sem arquivo de áudio.
+function tocarAviso(contexto: AudioContext): void {
+  const inicio = contexto.currentTime;
+
+  [880, 660, 880].forEach((frequencia, indice) => {
+    const oscilador = contexto.createOscillator();
+
+    const volume = contexto.createGain();
+
+    oscilador.type = "sine";
+    oscilador.frequency.value = frequencia;
+
+    volume.gain.setValueAtTime(0.0001, inicio + indice * 0.22);
+    volume.gain.exponentialRampToValueAtTime(0.4, inicio + indice * 0.22 + 0.02);
+    volume.gain.exponentialRampToValueAtTime(0.0001, inicio + indice * 0.22 + 0.18);
+
+    oscilador.connect(volume);
+    volume.connect(contexto.destination);
+
+    oscilador.start(inicio + indice * 0.22);
+    oscilador.stop(inicio + indice * 0.22 + 0.2);
+  });
+}
 
 const CLASSE_CAMPO =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500";
@@ -60,6 +91,22 @@ export default function CozinhaPage() {
 
   const [devolver, setDevolver] = useState<Record<string, string>>({});
 
+  // Aviso de pedido novo
+  const [somLigado, setSomLigado] = useState(true);
+
+  const [alerta, setAlerta] = useState("");
+
+  const [destacados, setDestacados] = useState<string[]>([]);
+
+  const vistosRef = useRef<Set<string> | null>(null);
+
+  const somLigadoRef = useRef(true);
+
+  const audioRef = useRef<AudioContext | null>(null);
+
+  // O navegador só libera o som depois de um toque na tela.
+  const [somLiberado, setSomLiberado] = useState(false);
+
   const carregar = useCallback(async () => {
     const resposta = await fetch("/api/pedidos", { cache: "no-store" });
 
@@ -69,9 +116,82 @@ export default function CozinhaPage() {
       throw new Error(dados.mensagem || "Não foi possível carregar os pedidos.");
     }
 
-    setPedidos(dados.pedidos ?? []);
+    const recebidos = (dados.pedidos ?? []) as PedidoDaCozinha[];
+
+    // Pedido que entrou desde a última conferência (a primeira não conta): avisa.
+    const novos = pedidosNovosDaFila(vistosRef.current, recebidos);
+
+    vistosRef.current = marcarComoVistos(vistosRef.current, recebidos);
+
+    if (novos.length > 0) {
+      setAlerta(textoDoAlerta(novos));
+      setDestacados((atuais) => [...novos.map((pedido) => pedido.id), ...atuais].slice(0, 20));
+
+      if (somLigadoRef.current && audioRef.current?.state === "running") {
+        tocarAviso(audioRef.current);
+      }
+    }
+
+    setPedidos(recebidos);
     setAgora(Date.now());
   }, []);
+
+  // Preferência do som (lida depois de a tela abrir, para não destoar do servidor).
+  useEffect(() => {
+    try {
+      const guardado = localStorage.getItem(CHAVE_DO_SOM) !== "desligado";
+
+      somLigadoRef.current = guardado;
+
+      setSomLigado(guardado);
+    } catch {
+      // sem armazenamento: continua ligado
+    }
+  }, []);
+
+  // O título da aba mostra quantos pedidos novos esperam na fila.
+  const naFila = pedidos.filter((pedido) => pedido.statusOperacional === "NOVO").length;
+
+  useEffect(() => {
+    const original = document.title;
+
+    document.title = tituloDaAba(naFila);
+
+    return () => {
+      document.title = original;
+    };
+  }, [naFila]);
+
+  async function alternarSom() {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new AudioContext();
+      }
+
+      if (audioRef.current.state === "suspended") {
+        await audioRef.current.resume();
+      }
+
+      const novo = !somLigado || !somLiberado;
+
+      setSomLiberado(true);
+      setSomLigado(novo);
+
+      somLigadoRef.current = novo;
+
+      try {
+        localStorage.setItem(CHAVE_DO_SOM, novo ? "ligado" : "desligado");
+      } catch {
+        // sem armazenamento: vale só nesta tela
+      }
+
+      if (novo) {
+        tocarAviso(audioRef.current);
+      }
+    } catch {
+      setErro("Este aparelho não liberou o som. Confira o volume e as permissões do navegador.");
+    }
+  }
 
   useEffect(() => {
     let ativo = true;
@@ -97,7 +217,7 @@ export default function CozinhaPage() {
     void ciclo();
 
     // A tela da cozinha se atualiza sozinha.
-    const intervalo = setInterval(() => void ciclo(), 15000);
+    const intervalo = setInterval(() => void ciclo(), SEGUNDOS_ENTRE_CONSULTAS * 1000);
 
     return () => {
       ativo = false;
@@ -183,12 +303,23 @@ export default function CozinhaPage() {
 
           <p className="mt-2 max-w-3xl text-sm text-slate-500">
             Os pedidos entram na fila quando o pagamento é aprovado. Ao
-            iniciar o preparo, o estoque baixa pelas fichas. A tela se
-            atualiza sozinha a cada 15 segundos.
+            iniciar o preparo, o estoque baixa pelas fichas. Não há etapa de
+            aceite: o pedido pago aparece em &quot;Novos&quot; sozinho. A tela confere a
+            fila a cada {SEGUNDOS_ENTRE_CONSULTAS} segundos e avisa quando chega pedido novo.
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => void alternarSom()}
+            className={`cursor-pointer rounded-xl border px-5 py-3 text-sm font-semibold shadow-sm ${
+              somLiberado && somLigado ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-800"
+            }`}
+          >
+            {!somLiberado ? "🔕 Toque para ativar o som" : somLigado ? "🔔 Som ligado (tocar para desligar)" : "🔕 Som desligado (tocar para ligar)"}
+          </button>
+
           <Link href="/integracoes/marketplace" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
             Marketplaces
           </Link>
@@ -202,6 +333,16 @@ export default function CozinhaPage() {
           </Link>
         </div>
       </div>
+
+      {alerta && (
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-base font-bold text-emerald-900">
+          <span>🔔 {alerta}</span>
+
+          <button type="button" onClick={() => { setAlerta(""); setDestacados([]); }} className="cursor-pointer rounded-lg border border-emerald-400 px-3 py-1 text-sm font-semibold hover:bg-emerald-100">
+            Entendi
+          </button>
+        </div>
+      )}
 
       {erro && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</div>}
 
@@ -291,9 +432,11 @@ export default function CozinhaPage() {
                   <div
                     key={pedido.id}
                     className={`rounded-xl border p-4 text-sm shadow-sm ${
-                      pedido.statusOperacional === "NOVO" && espera >= 10
-                        ? "border-amber-300 bg-amber-50"
-                        : "border-slate-200 bg-white"
+                      destacados.includes(pedido.id)
+                        ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-400"
+                        : pedido.statusOperacional === "NOVO" && espera >= 10
+                          ? "border-amber-300 bg-amber-50"
+                          : "border-slate-200 bg-white"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
