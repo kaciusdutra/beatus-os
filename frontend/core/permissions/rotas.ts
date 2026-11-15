@@ -44,6 +44,11 @@ const REGRAS: Regra[] = [
   // escrita futura (checkout) precisa de regra própria e cai no padrão restrito até lá.
   { padrao: "/cardapio", exige: publica },
   { padrao: "/api/publico", metodos: "LEITURA", exige: publica },
+  // As únicas escritas públicas: fechar o pedido do site e o aviso do gateway (este só
+  // vale com a assinatura do Mercado Pago, conferida na própria rota).
+  { padrao: "/api/publico/checkout", metodos: "ESCRITA", exato: true, exige: publica },
+  { padrao: "/api/publico/checkout/estimativa", metodos: "ESCRITA", exato: true, exige: publica },
+  { padrao: "/api/publico/mercadopago/webhook", metodos: "ESCRITA", exato: true, exige: publica },
 
   // ---------- Qualquer pessoa que entrou ----------
   { padrao: "/api/auth", exige: autenticada },

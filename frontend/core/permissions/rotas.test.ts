@@ -91,6 +91,12 @@ verificar(exigenciaDaRota("GET", "/cardapio/sobre").exige.tipo === "PUBLICA", "s
 verificar(exigenciaDaRota("GET", "/api/publico/cardapio").exige.tipo === "PUBLICA", "a API pública de leitura é pública");
 verificar(exigenciaDaRota("POST", "/api/publico/cardapio").exige.tipo === "PERMISSAO", "escrita na API pública não é pública");
 verificar(!pode("GESTOR", "POST", "/api/publico/qualquer-coisa"), "escrita pública sem regra cai no padrão restrito");
+verificar(exigenciaDaRota("POST", "/api/publico/checkout").exige.tipo === "PUBLICA", "fechar o pedido do site é público");
+verificar(exigenciaDaRota("POST", "/api/publico/checkout/estimativa").exige.tipo === "PUBLICA", "a estimativa é pública");
+verificar(exigenciaDaRota("POST", "/api/publico/mercadopago/webhook").exige.tipo === "PUBLICA", "o webhook do gateway é público (a rota confere a assinatura)");
+verificar(exigenciaDaRota("GET", "/api/publico/checkout/abc").exige.tipo === "PUBLICA", "o status do pedido é público");
+verificar(exigenciaDaRota("POST", "/api/publico/checkout/abc").exige.tipo === "PERMISSAO", "escrita em outro caminho do checkout não é pública");
+verificar(exigenciaDaRota("GET", "/api/publico/cep/69000001").exige.tipo === "PUBLICA", "a consulta de CEP é pública");
 verificar(exigenciaDaRota("GET", "/cardapios").exige.tipo !== "PUBLICA", "prefixo parecido não vira público");
 verificar(exigenciaDaRota("GET", "/api/publicos").exige.tipo !== "PUBLICA", "api parecida não vira pública");
 

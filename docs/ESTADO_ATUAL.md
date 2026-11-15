@@ -16,7 +16,7 @@
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 33 migrações aplicadas, de 19/08 a 15/11/2026 (a última: `add_usuarios_e_sessoes`, checkpoint `checkpoint-antes-s3-login`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
+- 35 migrações aplicadas, de 19/08 a 15/11/2026 (as últimas: `add_usuarios_e_sessoes`, `add_pagamento_online_e_consentimentos` e `add_checkout_site`, com os checkpoints `checkpoint-antes-s3-login`, `checkpoint-antes-checkout` e `checkpoint-antes-checkout-site`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 15/11/2026 | `PENDENTE` | Site, etapa 2: checkout com Mercado Pago (Pix, crédito e débito à vista) em modo de teste: cadastro com consentimentos, pedido criado só com o pagamento aprovado pelo mesmo caminho do PDV, webhook assinado, política de privacidade (rascunho), limites de abuso (3 migrações: consentimentos, pagamento online, checkout do site); regras 24.1 a 24.10 e `docs/CHECKOUT_MERCADO_PAGO.md` |
 | 15/11/2026 | `b6bf8c1` | Site (cardápio online), etapa 1: área pública em `/cardapio` com a marca, cardápio real (preço do canal Site), aberto/fechado em horário de Manaus, carrinho no navegador, página Sobre (textos provisórios), API pública só leitura com limite de abuso, robots; proxy e layout separam o site do sistema (sem migração); regras 23.1 a 23.7 |
 | 15/11/2026 | `0055475` | S3: login e permissões. Usuário e senha (hash scrypt), sessão no banco, primeiro acesso, bloqueio por tentativas, proxy que confere sessão e perfil em toda tela e rota (tabela central com teste que cobre todas as rotas), custos escondidos de quem não vê o financeiro, gestão de usuários e Minha conta, nome do usuário no registro de atividades (migração, checkpoint `checkpoint-antes-s3-login`); regras 22.1 a 22.11 |
 | 15/11/2026 | `004fec4` | Fontes da marca: Gelion nos títulos e Satoshi nos textos (arquivos em `public/fonts`, fora do Git) (sem migração) |

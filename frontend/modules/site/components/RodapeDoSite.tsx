@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import type { LinhaDaSemana } from "../services/funcionamento";
 
@@ -44,7 +45,12 @@ export default function RodapeDoSite({ semana }: { semana: LinhaDaSemana[] }) {
         </div>
       </div>
 
-      <p className="border-t border-white/10 py-4 text-center text-xs text-slate-500">© {new Date().getFullYear()} Beatus Burger Delivery</p>
+      <p className="border-t border-white/10 py-4 text-center text-xs text-slate-500">
+        © {new Date().getFullYear()} Beatus Burger Delivery ·{" "}
+        <Link href="/cardapio/privacidade" className="underline hover:text-ouro">
+          Política de privacidade
+        </Link>
+      </p>
     </footer>
   );
 }

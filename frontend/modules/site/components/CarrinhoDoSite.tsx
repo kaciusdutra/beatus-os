@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import { dinheiro, quantidadeNoCarrinho, totalDoCarrinho } from "../services/carrinho";
 
 import { fecharPainelDoCarrinho, limparCarrinho, mudarQuantidade, useCarrinho, usePainelDoCarrinhoAberto } from "./carrinhoStore";
 
-// O painel do carrinho. Hoje serve para montar o pedido; o envio (checkout, com
-// cadastro, endereço e Pix) é a próxima etapa do site.
+// O painel do carrinho. "Finalizar pedido" leva ao checkout (dados, entrega e pagamento).
 export default function CarrinhoDoSite({ recebePedidos }: { recebePedidos: boolean }) {
   const aberto = usePainelDoCarrinhoAberto();
 
@@ -72,11 +73,17 @@ export default function CarrinhoDoSite({ recebePedidos }: { recebePedidos: boole
 
             <p className="text-xs text-slate-400">A taxa de entrega entra no fechamento do pedido, conforme o seu endereço.</p>
 
-            <button type="button" disabled className="w-full cursor-not-allowed rounded-xl bg-ouro/40 px-4 py-3 font-bold text-black/70" title="O envio de pedidos pelo site abre em breve">
-              {recebePedidos ? "Finalizar pedido (em breve)" : "Finalizar pedido (casa fechada)"}
-            </button>
+            {recebePedidos ? (
+              <Link href="/cardapio/finalizar" onClick={fecharPainelDoCarrinho} className="block w-full rounded-xl bg-ouro px-4 py-3 text-center font-bold text-black hover:bg-ouro-400">
+                Finalizar pedido
+              </Link>
+            ) : (
+              <button type="button" disabled className="w-full cursor-not-allowed rounded-xl bg-ouro/40 px-4 py-3 font-bold text-black/70">
+                Casa fechada: volte no horário de funcionamento
+              </button>
+            )}
 
-            <p className="text-center text-xs text-slate-500">Os pedidos pelo site abrem em breve. Seu carrinho fica guardado neste aparelho.</p>
+            <p className="text-center text-xs text-slate-500">Seu carrinho fica guardado neste aparelho.</p>
 
             <button type="button" onClick={limparCarrinho} className="w-full cursor-pointer text-center text-sm text-slate-400 underline hover:text-white">
               Esvaziar o carrinho

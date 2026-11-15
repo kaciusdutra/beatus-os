@@ -373,6 +373,27 @@ Endereço: `/cardapio` (e `/cardapio/sobre`). Abra também numa janela anônima,
 | 221 | Abra `/api/publico/cardapio` | Mostra só categorias, itens (nome, descrição, preço) e horário: nenhum custo nem margem |
 | 222 | Abra `/robots.txt` | Libera só o `/cardapio` para os buscadores |
 
+## Parte 22: Checkout do site (precisa das credenciais de teste do Mercado Pago)
+
+Antes: configure o `.env` (`docs/CHECKOUT_MERCADO_PAGO.md`), defina o **preço no canal Site** de alguns produtos e deixe a **casa aberta** (use uma exceção de horário em Configurações → Horários para testar fora do horário). Como a entrega ainda é simulada, use um destes CEPs: **69000-001**, **69050-000**, **69075-000** (o 69099-999 fica fora da área).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 223 | No site, adicione itens e toque em **Finalizar pedido** | Abre o formulário; sem aceitar a política o botão de pagar fica desabilitado |
+| 224 | Preencha com um CPF inválido e tente continuar | "O CPF informado não é válido." |
+| 225 | Informe um CEP fora da lista | "Ainda não entregamos neste endereço." |
+| 226 | Informe 69050-000, número e **Calcular a entrega e o total** | Mostra itens, entrega e total; o total é o do servidor |
+| 227 | Marque a política e toque em **Ir para o pagamento** | Vai para a página do Mercado Pago de teste, com o valor certo |
+| 228 | Pague com um cartão de crédito de teste aprovado | Volta ao site e aparece "Pagamento aprovado! Seu pedido nº ... já foi para a cozinha." |
+| 229 | Em **Pedidos** e na **Cozinha** | O pedido do site aparece, com o canal "cardápio online" e o pagamento aprovado |
+| 230 | Em `/atividades` (área Site) | Aparece "Pagamento aprovado" com o meio usado |
+| 231 | Repita pagando com um cartão de **débito** de teste | O pedido entra com a forma cartão; o cliente já cadastrado é reaproveitado pelo telefone |
+| 232 | Repita pagando com **Pix** de teste | Confirma e entra na cozinha sem ninguém marcar "Pagamento recebido" |
+| 233 | Pague com um cartão de teste **recusado** | "O pagamento foi recusado. Você pode tentar de novo..." e o botão de tentar de novo |
+| 234 | Abra o pagamento e deixe passar 30 minutos sem pagar | O checkout expira: "O tempo para pagar acabou"; nenhum pedido é criado |
+| 235 | Com a casa fechada, tente finalizar | "Não estamos recebendo pedidos agora." e nenhum pagamento é aberto |
+| 236 | Veja o cadastro do cliente criado pelo site | Origem "cardápio online"; a data de nascimento e o e-mail entram só se foram informados |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

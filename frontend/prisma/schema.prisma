@@ -45,6 +45,8 @@ model Empresa {
   checklistItensModelo    ChecklistItemModelo[]
   checklistExecucoes      ChecklistExecucao[]
   usuarios                Usuario[]
+  eventosPagamento        EventoPagamento[]
+  checkoutsDoSite         CheckoutSite[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -286,6 +288,13 @@ model Cliente {
   criadoEm             DateTime  @default(now())
   atualizadoEm         DateTime  @updatedAt
 
+  // Consentimentos (LGPD): aceite da política de privacidade e, em separado, das
+  // mensagens de marketing. Só o cadastro feito pelo site preenche.
+  aceitouPoliticaEm  DateTime?
+  versaoDaPolitica   String?
+  aceitaMarketing    Boolean   @default(false)
+  aceitaMarketingEm  DateTime?
+
   empresa   Empresa    @relation(fields: [empresaId], references: [id])
   enderecos Endereco[]
   pedidos   Pedido[]
@@ -407,6 +416,7 @@ model Pagamento {
   aprovadoEm              DateTime?
   atualizadoEm            DateTime  @updatedAt
   pedido                  Pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  online                  PagamentoOnline?
 
   @@index([pedidoId])
   @@index([status])
@@ -1317,4 +1327,116 @@ model Sessao {
 
   @@index([usuarioId])
   @@index([expiraEm])
+}
+
+// A cobrança de um pagamento no gateway (Mercado Pago, por enquanto). Os dados do
+// cartão NUNCA passam por aqui: o cliente digita no ambiente do gateway.
+model PagamentoOnline {
+  id String @id @default(uuid())
+
+  pagamentoId String @unique
+
+  // MERCADO_PAGO
+  gateway String
+
+  // PIX | CREDITO | DEBITO
+  metodo String
+
+  // Identificador da cobrança no gateway (vazio até o gateway responder).
+  transacaoExterna String?
+
+  // Situação como o gateway informa (pending, approved, rejected...).
+  statusExterno String?
+
+  // Página de pagamento do gateway, para onde o cliente é levado.
+  checkoutUrl String?
+
+  expiraEm DateTime?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  pagamento Pagamento @relation(fields: [pagamentoId], references: [id], onDelete: Cascade)
+
+  @@unique([gateway, transacaoExterna])
+}
+
+// Caixa de entrada dos avisos do gateway (webhooks): cada aviso é guardado uma vez
+// só, então um aviso repetido nunca aprova o mesmo pagamento duas vezes.
+model EventoPagamento {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  gateway String
+
+  // Identificador do aviso no gateway
+  eventoId String
+
+  transacaoExterna String?
+
+  tipo String
+
+  payload Json
+
+  // RECEBIDO, PROCESSADO, ERRO ou IGNORADO
+  status String @default("RECEBIDO")
+
+  erro String?
+
+  criadoEm DateTime @default(now())
+
+  processadoEm DateTime?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, gateway, eventoId])
+  @@index([empresaId, status])
+}
+
+// Um pedido do site esperando o pagamento. Pela regra do sistema, o pedido só
+// existe com o pagamento aprovado; por isso o que o cliente pediu fica guardado
+// aqui e o pedido de verdade só nasce quando o gateway aprova (cria uma única vez).
+model CheckoutSite {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // PENDENTE, PROCESSANDO, APROVADO, RECUSADO, EXPIRADO, CANCELADO ou ERRO
+  status String @default("PENDENTE")
+
+  // Tudo que o cliente informou (dados, endereço, itens, consentimentos), em JSON.
+  solicitado Json
+
+  // Valores calculados pelo servidor quando o checkout foi aberto.
+  subtotal    Decimal @db.Decimal(12, 2)
+  taxaEntrega Decimal @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  // MERCADO_PAGO
+  gateway String
+
+  // Identificador da página de pagamento (preferência) e o link para onde o cliente vai.
+  preferenciaExterna String?
+  checkoutUrl        String?
+
+  // Do pagamento, quando o gateway informa (PIX | CREDITO | DEBITO).
+  metodo           String?
+  transacaoExterna String?
+  statusExterno    String?
+
+  expiraEm DateTime
+
+  // Pedido criado a partir deste checkout (só depois da aprovação).
+  pedidoId String? @unique
+
+  erro String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId, status])
+  @@index([status, expiraEm])
 }
