@@ -56,6 +56,16 @@ export interface PedidoDetalhe extends PedidoListado {
     operador?: string;
     criadoEm: string;
   }[];
+  // Avisos ao cliente sobre o andamento (só pedidos do site e do WhatsApp).
+  avisos?: {
+    id: string;
+    evento: string;
+    canal: string;
+    texto: string;
+    status: string;
+    criadoEm: string;
+    enviadoEm?: string;
+  }[];
 }
 
 export interface FiltroDePedidos {

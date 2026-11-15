@@ -47,6 +47,7 @@ model Empresa {
   usuarios                Usuario[]
   eventosPagamento        EventoPagamento[]
   checkoutsDoSite         CheckoutSite[]
+  avisosDoPedido          AvisoDoPedido[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -376,6 +377,7 @@ model Pedido {
   enderecoEntrega Endereco?    @relation(fields: [enderecoEntregaId], references: [id], onDelete: Restrict)
   itens           PedidoItem[]
   filaImpressao   FilaImpressao[]
+  avisosDoPedido  AvisoDoPedido[]
 
   @@unique([empresaId, numero])
   @@unique([empresaId, canal, codigoExterno])
@@ -1439,4 +1441,40 @@ model CheckoutSite {
 
   @@index([empresaId, status])
   @@index([status, expiraEm])
+}
+
+// Aviso ao cliente sobre o andamento do pedido (em preparo, a caminho, entregue). Nasce da
+// mudança de situação feita na Cozinha; o envio pelo WhatsApp é uma etapa à parte.
+model AvisoDoPedido {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  pedidoId String
+
+  // EM_PREPARO, A_CAMINHO ou ENTREGUE
+  evento String
+
+  // SITE ou WHATSAPP
+  canalDoAviso String
+
+  texto String
+
+  // PENDENTE, ENVIADO, FALHOU ou DISPENSADO
+  status String @default("PENDENTE")
+
+  tentativas Int @default(0)
+
+  erro String?
+
+  criadoEm DateTime @default(now())
+
+  enviadoEm DateTime?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id])
+
+  @@unique([pedidoId, evento])
+  @@index([empresaId, status, criadoEm])
 }

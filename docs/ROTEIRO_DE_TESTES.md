@@ -433,6 +433,8 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 253 | Pague no sandbox | O pedido entra na Cozinha identificado como WhatsApp |
 | 254 | Na página do pedido, acompanhe enquanto a Cozinha muda a situação | As etapas andam sozinhas: recebido, em preparo, pronto, a caminho, entregue |
 | 255 | Cancele o pedido na Cozinha | A página mostra o aviso de cancelado, sem linha do tempo |
+| 256 | Em um pedido do site ou do WhatsApp, mude na Cozinha para Em preparo, Pronto, Em rota e Entregue | No detalhe do pedido (Pedidos), "Avisos ao cliente" mostra 3 avisos: em preparo, a caminho e entregue, "aguardando envio"; Pronto não gera aviso |
+| 257 | Faça o mesmo em um pedido do iFood | Nenhum aviso |
 
 ## O que anotar
 

@@ -60,6 +60,13 @@ function EtiquetaDeStatus({ status }: { status: string }) {
 
 // Consulta de pedidos (todas as situações). Mudar a situação e cancelar
 // continuam na Cozinha, que exige o motivo e cuida do estoque.
+const STATUS_DO_AVISO: Record<string, string> = {
+  PENDENTE: "aguardando envio",
+  ENVIADO: "enviado",
+  FALHOU: "falhou",
+  DISPENSADO: "dispensado",
+};
+
 export default function PedidosPage() {
   const [filtros, setFiltros] = useState({
     busca: "",
@@ -354,6 +361,20 @@ export default function PedidosPage() {
                           </div>
                         </div>
                       </div>
+
+                      {(detalhe.avisos?.length ?? 0) > 0 && (
+                        <div>
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Avisos ao cliente</h3>
+
+                          <ul className="mt-1 space-y-0.5 text-xs text-slate-600">
+                            {detalhe.avisos?.map((aviso) => (
+                              <li key={aviso.id}>
+                                {dataHora(aviso.criadoEm)} · {aviso.canal === "WHATSAPP" ? "WhatsApp" : "Site"} · {STATUS_DO_AVISO[aviso.status] ?? aviso.status} · {aviso.texto}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
                       <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Histórico</h3>

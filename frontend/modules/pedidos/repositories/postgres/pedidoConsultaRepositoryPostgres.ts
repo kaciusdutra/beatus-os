@@ -117,6 +117,11 @@ export class PedidoConsultaRepositoryPostgres
       orderBy: { criadoEm: "asc" },
     });
 
+    const avisos = await prisma.avisoDoPedido.findMany({
+      where: { empresaId: this.contexto.empresaId, pedidoId: pedido.id },
+      orderBy: { criadoEm: "asc" },
+    });
+
     const endereco = [
       [pedido.enderecoLogradouro, pedido.enderecoNumero].filter(Boolean).join(", "),
       pedido.enderecoComplemento,
@@ -158,6 +163,15 @@ export class PedidoConsultaRepositoryPostgres
         status: pagamento.status,
         valor: Number(pagamento.valor),
         aprovadoEm: pagamento.aprovadoEm?.toISOString(),
+      })),
+      avisos: avisos.map((aviso) => ({
+        id: aviso.id,
+        evento: aviso.evento,
+        canal: aviso.canalDoAviso,
+        texto: aviso.texto,
+        status: aviso.status,
+        criadoEm: aviso.criadoEm.toISOString(),
+        enviadoEm: aviso.enviadoEm?.toISOString(),
       })),
       atividades: atividades.map((atividade) => ({
         id: atividade.id,

@@ -15,6 +15,8 @@ import {
 
 import { podeMudarStatus } from "../../domain/pedidoStatus";
 
+import { avisoParaMudanca } from "../avisoDoPedido";
+
 import type { StatusOperacional } from "../../types/pedido";
 
 export interface PedidoDaCozinha {
@@ -213,6 +215,17 @@ export class OperacaoPedidoService {
         where: { id: pedido.id },
         data: { statusOperacional: novo },
       });
+
+      // Aviso ao cliente (site e WhatsApp): nasce junto da mudança, na mesma transação.
+      // O envio é outra etapa; aqui só fica registrado o que deve ser dito.
+      const aviso = avisoParaMudanca({ novaSituacao: novo, canalDoPedido: pedido.canal, numero: pedido.numero });
+
+      if (aviso) {
+        await tx.avisoDoPedido.createMany({
+          data: [{ empresaId: this.empresaId, pedidoId: pedido.id, evento: aviso.evento, canalDoAviso: aviso.canalDoAviso, texto: aviso.texto }],
+          skipDuplicates: true,
+        });
+      }
 
       const resumo =
         novo === "CANCELADO"
