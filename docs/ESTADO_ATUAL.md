@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 15/11/2026 | `PENDENTE` | Aceite automático com aviso na Cozinha: pedido aprovado entra como Novo sozinho; a tela confere a fila a cada 5 segundos e avisa (faixa, destaque, som e título da aba); sem migração; regras 25.1 a 25.5 |
+| 15/11/2026 | `35f5ccd` | Aceite automático com aviso na Cozinha: pedido aprovado entra como Novo sozinho; a tela confere a fila a cada 5 segundos e avisa (faixa, destaque, som e título da aba); sem migração; regras 25.1 a 25.5 |
 | 15/11/2026 | `c380308` | Site, etapa 2: checkout com Mercado Pago (Pix, crédito e débito à vista) em modo de teste: cadastro com consentimentos, pedido criado só com o pagamento aprovado pelo mesmo caminho do PDV, webhook assinado, política de privacidade (rascunho), limites de abuso (3 migrações: consentimentos, pagamento online, checkout do site); regras 24.1 a 24.10 e `docs/CHECKOUT_MERCADO_PAGO.md` |
 | 15/11/2026 | `b6bf8c1` | Site (cardápio online), etapa 1: área pública em `/cardapio` com a marca, cardápio real (preço do canal Site), aberto/fechado em horário de Manaus, carrinho no navegador, página Sobre (textos provisórios), API pública só leitura com limite de abuso, robots; proxy e layout separam o site do sistema (sem migração); regras 23.1 a 23.7 |
 | 15/11/2026 | `0055475` | S3: login e permissões. Usuário e senha (hash scrypt), sessão no banco, primeiro acesso, bloqueio por tentativas, proxy que confere sessão e perfil em toda tela e rota (tabela central com teste que cobre todas as rotas), custos escondidos de quem não vê o financeiro, gestão de usuários e Minha conta, nome do usuário no registro de atividades (migração, checkpoint `checkpoint-antes-s3-login`); regras 22.1 a 22.11 |
