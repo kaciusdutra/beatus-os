@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 15/11/2026 | (este commit) | Fase 1 e 2 da Beatriz: fila de avisos do pedido (em preparo, a caminho, entregue) para site e WhatsApp, visível no detalhe do pedido; migração `add_avisos_do_pedido`; regra 26.10 |
+| 15/11/2026 | `f9fd684` | Fase 1 e 2 da Beatriz: fila de avisos do pedido (em preparo, a caminho, entregue) para site e WhatsApp, visível no detalhe do pedido; migração `add_avisos_do_pedido`; regra 26.10 |
 | 15/11/2026 | `2840fb0` | Link de pagamento da Beatriz com origem WhatsApp e etapas do pedido na página do site (sem migração); regras 26.8 e 26.9 |
 | 15/11/2026 | `245c6fa` | Documentação: visão da Beatriz como vendedora, caixa e relacionamento (avisos do pedido, pós-venda e clube) e a ordem de construção em fases; sem código; regras 26.1 a 26.7 |
 | 15/11/2026 | `87405df` | Forma de pagamento clara em todos os pedidos (Pix, crédito, débito, plataforma, quem confirmou e a referência do gateway), na lista e no detalhe de Pedidos (sem migração); regras 25.5 a 25.7 |
