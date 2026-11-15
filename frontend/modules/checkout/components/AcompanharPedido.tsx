@@ -10,6 +10,10 @@ import { dinheiro } from "@/modules/site/services/carrinho";
 
 import type { StatusPublicoDoCheckout } from "../types/checkout";
 
+import { pedidoEmAndamento } from "../services/etapasDoPedido";
+
+import EtapasDoPedido from "./EtapasDoPedido";
+
 const ESPERA_ENTRE_CONSULTAS_MS = 4000;
 
 // Enquanto não há resultado final, continua perguntando.
@@ -49,7 +53,8 @@ export default function AcompanharPedido({ checkoutId }: { checkoutId: string })
           limparCarrinho();
         }
 
-        if (EM_ANDAMENTO.includes(dados.status)) {
+        // Pago: continua acompanhando o preparo e a entrega até entregar (ou cancelar).
+        if (EM_ANDAMENTO.includes(dados.status) || (dados.status === "APROVADO" && pedidoEmAndamento(dados.situacao))) {
           relogio = setTimeout(() => void consultar(), ESPERA_ENTRE_CONSULTAS_MS);
         }
       } catch {
@@ -86,6 +91,8 @@ export default function AcompanharPedido({ checkoutId }: { checkoutId: string })
         <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6">
           <p className="text-lg text-slate-100">{status.mensagem}</p>
 
+          {status.situacao && <EtapasDoPedido situacao={status.situacao} />}
+
           <p className="text-sm text-slate-400">Total: {dinheiro(status.total)}</p>
 
           {status.checkoutUrl && (
@@ -94,7 +101,7 @@ export default function AcompanharPedido({ checkoutId }: { checkoutId: string })
             </a>
           )}
 
-          {EM_ANDAMENTO.includes(status.status) && <p className="text-xs text-slate-500">Esta página confere sozinha. Não precisa recarregar.</p>}
+          {(EM_ANDAMENTO.includes(status.status) || pedidoEmAndamento(status.situacao)) && <p className="text-xs text-slate-500">Esta página confere sozinha. Não precisa recarregar.</p>}
         </div>
       )}
 

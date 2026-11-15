@@ -14,6 +14,8 @@ import { calcularPedidoSemGravar } from "@/modules/pedidos/services/server/calcu
 
 import { getLancarPedidoServicePostgres } from "@/modules/pedidos/services/server/lancarPedidoServicePostgres";
 
+import { situacaoValida } from "../etapasDoPedido";
+
 import { getSiteService } from "@/modules/site/services/server/siteServiceFactory";
 
 import { criarCheckoutRepositoryPostgres } from "../../repositories/postgres/checkoutRepositoryPostgres";
@@ -68,12 +70,12 @@ function criarGateway(requisicao?: Request): GatewayDePagamento | null {
 
 // A mesma conta e o mesmo caminho do PDV, pelo canal "cardápio online".
 const pedidos: PedidosDoCheckoutPort = {
-  async calcular(itens, distanciaKm) {
+  async calcular(itens, distanciaKm, canal) {
     let calculado;
 
     try {
       calculado = await calcularPedidoSemGravar({
-        canal: "CARDAPIO_ONLINE",
+        canal,
         itens: itens.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade, observacao: item.observacao })),
         distanciaEntregaKm: distanciaKm,
       });
@@ -100,8 +102,9 @@ const pedidos: PedidosDoCheckoutPort = {
       operador: OPERADOR_DO_SITE,
       pedido: {
         id: dados.checkoutId,
-        canal: "CARDAPIO_ONLINE",
-        entrada: "ONLINE",
+        // O pedido sai identificado pelo canal de origem: cardápio online ou o link da Beatriz no WhatsApp.
+        canal: dados.dados.origem,
+        entrada: dados.dados.origem === "WHATSAPP" ? "IA" : "ONLINE",
         clienteId: dados.clienteId,
         enderecoEntrega: {
           enderecoId: dados.enderecoId,
@@ -127,6 +130,12 @@ const pedidos: PedidosDoCheckoutPort = {
     const pedido = await prisma.pedido.findFirst({ where: { id: pedidoId, empresaId: criarContextoDesenvolvimento().empresaId }, select: { numero: true } });
 
     return pedido ? String(pedido.numero) : undefined;
+  },
+
+  async situacaoDoPedido(pedidoId) {
+    const pedido = await prisma.pedido.findFirst({ where: { id: pedidoId, empresaId: criarContextoDesenvolvimento().empresaId }, select: { statusOperacional: true } });
+
+    return situacaoValida(pedido?.statusOperacional);
   },
 };
 

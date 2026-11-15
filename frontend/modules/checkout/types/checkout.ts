@@ -57,6 +57,8 @@ export interface StatusPublicoDoCheckout {
   mensagem: string;
   total: number;
   numeroDoPedido?: string;
+  // Só depois de aprovado: em que pé está o pedido (NOVO, EM_PREPARO, PRONTO, EM_ROTA, ENTREGUE, CANCELADO).
+  situacao?: "NOVO" | "EM_PREPARO" | "PRONTO" | "EM_ROTA" | "ENTREGUE" | "CANCELADO";
   // Só enquanto dá para pagar (ou tentar de novo).
   checkoutUrl?: string;
   expiraEm: string;

@@ -1,5 +1,7 @@
 "use client";
 
+import LinkDePagamento from "../components/LinkDePagamento";
+
 import { useEffect, useRef, useState } from "react";
 
 import type {
@@ -238,8 +240,12 @@ export default function BeatrizPage() {
 
               {ultima.pedidoConfirmadoPeloCliente && (
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
-                  O cliente confirmou o pedido. Confira, gere o Pix e lance no PDV.
+                  O cliente confirmou o pedido. Gere o link de pagamento abaixo e envie ao cliente: pago, o pedido entra sozinho na cozinha.
                 </div>
+              )}
+
+              {ultima.pedidoConfirmadoPeloCliente && ultima.rascunho.itens.length > 0 && !ultima.precisaDeHumano && (
+                <LinkDePagamento rascunho={ultima.rascunho} />
               )}
 
               <div className="flex flex-wrap gap-1.5">

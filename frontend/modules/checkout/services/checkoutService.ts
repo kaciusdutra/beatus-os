@@ -6,13 +6,15 @@ import { VERSAO_DA_POLITICA, validarEntradaDoCheckout, type DadosDoCheckout } fr
 
 import type { GatewayDePagamento, PagamentoNoGateway } from "./gatewayDePagamento";
 
+import { mensagemDaSituacao, type SituacaoDoPedido } from "./etapasDoPedido";
+
 import { ROTULO_DO_METODO, formaDoPedido, type MetodoDoPagamento } from "./statusDoGateway";
 
 // ---------- Ports (o que o checkout precisa do resto do sistema) ----------
 
 export interface PedidosDoCheckoutPort {
   // A mesma conta do PDV (preço do canal Site, taxa de entrega, total), sem gravar.
-  calcular(itens: DadosDoCheckout["itens"], distanciaKm: number): Promise<{ subtotal: number; taxaEntrega: number; total: number; regraEntrega?: string }>;
+  calcular(itens: DadosDoCheckout["itens"], distanciaKm: number, canal: DadosDoCheckout["origem"]): Promise<{ subtotal: number; taxaEntrega: number; total: number; regraEntrega?: string }>;
 
   // Lança o pedido pelo mesmo caminho do PDV, já com o pagamento aprovado.
   lancar(dados: {
@@ -26,6 +28,9 @@ export interface PedidosDoCheckoutPort {
   }): Promise<{ pedidoId: string; numero: string; pagamentoId: string; total: number }>;
 
   numeroDoPedido(pedidoId: string): Promise<string | undefined>;
+
+  // Em que pé está o pedido na Cozinha/Entrega (para o cliente acompanhar).
+  situacaoDoPedido(pedidoId: string): Promise<SituacaoDoPedido | undefined>;
 }
 
 export interface ClientesDoCheckoutPort {
@@ -105,7 +110,7 @@ export class CheckoutService {
       throw new ErroDeCheckout("Ainda não entregamos neste endereço. Confira o CEP ou fale com a gente.");
     }
 
-    const calculo = await this.dependencias.pedidos.calcular(dados.itens, distanciaKm);
+    const calculo = await this.dependencias.pedidos.calcular(dados.itens, distanciaKm, dados.origem);
 
     return { subtotal: calculo.subtotal, taxaEntrega: calculo.taxaEntrega, total: calculo.total, distanciaKm, regraEntrega: calculo.regraEntrega };
   }
@@ -207,6 +212,8 @@ export class CheckoutService {
   private async paraOCliente(checkout: CheckoutSalvo): Promise<StatusPublicoDoCheckout> {
     const numero = checkout.pedidoId ? await this.dependencias.pedidos.numeroDoPedido(checkout.pedidoId) : undefined;
 
+    const situacao = checkout.status === "APROVADO" && checkout.pedidoId ? await this.dependencias.pedidos.situacaoDoPedido(checkout.pedidoId) : undefined;
+
     const mensagens: Record<CheckoutSalvo["status"], string> = {
       PENDENTE: "Aguardando o pagamento.",
       PROCESSANDO: "Pagamento recebido. Estamos confirmando o seu pedido...",
@@ -221,7 +228,9 @@ export class CheckoutService {
 
     return {
       status: checkout.status,
-      mensagem: mensagens[checkout.status],
+      // Depois de aprovado, a mensagem acompanha o pedido (preparo, entrega).
+      mensagem: situacao ? mensagemDaSituacao(situacao, numero) : mensagens[checkout.status],
+      situacao,
       total: checkout.total,
       numeroDoPedido: numero,
       checkoutUrl: podePagar ? checkout.checkoutUrl : undefined,

@@ -119,7 +119,10 @@ class PedidosFalsos implements PedidosDoCheckoutPort {
   contador = 100;
   porId = new Map<string, { pedidoId: string; numero: string; pagamentoId: string; total: number }>();
 
-  async calcular(itens: { produtoId: string; quantidade: number }[], distanciaKm: number) {
+  canaisCalculados: string[] = [];
+  async calcular(itens: { produtoId: string; quantidade: number }[], distanciaKm: number, canal: string) {
+    this.canaisCalculados.push(canal);
+
     if (itens.some((item) => item.produtoId === "sem-preco")) {
       throw new Error("O produto não tem preço neste canal.");
     }
@@ -158,6 +161,10 @@ class PedidosFalsos implements PedidosDoCheckoutPort {
   }
   async numeroDoPedido(pedidoId: string) {
     return this.porId.get(pedidoId)?.numero;
+  }
+  situacao: "NOVO" | "EM_PREPARO" | "PRONTO" | "EM_ROTA" | "ENTREGUE" | "CANCELADO" = "NOVO";
+  async situacaoDoPedido() {
+    return this.situacao;
   }
 }
 
@@ -322,6 +329,19 @@ async function executarTestes(): Promise<void> {
     const status = await servico.status("chk-1");
 
     verificar(status?.status === "APROVADO" && status.numeroDoPedido === "101" && status.mensagem.includes("nº 101") && status.checkoutUrl === undefined, "tela de acompanhamento");
+
+    // Depois de aprovado, o cliente acompanha a situação real do pedido.
+    verificar(status?.situacao === "NOVO", "situação inicial do pedido");
+
+    pedidos.situacao = "EM_ROTA";
+
+    const aCaminho = await servico.status("chk-1");
+
+    verificar(aCaminho?.situacao === "EM_ROTA" && aCaminho.mensagem.includes("a caminho") && aCaminho.mensagem.includes("nº 101"), "mensagem acompanha a entrega");
+
+    pedidos.situacao = "CANCELADO";
+
+    verificar((await servico.status("chk-1"))?.mensagem.includes("cancelado") === true, "pedido cancelado avisa");
   }
 
   // Dois avisos ao mesmo tempo (aviso + volta do cliente).
@@ -515,6 +535,25 @@ async function executarTestes(): Promise<void> {
 
     verificar(pedidos.lancados.length === 1 && repositorio.checkouts.get("chk-1")?.status === "APROVADO", "referência que não grava não trava o pedido pago");
     verificar(diario.some((d) => d.acao === "PAGAMENTO_COM_PROBLEMA" && d.resumo.includes("referência do pagamento")), "equipe é avisada da referência não gravada");
+  }
+
+  // Origem WhatsApp (link da Beatriz): o cálculo e o pedido seguem o canal de origem.
+  {
+    const { servico, pedidos, gateway } = montar();
+
+    await servico.estimar({ ...ENTRADA, origem: "WHATSAPP" });
+    await servico.estimar({ ...ENTRADA, origem: "inventada" });
+    await servico.estimar(ENTRADA);
+
+    verificar(pedidos.canaisCalculados.join(",") === "WHATSAPP,CARDAPIO_ONLINE,CARDAPIO_ONLINE", "origem WhatsApp chega ao cálculo; origem inventada vira o site");
+
+    await servico.abrir({ ...ENTRADA, origem: "WHATSAPP" }, "https://s");
+
+    gateway!.pagamentos.set("13", pagamento("13", "chk-1", "APROVADO", 45));
+
+    await servico.tratarAviso({ gateway: "MERCADO_PAGO", eventoId: "w1", tipo: "payment", dataId: "13", corpo: {} });
+
+    verificar(pedidos.lancados[0]?.dados.origem === "WHATSAPP", "o pedido é lançado com a origem WhatsApp");
   }
 
   // Cancelado antes de aprovar.

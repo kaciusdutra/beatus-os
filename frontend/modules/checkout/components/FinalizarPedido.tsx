@@ -8,7 +8,9 @@ import { formatarCpf, formatarTelefone, somenteDigitos } from "@/modules/fornece
 
 import { useCarrinho } from "@/modules/site/components/carrinhoStore";
 
-import { dinheiro, totalDoCarrinho } from "@/modules/site/services/carrinho";
+import { dinheiro, totalDoCarrinho, type ItemDoCarrinho } from "@/modules/site/services/carrinho";
+
+import type { OrigemDoCheckout } from "../services/entradaDoCheckout";
 
 import type { Estimativa } from "../types/checkout";
 
@@ -40,12 +42,24 @@ async function chamar<T>(url: string, corpo?: unknown): Promise<T> {
   return dados as T;
 }
 
-export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento }: { recebePedidos: boolean; textoDeFuncionamento: string }) {
-  const itens = useCarrinho();
+interface Props {
+  recebePedidos: boolean;
+  textoDeFuncionamento: string;
+  // Itens vindos do link da Beatriz (no lugar do carrinho do navegador).
+  itensDoLink?: ItemDoCarrinho[];
+  origem?: OrigemDoCheckout;
+  telefoneDoLink?: string;
+  avisoDoLink?: string;
+}
+
+export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento, itensDoLink, origem = "CARDAPIO_ONLINE", telefoneDoLink, avisoDoLink }: Props) {
+  const itensDoCarrinho = useCarrinho();
+
+  const itens = itensDoLink ?? itensDoCarrinho;
 
   const [nome, setNome] = useState("");
 
-  const [telefone, setTelefone] = useState("");
+  const [telefone, setTelefone] = useState(() => (telefoneDoLink ? formatarTelefone(telefoneDoLink) : ""));
 
   const [cpf, setCpf] = useState("");
 
@@ -80,6 +94,7 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento }:
   const [ocupado, setOcupado] = useState(false);
 
   const montarCorpo = () => ({
+    origem,
     cliente: { nome, telefone, cpf, email, dataNascimento },
     endereco: { cep, logradouro, numero, complemento, bairro, cidade, estado },
     itens: itens.map((item) => ({ produtoId: item.id, quantidade: item.quantidade })),
@@ -150,6 +165,8 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento }:
 
         <p className="mt-2 text-slate-300">Escolha algo no cardápio para fazer o pedido.</p>
 
+        {avisoDoLink && <p className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">{avisoDoLink}</p>}
+
         <Link href="/cardapio" className="mt-6 inline-block rounded-xl bg-ouro px-6 py-3 font-bold text-black hover:bg-ouro-400">
           Ver o cardápio
         </Link>
@@ -166,6 +183,8 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento }:
 
         <p className="mt-1 text-sm text-slate-400">Confira os dados. O pagamento é feito no ambiente seguro do Mercado Pago (Pix, crédito ou débito à vista).</p>
       </div>
+
+      {avisoDoLink && <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">{avisoDoLink}</p>}
 
       {!recebePedidos && <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">Não estamos recebendo pedidos agora. {textoDeFuncionamento}</p>}
 

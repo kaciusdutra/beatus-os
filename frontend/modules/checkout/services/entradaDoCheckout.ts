@@ -7,7 +7,11 @@ export const MAXIMO_DE_ITENS_DO_CHECKOUT = 30;
 
 export const QUANTIDADE_MAXIMA_NO_CHECKOUT = 20;
 
+// De onde o cliente veio para o checkout: o próprio site ou um link que a Beatriz mandou no WhatsApp.
+export type OrigemDoCheckout = "CARDAPIO_ONLINE" | "WHATSAPP";
+
 export interface DadosDoCheckout {
+  origem: OrigemDoCheckout;
   cliente: {
     nome: string;
     telefone: string;
@@ -179,6 +183,7 @@ export function validarEntradaDoCheckout(entrada: unknown, hoje: Date = new Date
   return {
     ok: true,
     dados: {
+      origem: bruto.origem === "WHATSAPP" ? "WHATSAPP" : "CARDAPIO_ONLINE",
       cliente: { nome, telefone, cpf, ...(email ? { email } : {}), ...(dataNascimento ? { dataNascimento } : {}) },
       endereco: { cep, logradouro, numero, ...(complemento ? { complemento } : {}), bairro, cidade, estado },
       itens,

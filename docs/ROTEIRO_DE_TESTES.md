@@ -420,6 +420,20 @@ Endereço: `/pedidos`.
 | 247 | Veja um pedido do PDV com Pix manual | "Pix (confirmado pela equipe)" |
 | 248 | Veja um pedido do iFood | "iFood (pago na plataforma)" |
 
+## Parte 25: Link de pagamento da Beatriz e etapas do pedido (precisa de preços no canal WhatsApp e site e das credenciais de teste do Mercado Pago)
+
+Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código>`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 249 | Na Beatriz, monte um pedido conferido e confirme como cliente | Aparece o quadro "Link de pagamento (WhatsApp)" |
+| 250 | Clique em "Gerar link" (com ou sem o WhatsApp do cliente) | O link aparece e dá para copiar |
+| 251 | Abra o link | O checkout abre com os itens, preços atuais do cardápio e o WhatsApp já preenchido |
+| 252 | Tire um item do cardápio e abra o link de novo | Aviso "Algum item do link não está mais disponível" |
+| 253 | Pague no sandbox | O pedido entra na Cozinha identificado como WhatsApp |
+| 254 | Na página do pedido, acompanhe enquanto a Cozinha muda a situação | As etapas andam sozinhas: recebido, em preparo, pronto, a caminho, entregue |
+| 255 | Cancele o pedido na Cozinha | A página mostra o aviso de cancelado, sem linha do tempo |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.
