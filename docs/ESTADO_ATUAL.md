@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 15/11/2026 | `PENDENTE` | Documentação: visão da Beatriz como vendedora, caixa e relacionamento (avisos do pedido, pós-venda e clube) e a ordem de construção em fases; sem código; regras 26.1 a 26.7 |
+| 15/11/2026 | `245c6fa` | Documentação: visão da Beatriz como vendedora, caixa e relacionamento (avisos do pedido, pós-venda e clube) e a ordem de construção em fases; sem código; regras 26.1 a 26.7 |
 | 15/11/2026 | `87405df` | Forma de pagamento clara em todos os pedidos (Pix, crédito, débito, plataforma, quem confirmou e a referência do gateway), na lista e no detalhe de Pedidos (sem migração); regras 25.5 a 25.7 |
 | 15/11/2026 | `35f5ccd` | Aceite automático com aviso na Cozinha: pedido aprovado entra como Novo sozinho; a tela confere a fila a cada 5 segundos e avisa (faixa, destaque, som e título da aba); sem migração; regras 25.1 a 25.5 |
 | 15/11/2026 | `c380308` | Site, etapa 2: checkout com Mercado Pago (Pix, crédito e débito à vista) em modo de teste: cadastro com consentimentos, pedido criado só com o pagamento aprovado pelo mesmo caminho do PDV, webhook assinado, política de privacidade (rascunho), limites de abuso (3 migrações: consentimentos, pagamento online, checkout do site); regras 24.1 a 24.10 e `docs/CHECKOUT_MERCADO_PAGO.md` |
