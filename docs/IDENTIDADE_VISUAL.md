@@ -1,6 +1,6 @@
 # Beatus: Identidade visual
 
-> Fonte: o manual de marca enviado pelo Kacius em 15/11/2026 (mockup com logo, variações, paleta, fontes e aplicações). Os códigos de cor escritos no mockup estão corrompidos; os valores abaixo foram **medidos nos pixels da imagem**.
+> Fonte: o manual de marca enviado pelo Kacius em 15/11/2026 (mockup com logo, variações, paleta, fontes e aplicações). Os códigos de cor do mockup saíram corrompidos (`#CESCSB`, `#D9D999`); foram decifrados e conferidos com os pixels da imagem: `#CESCSB` = `#C3965B`, e o cinza é neutro (`#D9D9D9`).
 
 ## Marca
 
@@ -12,8 +12,8 @@
 
 | Uso | Valor | No sistema |
 |---|---|---|
-| Dourado (cor da marca) | `#C3965C` | `ouro` (Tailwind: `bg-ouro`, `text-ouro`) |
-| Preto da marca | `#111111` (o manual mostra preto profundo, medido `#141414`) | `marca-preto` |
+| Dourado (cor da marca) | `#C3965B` | `ouro` (Tailwind: `bg-ouro`, `text-ouro`) |
+| Preto da marca | `#000000` | `marca-preto` |
 | Cinza claro | `#D9D9D9` | `marca-cinza` |
 
 As cores estão em `frontend/app/globals.css`. O ícone do app (`public/icone-beatus.svg` e `app/icon.svg`) usa símbolo dourado sobre preto.

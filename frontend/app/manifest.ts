@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/celular",
     scope: "/",
     display: "standalone",
-    background_color: "#111111",
-    theme_color: "#111111",
+    background_color: "#000000",
+    theme_color: "#000000",
     icons: [
       {
         src: "/icone-beatus.svg",
