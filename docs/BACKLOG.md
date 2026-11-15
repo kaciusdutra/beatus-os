@@ -204,7 +204,12 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] Taxa de entrega com as faixas combinadas (0 a 999 m grátis, faixas de 1 em 1 km, máximo de R$ 10). Hoje `core/config/unitConfig.ts` tem só duas faixas fixas (0 a 1 km grátis e 1 a 5 km por R$ 10).
 - [ ] Tela de configuração das taxas, com entrega grátis por período (promoção).
 - [ ] Fluxo para fora do raio de 5 km (retirada por entregador externo, pagamento antecipado, aviso de responsabilidade).
-- [ ] Cardápio online com checkout (PDV online).
+- [x] **Site (cardápio online), etapa 1 concluída em 15/11/2026** (regras 23.1 a 23.7): área pública em `/cardapio` com a marca, cardápio real por categoria (preço do canal Site), aberto/fechado pelos horários (relógio de Manaus), carrinho no navegador, páginas Sobre (textos provisórios), API pública só leitura com limite de abuso.
+- [ ] **Site, etapa 2: checkout como PDV online.** Cadastro do cliente pelo telefone com todos os dados (nome, CPF, e-mail, **data de nascimento**) e **consentimento LGPD**; endereço e entrega (precisa decidir como calcular a distância: mapa externo ou faixas por bairro/CEP); Pix; o pedido entra no sistema com canal "cardápio online" **aguardando o pagamento** (regra 4.1), recalculado no servidor (S2); rota pública de escrita com limite, validação rígida e proteção contra robô. Provável migração.
+- [ ] **Site, etapa 3: promoções e cupons** ligados ao cálculo do pedido e à fidelização (regras 17).
+- [ ] **Site, etapa 4: fotos dos produtos e mural "Marcaram o Beatus".** Foto exige um lugar para guardar arquivos (depende da hospedagem) ou campo no banco; o mural hoje é por curadoria manual (`modules/site/conteudo/midias.ts`); automático depende da API da Meta. O Kacius envia as fotos dos burgers.
+- [ ] **Site: textos finais** (história, missão, valores, objetivo, chamada) no lugar dos provisórios, e o perfil das redes no rodapé. *(Kacius)*
+- [ ] **Site: no dia da hospedagem**, apontar o domínio para o `/cardapio`, conferir o fuso do servidor (o "aberto agora" já usa Manaus, mas o estado da operação do sistema usa o relógio do servidor) e revisar o limite de abuso se houver mais de um servidor.
 - [ ] WhatsApp Business integrado.
 - [ ] iFood, 99Food e Keeta pelas APIs oficiais, com o canal e a comissão de cada pedido para auditoria.
 - [ ] Gateway de pagamento, impressora e acompanhamento do motoboy.

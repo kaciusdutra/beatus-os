@@ -353,6 +353,26 @@ Os acessos de teste estão em `docs/ACESSOS_DE_TESTE.local.md` (arquivo local, f
 | 208 | Tente desativar ou mudar o perfil do próprio usuário | Recusa; a linha do seu usuário não deixa mudar o perfil |
 | 209 | No celular, entre pelo endereço da rede e use o checklist | Funciona igual (o cookie vale no celular) |
 
+## Parte 21: Site (cardápio online)
+
+Endereço: `/cardapio` (e `/cardapio/sobre`). Abra também numa janela anônima, sem entrar no sistema. Para ver produtos no site, antes é preciso **definir o preço do canal Site** em Financeiro → Precificação.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 210 | Numa janela anônima (sem login), abra `/cardapio` | O site abre com a marca, sem menu do sistema nem pedido de login |
+| 211 | Veja o cartão de horário | "Aberto agora, até as ..." dentro do horário; fora dele, "Abrimos hoje às ..." ou "Abrimos quarta-feira às 18:00." |
+| 212 | Sem nenhum preço no canal Site, olhe o cardápio | Mensagem "O cardápio está sendo atualizado" (nenhum produto sem preço aparece) |
+| 213 | Defina o preço no canal Site de um produto e recarregue o site | O produto aparece na categoria certa, com nome, descrição e preço, e **sem foto** (símbolo da marca) |
+| 214 | Desative esse produto e recarregue | Ele some do site |
+| 215 | Toque em **Adicionar** em dois produtos, um deles duas vezes | O carrinho no topo mostra a quantidade; abra e confira o total; **+** e **−** mudam a quantidade |
+| 216 | Recarregue a página | O carrinho continua com os mesmos itens |
+| 217 | Veja o botão **Finalizar pedido** | Está desabilitado, avisando que os pedidos pelo site abrem em breve |
+| 218 | Abra `/cardapio/sobre` | Nossa história, Missão, Objetivo e Valores (textos provisórios) |
+| 219 | No celular, abra o site | Nada passa da largura da tela; o topo mostra a marca, Sobre e o carrinho |
+| 220 | Na janela anônima, tente abrir `/pdv` ou `/financeiro` | Vai para o login: o sistema interno continua protegido |
+| 221 | Abra `/api/publico/cardapio` | Mostra só categorias, itens (nome, descrição, preço) e horário: nenhum custo nem margem |
+| 222 | Abra `/robots.txt` | Libera só o `/cardapio` para os buscadores |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

@@ -54,6 +54,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     }
   }
 
+  // O layout raiz usa o caminho para servir o site público sem o menu do sistema.
+  cabecalhos.set("x-caminho", pathname);
+
   const { exige } = exigenciaDaRota(request.method, pathname);
 
   if (exige.tipo === "PUBLICA") {
@@ -104,5 +107,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 // Tudo passa pelo proxy, menos os arquivos estáticos (imagens, fontes, ícones).
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.svg|icone-beatus.svg|marca/|fonts/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.svg|icone-beatus.svg|robots.txt|marca/|fonts/|site/).*)"],
 };

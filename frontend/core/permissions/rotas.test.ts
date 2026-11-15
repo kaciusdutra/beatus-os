@@ -85,6 +85,15 @@ verificar(exigenciaDaRota("GET", "/api/operacao/checklist/estado").exige.tipo ==
 verificar(exigenciaDaRota("GET", "/api/operacao/checklist").exige.tipo === "PERMISSAO", "checklist pede permissão");
 verificar(exigenciaDaRota("GET", "/").exige.tipo === "PERMISSAO", "a raiz tem regra própria (não vale tudo que começa com /)");
 
+// ---------- Site público ----------
+verificar(exigenciaDaRota("GET", "/cardapio").exige.tipo === "PUBLICA", "o site é público");
+verificar(exigenciaDaRota("GET", "/cardapio/sobre").exige.tipo === "PUBLICA", "subpáginas do site são públicas");
+verificar(exigenciaDaRota("GET", "/api/publico/cardapio").exige.tipo === "PUBLICA", "a API pública de leitura é pública");
+verificar(exigenciaDaRota("POST", "/api/publico/cardapio").exige.tipo === "PERMISSAO", "escrita na API pública não é pública");
+verificar(!pode("GESTOR", "POST", "/api/publico/qualquer-coisa"), "escrita pública sem regra cai no padrão restrito");
+verificar(exigenciaDaRota("GET", "/cardapios").exige.tipo !== "PUBLICA", "prefixo parecido não vira público");
+verificar(exigenciaDaRota("GET", "/api/publicos").exige.tipo !== "PUBLICA", "api parecida não vira pública");
+
 // ---------- Administrador ----------
 for (const [metodo, caminho] of [
   ["GET", "/"], ["GET", "/compras"], ["POST", "/api/compras/entradas"], ["PUT", "/api/operacao/horarios"], ["GET", "/configuracoes/usuarios"],

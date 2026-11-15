@@ -40,6 +40,10 @@ const REGRAS: Regra[] = [
   { padrao: "/api/auth/login", exige: publica },
   { padrao: "/api/auth/primeiro-acesso", exige: publica },
   { padrao: "/api/auth/status", exige: publica },
+  // O site (cardápio online) é público. Na API pública só entra leitura: qualquer
+  // escrita futura (checkout) precisa de regra própria e cai no padrão restrito até lá.
+  { padrao: "/cardapio", exige: publica },
+  { padrao: "/api/publico", metodos: "LEITURA", exige: publica },
 
   // ---------- Qualquer pessoa que entrou ----------
   { padrao: "/api/auth", exige: autenticada },
