@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 15/11/2026 | `PENDENTE` | Forma de pagamento clara em todos os pedidos (Pix, crédito, débito, plataforma, quem confirmou e a referência do gateway), na lista e no detalhe de Pedidos (sem migração); regras 25.5 a 25.7 |
 | 15/11/2026 | `35f5ccd` | Aceite automático com aviso na Cozinha: pedido aprovado entra como Novo sozinho; a tela confere a fila a cada 5 segundos e avisa (faixa, destaque, som e título da aba); sem migração; regras 25.1 a 25.5 |
 | 15/11/2026 | `c380308` | Site, etapa 2: checkout com Mercado Pago (Pix, crédito e débito à vista) em modo de teste: cadastro com consentimentos, pedido criado só com o pagamento aprovado pelo mesmo caminho do PDV, webhook assinado, política de privacidade (rascunho), limites de abuso (3 migrações: consentimentos, pagamento online, checkout do site); regras 24.1 a 24.10 e `docs/CHECKOUT_MERCADO_PAGO.md` |
 | 15/11/2026 | `b6bf8c1` | Site (cardápio online), etapa 1: área pública em `/cardapio` com a marca, cardápio real (preço do canal Site), aberto/fechado em horário de Manaus, carrinho no navegador, página Sobre (textos provisórios), API pública só leitura com limite de abuso, robots; proxy e layout separam o site do sistema (sem migração); regras 23.1 a 23.7 |

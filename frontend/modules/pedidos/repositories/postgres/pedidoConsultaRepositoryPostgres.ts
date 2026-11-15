@@ -10,6 +10,8 @@ import type { StatusOperacional } from "../../types/pedido";
 
 import type { PedidoDetalhe, PedidoListado } from "../../types/consultaPedido";
 
+import { rotuloDoPagamento } from "../../services/formaDePagamento";
+
 type LinhaDeLista = {
   id: string;
   numero: string;
@@ -20,7 +22,7 @@ type LinhaDeLista = {
   criadoEm: Date;
   cliente: { id: string; nome: string; telefone: string };
   itens: { quantidade: number }[];
-  pagamentos: { forma: string; status: string }[];
+  pagamentos: { forma: string; status: string; origem: string; online: { metodo: string; gateway: string } | null }[];
   codigoExterno?: string | null;
 };
 
@@ -40,6 +42,7 @@ function mapearListado(pedido: LinhaDeLista): PedidoListado {
     },
     quantidadeItens: pedido.itens.reduce((soma, item) => soma + item.quantidade, 0),
     formaPagamento: pedido.pagamentos[0]?.forma,
+    pagamentoRotulo: pedido.pagamentos[0] ? rotuloDoPagamento(pedido.pagamentos[0]) : undefined,
     pagamentoStatus: pedido.pagamentos[0]?.status,
     codigoExterno: pedido.codigoExterno ?? undefined,
   };
@@ -82,7 +85,7 @@ export class PedidoConsultaRepositoryPostgres
       include: {
         cliente: { select: { id: true, nome: true, telefone: true } },
         itens: { select: { quantidade: true } },
-        pagamentos: { select: { forma: true, status: true } },
+        pagamentos: { select: { forma: true, status: true, origem: true, online: { select: { metodo: true, gateway: true } } } },
       },
       orderBy: { criadoEm: "desc" },
       take: filtro.limite,
@@ -97,7 +100,7 @@ export class PedidoConsultaRepositoryPostgres
       include: {
         cliente: { select: { id: true, nome: true, telefone: true } },
         itens: { orderBy: { criadoEm: "asc" } },
-        pagamentos: { orderBy: { criadoEm: "asc" } },
+        pagamentos: { orderBy: { criadoEm: "asc" }, include: { online: { select: { metodo: true, gateway: true, transacaoExterna: true } } } },
       },
     });
 
@@ -149,6 +152,9 @@ export class PedidoConsultaRepositoryPostgres
         id: pagamento.id,
         modalidade: pagamento.modalidade,
         forma: pagamento.forma,
+        rotulo: rotuloDoPagamento(pagamento),
+        origem: pagamento.origem,
+        referencia: pagamento.online?.transacaoExterna ?? undefined,
         status: pagamento.status,
         valor: Number(pagamento.valor),
         aprovadoEm: pagamento.aprovadoEm?.toISOString(),

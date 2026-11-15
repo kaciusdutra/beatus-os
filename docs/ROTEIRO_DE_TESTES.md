@@ -409,6 +409,17 @@ Endereço: `/cozinha`. Deixe a Cozinha aberta (de preferência no tablet ou no c
 | 243 | Recarregue a página | A escolha do som (ligado ou desligado) continua; o som volta a pedir o toque para liberar |
 | 244 | Mude um pedido para "Em preparo" | Ele sai de "Novos" e não dispara aviso |
 
+## Parte 24: Forma de pagamento nos pedidos
+
+Endereço: `/pedidos`.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 245 | Abra a lista de Pedidos | Cada pedido mostra a forma de pagamento em palavras: "Pix (Mercado Pago, confirmado sozinho)", "Cartão de crédito (Mercado Pago)", "Cartão de débito (Mercado Pago)", "iFood (pago na plataforma)", "Pix (confirmado pela equipe)" |
+| 246 | Abra o detalhe de um pedido do site | Na linha do pagamento aparece o meio, a situação, o valor e a referência do pagamento no Mercado Pago |
+| 247 | Veja um pedido do PDV com Pix manual | "Pix (confirmado pela equipe)" |
+| 248 | Veja um pedido do iFood | "iFood (pago na plataforma)" |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

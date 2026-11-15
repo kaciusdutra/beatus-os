@@ -11,6 +11,8 @@ export interface PedidoListado {
   cliente: { id: string; nome: string; telefone: string };
   quantidadeItens: number;
   formaPagamento?: string;
+  // Como o dinheiro entrou, em palavras claras (ex.: "Cartão de débito (Mercado Pago)").
+  pagamentoRotulo?: string;
   pagamentoStatus?: string;
   // Pedido de marketplace
   codigoExterno?: string;
@@ -39,6 +41,10 @@ export interface PedidoDetalhe extends PedidoListado {
     id: string;
     modalidade: string;
     forma: string;
+    rotulo: string;
+    origem: string;
+    // Identificador do pagamento no gateway (para conferir ou estornar).
+    referencia?: string;
     status: string;
     valor: number;
     aprovadoEm?: string;

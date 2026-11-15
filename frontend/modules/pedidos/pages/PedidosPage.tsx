@@ -273,7 +273,7 @@ export default function PedidosPage() {
 
                   <p className="text-xs text-slate-500">
                     {dataHora(pedido.criadoEm)} · {pedido.canal}{pedido.codigoExterno ? ` (código ${pedido.codigoExterno})` : ""} · {pedido.quantidadeItens} item(ns)
-                    {pedido.formaPagamento ? ` · ${pedido.formaPagamento}${pedido.pagamentoStatus ? ` (${pedido.pagamentoStatus.toLowerCase()})` : ""}` : ""}
+                    {pedido.formaPagamento ? ` · ${pedido.pagamentoRotulo ?? pedido.formaPagamento}${pedido.pagamentoStatus ? ` (${pedido.pagamentoStatus.toLowerCase()})` : ""}` : ""}
                   </p>
                 </div>
 
@@ -346,7 +346,8 @@ export default function PedidosPage() {
 
                             {detalhe.pagamentos.map((pagamento) => (
                               <p key={pagamento.id} className="text-xs text-slate-600">
-                                {pagamento.forma} · {pagamento.status.toLowerCase()} · {moeda(pagamento.valor)}
+                                {pagamento.rotulo} · {pagamento.status.toLowerCase()} · {moeda(pagamento.valor)}
+                                {pagamento.referencia ? ` · ref. ${pagamento.referencia}` : ""}
                                 {pagamento.aprovadoEm ? ` · aprovado em ${dataHora(pagamento.aprovadoEm)}` : ""}
                               </p>
                             ))}
