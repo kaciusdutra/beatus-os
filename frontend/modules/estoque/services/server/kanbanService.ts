@@ -189,6 +189,8 @@ export class KanbanService {
         entidade: "ESTOQUE",
         acao: "TEMPERATURA",
         resumo: `Temperaturas: freezer ${freezer ?? "não medida"} °C, geladeira ${geladeira ?? "não medida"} °C.`,
+        // Valores estruturados: o checklist conta as leituras do dia a partir deles.
+        detalhes: { freezer, geladeira },
         operador,
       });
     });

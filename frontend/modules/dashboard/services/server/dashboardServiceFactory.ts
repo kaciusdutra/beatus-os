@@ -12,6 +12,12 @@ import { criarPrecificacaoServicePostgres } from "@/modules/precificacao/service
 
 import { getEstoqueService } from "@/modules/estoque/services/server/estoqueService";
 
+import { getHorarioService } from "@/modules/operacao/services/server/horarioServiceFactory";
+
+import { getChecklistService } from "@/modules/operacao/services/server/checklistServiceFactory";
+
+import { estadoDaOperacao, resolverHorarioDoDia } from "@/modules/operacao/services/horarios";
+
 import { DashboardService } from "../dashboardService";
 
 import { criarDashboardRepositoryPostgres } from "../../repositories/postgres/dashboardRepositoryPostgres";
@@ -135,10 +141,46 @@ async function alertasDaIntegracao(): Promise<AlertaDoDashboard[]> {
   return alertas;
 }
 
+// Checklist do dia: só avisa (não bloqueia a operação).
+async function alertasDoChecklist(): Promise<AlertaDoDashboard[]> {
+  const agora = new Date();
+
+  const [configuracao, estado] = await Promise.all([
+    getHorarioService().obter(),
+    getChecklistService().estado(agora),
+  ]);
+
+  const situacao = estadoDaOperacao(
+    resolverHorarioDoDia(estado.data, configuracao),
+    estado.aberturaConcluida,
+    agora
+  );
+
+  const alertas: AlertaDoDashboard[] = [];
+
+  if (estado.temAbertura && !estado.aberturaConcluida && situacao === "CHECKLIST") {
+    alertas.push({
+      nivel: "ATENCAO",
+      mensagem: "Já deu o horário de abrir e o checklist de abertura não foi concluído.",
+      href: "/operacao",
+    });
+  }
+
+  if (estado.temFechamento && !estado.fechamentoConcluido && situacao === "FECHAMENTO") {
+    alertas.push({
+      nivel: "INFO",
+      mensagem: "O horário de venda acabou: falta concluir o checklist de fechamento.",
+      href: "/operacao",
+    });
+  }
+
+  return alertas;
+}
+
 export function getDashboardService(): DashboardService {
   return new DashboardService(
     criarDashboardRepositoryPostgres(criarContextoDesenvolvimento()),
-    [alertasDoFinanceiro, alertasDoEstoque, alertasDaConferencia, alertasDaIntegracao],
+    [alertasDoFinanceiro, alertasDoEstoque, alertasDaConferencia, alertasDaIntegracao, alertasDoChecklist],
     margensDaPrecificacao
   );
 }

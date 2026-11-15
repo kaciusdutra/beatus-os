@@ -42,6 +42,8 @@ model Empresa {
   integracoesMarketplace  IntegracaoMarketplace[]
   horariosDeFuncionamento HorarioDeFuncionamento[]
   excecoesDeHorario       ExcecaoDeHorario[]
+  checklistItensModelo    ChecklistItemModelo[]
+  checklistExecucoes      ChecklistExecucao[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -1169,4 +1171,86 @@ model ExcecaoDeHorario {
   empresa Empresa @relation(fields: [empresaId], references: [id])
 
   @@index([empresaId, inicio, fim])
+}
+
+// Item do checklist cadastrado pelo Kacius (G04). O checklist do dia é uma cópia
+// destes itens (ChecklistExecucaoItem), então mudar a lista não mexe no histórico.
+model ChecklistItemModelo {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // ABERTURA, FECHAMENTO ou PRODUCAO
+  tipo String
+
+  titulo String
+
+  categoria String?
+
+  obrigatorio Boolean @default(true)
+
+  ordem Int @default(0)
+
+  // Verificação automática: o sistema marca o item sozinho pelo estoque, pela
+  // validade ou pela temperatura. Valores: TEMPERATURA_FREEZER:1, TEMPERATURA_FREEZER:2,
+  // TEMPERATURA_GELADEIRA:1, TEMPERATURA_GELADEIRA:2 (número de leituras no dia),
+  // CARTOES_VENCIDOS, ESTOQUE_MINIMO. Vazio = item manual.
+  verificacao String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId, tipo, ordem])
+}
+
+// O checklist de um dia e de um tipo (abertura, fechamento ou produção).
+model ChecklistExecucao {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  data DateTime @db.Date
+
+  tipo String
+
+  criadoEm DateTime @default(now())
+
+  concluidoEm  DateTime?
+  concluidoPor String?
+
+  empresa Empresa                 @relation(fields: [empresaId], references: [id])
+  itens   ChecklistExecucaoItem[]
+
+  @@unique([empresaId, data, tipo])
+}
+
+model ChecklistExecucaoItem {
+  id String @id @default(uuid())
+
+  execucaoId String
+
+  // Item do modelo de onde veio (cópia: o histórico não depende dele)
+  modeloItemId String?
+
+  titulo String
+
+  categoria String?
+
+  obrigatorio Boolean
+
+  ordem Int
+
+  verificacao String?
+
+  feito    Boolean   @default(false)
+  feitoPor String?
+  feitoEm  DateTime?
+
+  observacao String?
+
+  execucao ChecklistExecucao @relation(fields: [execucaoId], references: [id], onDelete: Cascade)
+
+  @@index([execucaoId])
 }

@@ -288,6 +288,26 @@ Endereço direto: `/configuracoes/horarios` (e `/operacao/horarios` leva para l�
 | 164 | Cadastre como exceção um feriado de Manaus, com observação | A observação aparece no dia do calendário |
 | 165 | Em `/atividades`, filtre a área Operação | Aparecem as mudanças de horário e as exceções, com quem fez |
 
+## Parte 18: Checklist da operação
+
+Endereço direto: `/operacao` (menu Checklist) e `/operacao/editar` (editar a lista).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 166 | Abra `/operacao` num dia de venda | Abas Abertura e Fechamento, com a lista inicial (10 itens na abertura, 8 no fechamento) sem itens repetidos, e o painel "Estoque do dia" na abertura |
+| 167 | Veja os itens de temperatura | Aparecem com selo "automático" e o aviso "Falta registrar", com o link Resolver |
+| 168 | Registre as temperaturas no Estoque (quadro) e volte | Os dois itens se marcam sozinhos ("O sistema conferiu") em até 30 segundos |
+| 169 | Tente concluir com itens obrigatórios pendentes | O botão fica desabilitado; o texto diz quantos faltam |
+| 170 | Marque os itens manuais ("Marcar como feito") | Mostra quem marcou e a hora; o progresso sobe |
+| 171 | Num item automático com problema, use "Marcar mesmo assim" sem escrever nada | Recusa; com observação, aceita |
+| 172 | Conclua o checklist | Aparece "Concluído por ... às ..."; o estado da operação deixa de ser "Checklist" quando já passou das 18h |
+| 173 | Clique em "Reabrir para corrigir" | O checklist volta a ficar editável |
+| 174 | Em `/operacao/editar`, adicione um item, mude a ordem e salve | Mensagem de salvo; o checklist de hoje não muda, o do próximo dia traz o item |
+| 175 | Salve um item sem título | Recusa com a mensagem "Todo item precisa de um título" |
+| 176 | Depois das 18h com a abertura sem concluir, abra o Dashboard | Aviso "checklist de abertura não foi concluído", sem travar nada |
+| 177 | Em `/atividades` (área Operação) | Aparecem itens marcados, conclusão, reabertura e mudanças na lista, com quem fez |
+| 178 | Numa segunda ou terça (dia de produção) abra `/operacao` | Vem o checklist "Dia de produção" com o estoque do dia |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

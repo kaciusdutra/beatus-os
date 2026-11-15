@@ -85,12 +85,12 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 ## G04: Operação do restaurante
 
 - [x] **Horários persistidos, com exceções e calendário (G04 bloco 1, 15/11/2026, migração `add_horarios_de_funcionamento_e_excecoes`):** padrão da rotina (qua e qui 18h–22h, sex e sáb 18h–23h, dom 18h–22h; seg e ter produção), exceções por dia ou período, calendário com feriados nacionais e pendência de feriado em dia de produção, estado da operação vindo do banco e diário no Registro de atividades. Tela em Configurações → Horários. Regras 8.7 a 8.10.
-- [ ] **Bloco 2 da G04 (próximo):** checklist persistido e editável (abertura, fechamento e dia de produção), com itens automáticos pelo estoque, validade e temperatura; aviso no Dashboard; estoque do dia na abertura. O checklist só avisa, sem bloquear (regra 8.10).
+- [x] **Bloco 2 da G04:** checklist persistido e editável (abertura, fechamento e dia de produção), com itens automáticos pelo estoque, validade e temperatura; aviso no Dashboard; estoque do dia na abertura; diário no Registro de atividades. Só avisa, sem bloquear (regras 8.10 a 8.14). Concluído em 15/11/2026.
 - [ ] **Feriados estaduais e municipais** (Amazonas, Manaus) já cadastrados no calendário, se o Kacius quiser (hoje ele os cadastra como exceção).
 - [ ] **Estado da operação calculado também no servidor** (hoje a tela calcula a cada segundo a partir dos horários que busca a cada minuto): serve a Beatriz (loja fechada) e às integrações.
 - [ ] **Remover componentes sem uso da tela antiga de horários** (`OperationScheduleCard`), com autorização.
-- [ ] Mostrar o estoque atualizado do dia na abertura do sistema.
-- [ ] Diário da operação gravado em logs.
+- [x] Mostrar o estoque atualizado do dia na abertura do sistema (painel "Estoque do dia" no checklist, regra 8.14).
+- [x] Diário da operação gravado em logs (Registro de atividades, área Operação).
 
 ## G05 e G06: Produção e estoque
 
@@ -133,7 +133,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [x] **Cozinha concluída (sem migração):** tela `/cozinha` (Novos, Em preparo, Prontos, Em rota), API de status com motivo e devoluções no cancelamento, baixa do estoque ao iniciar o preparo (insumos no saldo; preparações da coluna "Na cozinha", primeiro a vencer), ticket de 80 mm em `/cozinha/ticket/[id]` e fila de impressão `/api/impressao/fila`. Regra 11.6.
 - [ ] **Ticket automático na impressora térmica:** hoje o ticket sai pela impressão do navegador e marca IMPRESSO; um impressor que leia a fila fica para quando a impressora existir.
 - [ ] **Baixa de preparação sem cartão na cozinha:** se a preparação não foi levada à cozinha, a baixa vai para o saldo geral com aviso; avaliar travar o início do preparo.
-- [ ] **Checklist diário ligado ao estoque e à validade (junto da G04):** itens de temperatura do freezer e da geladeira (duas vezes ao dia, derivável do Registro de atividades), conferir cartões vencidos ou vencendo no quadro, descer a gaveta do dia seguinte para descongelar, conferir estoque abaixo do mínimo e, no fechamento, pesar a sobra, mover ou descartar e etiquetar. O checklist hoje é fixo em memória e será migrado para o banco. *(pedido do Kacius em 12/11/2026)*
+- [x] **Checklist diário ligado ao estoque e à validade (G04, bloco 2, concluído):** itens de temperatura do freezer e da geladeira (duas vezes ao dia, derivável do Registro de atividades), conferir cartões vencidos ou vencendo no quadro, descer a gaveta do dia seguinte para descongelar, conferir estoque abaixo do mínimo e, no fechamento, pesar a sobra, mover ou descartar e etiquetar. O checklist agora é persistido no banco. *(pedido do Kacius em 12/11/2026)*
 - [ ] **Opção de escolha do combo no pedido:** o pedido ainda não guarda qual opção o cliente escolheu, então esses itens não baixam o estoque sozinhos. *(12/11/2026)*
 - [ ] **Lote e validade no estoque (primeiro a vencer, primeiro a sair):** hoje o lote de produção guarda a validade, mas o estoque não controla lote por lote. *(12/11/2026)*
 - [ ] **Dados de teste do estoque:** os insumos e fichas `[TESTE E]` ficaram inativos; os movimentos continuam no registro (que não se apaga). *(12/11/2026)*

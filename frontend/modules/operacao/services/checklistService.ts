@@ -1,90 +1,37 @@
-import { ChecklistItem } from "../types/checklist";
+import type { EstadoDoChecklist } from "./checklistDoDiaService";
 
-const checklist: ChecklistItem[] = [
-  {
-    id: "temperatura-freezer",
-    titulo: "Conferir temperatura do freezer",
-    categoria: "Estrutura",
-    prioridade: "alta",
-    status: "pendente",
-    obrigatorio: true,
-  },
-  {
-    id: "estoque-paes",
-    titulo: "Conferir estoque de pães",
-    categoria: "Estoque",
-    prioridade: "alta",
-    status: "pendente",
-    obrigatorio: true,
-  },
-  {
-    id: "molho-especial",
-    titulo: "Produzir molho especial",
-    categoria: "Produção",
-    prioridade: "media",
-    status: "pendente",
-    obrigatorio: true,
-  },
-];
+// Cópia, no navegador, do estado do checklist de hoje. A fonte de verdade é o
+// banco (Operação → Checklist); aqui só se guarda se o de abertura já foi
+// concluído, para o estado da operação (Checklist, Operando...) e o Dashboard.
+// A cópia chega ao abrir o sistema e a cada minuto.
+let estado: EstadoDoChecklist | null = null;
 
-export function obterChecklist(): ChecklistItem[] {
-  return [...checklist];
+export function definirEstadoDoChecklist(novo: EstadoDoChecklist | null): void {
+  estado = novo;
 }
 
-export function obterItensPendentes(): ChecklistItem[] {
-  return checklist.filter(
-    (item) => item.status !== "concluido"
-  );
+// Busca o estado gravado. Falha de rede não derruba nada: continua valendo a
+// última cópia que se tinha.
+export async function carregarChecklistDoServidor(): Promise<void> {
+  try {
+    const resposta = await fetch("/api/operacao/checklist/estado", { cache: "no-store" });
+
+    const dados = await resposta.json();
+
+    if (resposta.ok && dados.sucesso && dados.estado) {
+      definirEstadoDoChecklist(dados.estado as EstadoDoChecklist);
+    }
+  } catch {
+    // sem rede: mantém a cópia atual
+  }
 }
 
+// O checklist de abertura de hoje está concluído? Dia sem abertura (fechado ou de
+// produção) não tem o que concluir. Antes de a cópia chegar, vale "não concluído".
 export function todosObrigatoriosConcluidos(): boolean {
-  const obrigatorios = checklist.filter(
-    (item) => item.obrigatorio
-  );
-
-  return obrigatorios.every(
-    (item) => item.status === "concluido"
-  );
-}
-
-export function concluirChecklistItem(
-  id: string
-): void {
-  const item = checklist.find(
-    (item) => item.id === id
-  );
-
-  if (!item) {
-    return;
+  if (!estado) {
+    return false;
   }
 
-  item.status = "concluido";
-}
-
-export function reabrirChecklistItem(
-  id: string
-): void {
-  const item = checklist.find(
-    (item) => item.id === id
-  );
-
-  if (!item) {
-    return;
-  }
-
-  item.status = "pendente";
-}
-
-export function obterPercentualChecklist(): number {
-  if (checklist.length === 0) {
-    return 100;
-  }
-
-  const concluidos = checklist.filter(
-    (item) => item.status === "concluido"
-  ).length;
-
-  return Math.round(
-    (concluidos / checklist.length) * 100
-  );
+  return !estado.temAbertura || estado.aberturaConcluida;
 }

@@ -21,6 +21,10 @@ import {
   carregarConfiguracaoDoServidor,
 } from "@/core/operation/scheduleService";
 
+import {
+  carregarChecklistDoServidor,
+} from "@/modules/operacao/services/checklistService";
+
 interface SystemContextValue {
   systemState: SystemState;
   atualizarEstado: () => void;
@@ -87,10 +91,13 @@ export function SystemProvider({
      */
     atualizarEstado();
 
-    // Os horários gravados no banco (Configurações → Horários) chegam ao abrir
-    // o sistema e a cada minuto; o estado é recalculado a cada segundo.
+    // Os horários (Configurações → Horários) e o checklist de hoje chegam do banco
+    // ao abrir o sistema e a cada minuto; o estado é recalculado a cada segundo.
     async function buscarHorarios() {
-      await carregarConfiguracaoDoServidor();
+      await Promise.all([
+        carregarConfiguracaoDoServidor(),
+        carregarChecklistDoServidor(),
+      ]);
 
       atualizarEstado();
     }
