@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 15/11/2026 | `a12c9b4` | G03: Pix copia e cola nos canais próprios (chave configurável, valor calculado no servidor, painel no PDV, confirmação manual, txid no histórico) (migração); regras 19.1 a 19.6 |
 | 13/11/2026 | `b02dc61` | Marketplace como pedido normal: vínculo automático dos itens, correção dos pedidos em Novo ao ligar e conferência do dia por canal (vendido, entrou, a receber, comissão, diferença); regras 16.7, 16.8 e 18.1 a 18.4 (sem migração) |
 | 13/11/2026 | `6a4d7ab` | G10: estrutura da integração com marketplaces (caixa de eventos, aceite automático, vínculo de itens, cancelamento, consulta periódica, avisos e simulação); adaptador do iFood em esqueleto; regras 16.1 a 16.7 (migração) |
 | 13/11/2026 | `d956dbf` | G03: pedido de marketplace sem cliente, conferência do repasse (entra no caixa na conferência) e análise de vendas por canal e produto com etiquetas de promoção (migração); regras 14.7, 14.8 e 15.1 a 15.5 |
