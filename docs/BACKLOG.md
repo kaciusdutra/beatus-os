@@ -205,6 +205,13 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G11: Beatriz
 
+- [x] **Núcleo da Beatriz (15/11/2026, sem migração):** a IA entende o cliente e anota o pedido; o sistema confere cada item com o cardápio, calcula os valores e nunca deixa a IA citar preço; casos sensíveis vão para uma pessoa; tela de teste em Inteligência → Beatriz. Regras 20.1 a 20.8. **Ainda não testado com a IA de verdade**, porque falta a `ANTHROPIC_API_KEY` no `.env`; os testes automáticos usam um modelo de mentira.
+- [ ] **Testar a Beatriz com a IA de verdade** quando a chave existir: conversas reais de cardápio, adicionais, observações, "o que tem abacaxi", e ajustar as instruções. Medir o custo por conversa e decidir o modelo (Sonnet ou Haiku).
+- [ ] **WhatsApp (Meta WhatsApp Business Platform):** receber e enviar mensagens, guardar as conversas (precisa de tabelas e migração), identificar o cliente pelo telefone e chamar uma pessoa quando a Beatriz marcar "precisa de humano". Começa no **modo assistido**. Depende do número dedicado e da verificação da empresa na Meta.
+- [ ] **Beatriz cobra o Pix e só então lança o pedido:** hoje o pedido só existe depois de pago; precisa guardar a cobrança pendente (e talvez um estado "aguardando pagamento"). Junto: **endereço → distância → taxa de entrega** feitos pela Beatriz, e o aviso de loja fechada e horário de funcionamento.
+- [ ] **Enviar o rascunho da Beatriz para o PDV** (itens, nome e endereço já preenchidos), para a equipe só conferir e lançar.
+- [ ] **Beatriz no site (cardápio online):** reaproveita o mesmo núcleo.
+- [ ] **Beatriz aplica o benefício da fidelização e o código de campanha** (regra 17).
 - [ ] Atendimento pelo WhatsApp e pelo site, conversando como uma pessoa.
 - [ ] Entender como o cliente chama os produtos ("o que tem abacaxi").
 - [ ] Acompanhar o pedido até a entrega e pedir feedback depois.

@@ -282,3 +282,16 @@
 4. Cada cobrança tem um **identificador (txid)**, que fica no **histórico do pedido** ("Pix BTS..."), para conferir depois com o extrato do banco.
 5. A tela de configuração tem um **Pix de teste de R$ 1,00**, para o Kacius colar no próprio banco e conferir que aparecem o nome e o valor certos antes de cobrar um cliente. A chave Pix não é segredo (o cliente a vê ao pagar), por isso fica no banco e não no `.env`.
 6. **Fica para depois:** QR code em imagem (exige uma biblioteca nova, ainda não autorizada), link de cartão e **confirmação automática do pagamento**, que dependem de um banco ou intermediário de pagamento com API (credenciais no `.env`, como no iFood).
+
+## 20. Beatriz, a atendente por conversa (núcleo)
+
+*(decisões do Kacius em 15/11/2026)*
+
+1. A **Beatriz** atende o cliente por conversa (WhatsApp primeiro, depois o site): tira dúvidas do cardápio, anota o pedido e pergunta o que falta (nome, endereço com ponto de referência e confirmação do resumo). Ela atende só os **canais próprios**; pedido de marketplace não passa por ela.
+2. **Quem decide é o sistema, não a IA.** O cardápio que ela enxerga é o que está **ativo e tem preço no canal** (WhatsApp, com o preço do site quando não há o próprio). Cada item que ela anota é **conferido com o cardápio**; o que não existe, o adicional usado como produto (e o contrário) e a quantidade inválida são **descartados** e viram aviso. **Preço, subtotal e total são sempre calculados pelo sistema**; qualquer preço ou desconto que a IA mande é ignorado.
+3. A Beatriz **não pode citar valores**: se escapar algum na fala, a frase é cortada, e o **resumo do pedido com os valores é montado pelo sistema** e anexado à resposta. O subtotal não inclui a entrega, que é somada pelo endereço.
+4. **Vai para uma pessoa** (marcação "precisa de humano"): reclamação, alergia ou restrição alimentar (ela nunca garante que algo é seguro), pedido de desconto ou de reembolso, assunto fora do restaurante, dúvida que o cardápio não responde, pedido só com itens que não existem e resposta da IA que o sistema não consiga ler. Pedidos para ela ignorar as regras ou revelar as instruções são ignorados.
+5. **Modo assistido:** a Beatriz sugere a resposta e o pedido; **uma pessoa confere antes de lançar no PDV**, e o pagamento segue a regra 4.1 (Pix antecipado, regra 19). A confirmação do cliente só vale com pedido, nome e endereço.
+6. **Limites e custo:** a conversa usa as últimas 20 mensagens, de até 1.000 caracteres cada; a resposta tem até 1.200 caracteres. O custo é por mensagem (uso da IA, tokens mostrados na tela). O modelo padrão é o **Sonnet** e pode ser trocado no `.env` (`BEATRIZ_MODELO` ou `ANTHROPIC_MODELO`). A chave `ANTHROPIC_API_KEY` fica só no servidor.
+7. **Privacidade (LGPD):** só o **texto das mensagens** vai à IA (a Anthropic); nome e telefone do cadastro não são enviados. Se o cliente escrever o nome ou o endereço na conversa, esse texto vai junto. A conversa **não é guardada** pelo núcleo (quem chama guarda).
+8. Tela de teste em **Inteligência → Beatriz**: a equipe conversa como se fosse o cliente e vê o pedido anotado, as pendências, o aviso de "precisa de uma pessoa" e o uso de tokens.

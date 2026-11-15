@@ -59,7 +59,7 @@ function centavos(valor: number): number {
   return Math.round(valor * 100) / 100;
 }
 
-function precoNoCanal(
+export function precoNoCanal(
   canal: CanalPedido,
   produtoId: string,
   precos: PrecoDoCatalogo[]
