@@ -1,5 +1,51 @@
 @import "tailwindcss";
 
+/*
+ * Fontes da marca: Satoshi (textos) e Gelion (títulos). Os arquivos ficam em
+ * public/fonts, fora do Git (repositório público). Sem eles, vale a fonte de reserva.
+ */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.ttf") format("truetype");
+  font-weight: 300 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelion";
+  src: url("/fonts/Gelion-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelion";
+  src: url("/fonts/Gelion-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelion";
+  src: url("/fonts/Gelion-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelion";
+  src: url("/fonts/Gelion-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelion";
+  src: url("/fonts/Gelion-Extrabold.otf") format("opentype");
+  font-weight: 800;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -22,7 +68,8 @@
   --color-ouro-900: #5a4224;
   --color-marca-preto: #000000;
   --color-marca-cinza: #d9d9d9;
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Satoshi", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-display: "Gelion", "Satoshi", var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -36,5 +83,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }

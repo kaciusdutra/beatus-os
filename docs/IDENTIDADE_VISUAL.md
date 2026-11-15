@@ -18,10 +18,11 @@
 
 As cores estão em `frontend/app/globals.css`. O ícone do app (`public/icone-beatus.svg` e `app/icon.svg`) usa símbolo dourado sobre preto.
 
-## Fontes do manual
+## Fontes
 
-- **Títulos:** Gelion. **Textos:** Satoshi.
-- Ainda **não adotadas** no sistema (hoje: Geist). Dependem de decisão do Kacius sobre licença e arquivos (ver BACKLOG).
+- **Títulos:** Gelion (pesos 400 a 800). **Textos:** Satoshi (variável, 300 a 900). Aplicadas em 15/11/2026 a partir das cópias instaladas no notebook do Kacius.
+- Os arquivos ficam em `frontend/public/fonts/`, **fora do Git** (o repositório do GitHub é público e a licença de redistribuição não foi conferida). Em outro computador ou na hospedagem, é preciso colocar os arquivos nessa pasta; sem eles o sistema usa a fonte de reserva (Geist/Arial) e continua funcionando.
+- Conferir a licença de uso na web de cada fonte antes de hospedar o sistema e o cardápio online.
 
 ## Onde a marca já aparece
 
@@ -34,4 +35,4 @@ O laranja de destaque das telas (PDV, Marketplace, Horários, Dashboard) foi tro
 
 ## Ainda não aplicado
 
-- Fontes Gelion e Satoshi, etiquetas, comprovantes, cartão-convite e cardápio online.
+- Etiquetas, comprovantes, cartão-convite e cardápio online.

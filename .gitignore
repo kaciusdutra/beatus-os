@@ -81,3 +81,6 @@ Claude outputs/
 
 # Configuração local do Claude (servidor de desenvolvimento)
 .claude/
+
+# Fontes da marca (licença do Kacius; não redistribuir em repositório público)
+/frontend/public/fonts/

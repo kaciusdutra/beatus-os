@@ -83,7 +83,7 @@ export default function Sidebar({ aberto = false, onNavegar }: Props) {
           />
 
           <div>
-            <div className="text-xl font-extrabold leading-none tracking-wide text-ouro">
+            <div className="font-display text-xl font-extrabold leading-none tracking-wide text-ouro">
               BEATUS
             </div>
 
