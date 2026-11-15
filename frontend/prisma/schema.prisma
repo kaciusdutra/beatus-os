@@ -358,6 +358,12 @@ model Pedido {
   conferidoEm           DateTime?
   observacaoConferencia String?
 
+  // De qual campanha de anúncio o pedido veio (último clique antes da compra), quando houver.
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+
   enderecoRotulo      String?
   enderecoCep         String?
   enderecoLogradouro  String?
@@ -385,6 +391,7 @@ model Pedido {
   @@index([empresaId])
   @@index([empresaId, clienteId])
   @@index([empresaId, statusOperacional])
+  @@index([empresaId, utmCampaign])
   @@index([clienteId, criadoEm])
 }
 

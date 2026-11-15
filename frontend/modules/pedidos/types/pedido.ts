@@ -1,3 +1,5 @@
+import type { OrigemDaCampanha } from "../services/origemDaCampanha";
+
 export type CanalPedido =
   | "PDV"
   | "WHATSAPP"
@@ -169,6 +171,9 @@ export interface Pedido {
   distanciaEntregaKm: number | null;
 
   regraEntregaAplicada?: string;
+
+  // Campanha de anúncio de onde o pedido veio (só pedidos do site e do WhatsApp).
+  origemDaCampanha?: OrigemDaCampanha;
 
   pagamento: PagamentoPedido;
 

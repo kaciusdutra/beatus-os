@@ -41,6 +41,8 @@ import {
   calcularPedidoNoServidor,
 } from "../calcularPedido";
 
+import { limparOrigemDaCampanha } from "../origemDaCampanha";
+
 export interface LancarPedidoPostgresInput {
   pedido: PedidoSolicitado;
 
@@ -384,6 +386,9 @@ export class LancarPedidoServicePostgres {
 
           regraEntregaAplicada:
             calculado.regraEntregaAplicada,
+
+          origemDaCampanha:
+            ehMarketplace ? undefined : limparOrigemDaCampanha(solicitado.origemDaCampanha),
 
           pagamento: {
             modalidade:

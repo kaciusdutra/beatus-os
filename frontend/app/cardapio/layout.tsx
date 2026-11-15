@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 
 import CabecalhoDoSite from "@/modules/site/components/CabecalhoDoSite";
 
+import CapturaDeCampanha from "@/modules/site/components/CapturaDeCampanha";
+
 import CarrinhoDoSite from "@/modules/site/components/CarrinhoDoSite";
 
 import RodapeDoSite from "@/modules/site/components/RodapeDoSite";
@@ -30,6 +32,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-[100dvh] bg-marca-preto text-slate-100">
+      <CapturaDeCampanha />
+
       <CabecalhoDoSite />
 
       <main>{children}</main>

@@ -64,6 +64,11 @@ export class PedidoRepositoryPostgres {
             pedido.regraEntregaAplicada ??
             null,
 
+          utmSource: pedido.origemDaCampanha?.fonte ?? null,
+          utmMedium: pedido.origemDaCampanha?.meio ?? null,
+          utmCampaign: pedido.origemDaCampanha?.nome ?? null,
+          utmContent: pedido.origemDaCampanha?.conteudo ?? null,
+
           statusOperacional:
             pedido.statusOperacional,
 

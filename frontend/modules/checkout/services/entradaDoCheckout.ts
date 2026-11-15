@@ -1,5 +1,7 @@
 import { cpfValido, somenteDigitos } from "@/modules/fornecedores/domain/documentoFornecedor";
 
+import { limparOrigemDaCampanha, type OrigemDaCampanha } from "@/modules/pedidos/services/origemDaCampanha";
+
 // Versão da política de privacidade que o cliente aceita no checkout (fica gravada no cadastro).
 export const VERSAO_DA_POLITICA = "2026-11-15-rascunho";
 
@@ -12,6 +14,8 @@ export type OrigemDoCheckout = "CARDAPIO_ONLINE" | "WHATSAPP";
 
 export interface DadosDoCheckout {
   origem: OrigemDoCheckout;
+  // Campanha de anúncio de onde o cliente veio (último clique), limpa pelo servidor.
+  origemDaCampanha?: OrigemDaCampanha;
   cliente: {
     nome: string;
     telefone: string;
@@ -180,10 +184,13 @@ export function validarEntradaDoCheckout(entrada: unknown, hoje: Date = new Date
 
   const complemento = limpar(endereco.complemento, 80);
 
+  const origemDaCampanha = limparOrigemDaCampanha(bruto.origemDaCampanha);
+
   return {
     ok: true,
     dados: {
       origem: bruto.origem === "WHATSAPP" ? "WHATSAPP" : "CARDAPIO_ONLINE",
+      ...(origemDaCampanha ? { origemDaCampanha } : {}),
       cliente: { nome, telefone, cpf, ...(email ? { email } : {}), ...(dataNascimento ? { dataNascimento } : {}) },
       endereco: { cep, logradouro, numero, ...(complemento ? { complemento } : {}), bairro, cidade, estado },
       itens,

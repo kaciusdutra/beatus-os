@@ -362,6 +362,12 @@ export default function PedidosPage() {
                         </div>
                       </div>
 
+                      {detalhe.campanha && (
+                        <p className="text-xs text-slate-600">
+                          <span className="font-bold uppercase tracking-wider text-slate-500">Campanha</span> · {detalhe.campanha}
+                        </p>
+                      )}
+
                       {(detalhe.avisos?.length ?? 0) > 0 && (
                         <div>
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Avisos ao cliente</h3>

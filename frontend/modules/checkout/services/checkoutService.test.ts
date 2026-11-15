@@ -556,6 +556,33 @@ async function executarTestes(): Promise<void> {
     verificar(pedidos.lancados[0]?.dados.origem === "WHATSAPP", "o pedido é lançado com a origem WhatsApp");
   }
 
+  // Campanha de anúncio: vai limpa até o pedido; sem campanha, o pedido não leva nada.
+  {
+    const { servico, pedidos, gateway } = montar();
+
+    await servico.abrir({ ...ENTRADA, origemDaCampanha: { fonte: "Instagram", nome: "Clube Outubro", inventado: "x" } }, "https://s");
+
+    gateway!.pagamentos.set("14", pagamento("14", "chk-1", "APROVADO", 45));
+
+    await servico.tratarAviso({ gateway: "MERCADO_PAGO", eventoId: "cp1", tipo: "payment", dataId: "14", corpo: {} });
+
+    const campanha = pedidos.lancados[0]?.dados.origemDaCampanha;
+
+    verificar(campanha?.fonte === "instagram" && campanha.nome === "clube-outubro" && !("inventado" in campanha), "a campanha chega limpa ao pedido");
+  }
+
+  {
+    const { servico, pedidos, gateway } = montar();
+
+    await servico.abrir(ENTRADA, "https://s");
+
+    gateway!.pagamentos.set("15", pagamento("15", "chk-1", "APROVADO", 45));
+
+    await servico.tratarAviso({ gateway: "MERCADO_PAGO", eventoId: "cp2", tipo: "payment", dataId: "15", corpo: {} });
+
+    verificar(pedidos.lancados[0]?.dados.origemDaCampanha === undefined, "sem campanha o pedido não leva nada");
+  }
+
   // Cancelado antes de aprovar.
   {
     const { servico, repositorio, gateway } = montar();

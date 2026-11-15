@@ -1,3 +1,5 @@
+import type { OrigemDaCampanha } from "../services/origemDaCampanha";
+
 import type {
   CanalPedido,
   EnderecoPedido,
@@ -48,6 +50,9 @@ export interface PedidoSolicitado {
   clienteId?: string;
 
   enderecoEntrega?: EnderecoPedido;
+
+  // Só pelo caminho interno do checkout; a rota do PDV nunca copia este campo do corpo.
+  origemDaCampanha?: OrigemDaCampanha;
 
   // Obrigatório nos canais iFood, 99Food e Keeta.
   marketplace?: {

@@ -48,6 +48,8 @@ function mapearListado(pedido: LinhaDeLista): PedidoListado {
   };
 }
 
+import { resumoDaCampanha } from "../../services/origemDaCampanha";
+
 export class PedidoConsultaRepositoryPostgres
   implements PedidoConsultaRepositoryPort
 {
@@ -164,6 +166,7 @@ export class PedidoConsultaRepositoryPostgres
         valor: Number(pagamento.valor),
         aprovadoEm: pagamento.aprovadoEm?.toISOString(),
       })),
+      campanha: resumoDaCampanha({ fonte: pedido.utmSource ?? undefined, meio: pedido.utmMedium ?? undefined, nome: pedido.utmCampaign ?? undefined, conteudo: pedido.utmContent ?? undefined }) || undefined,
       avisos: avisos.map((aviso) => ({
         id: aviso.id,
         evento: aviso.evento,

@@ -16,7 +16,7 @@
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 36 migrações aplicadas, de 19/08 a 16/11/2026 (as últimas: `add_usuarios_e_sessoes`, `add_pagamento_online_e_consentimentos`, `add_checkout_site` e `add_avisos_do_pedido`, com os checkpoints `checkpoint-antes-s3-login`, `checkpoint-antes-checkout`, `checkpoint-antes-checkout-site` e `checkpoint-antes-avisos`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
+- 37 migrações aplicadas, de 19/08 a 16/11/2026 (as últimas: `add_checkout_site`, `add_avisos_do_pedido` e `add_origem_campanha_pedido`, com os checkpoints `checkpoint-antes-checkout-site`, `checkpoint-antes-avisos` e `checkpoint-antes-origem-campanha`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
@@ -25,6 +25,8 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 16/11/2026 | (este commit) | Origem da campanha de anúncio (UTM) guardada no site e gravada no pedido do site e do WhatsApp, visível no detalhe do pedido; migração `add_origem_campanha_pedido`; regra 27.8 (a regra e o roteiro já estavam no commit `f246b3f`) |
+| 15/11/2026 | `996c10d` | Documentação: marketing e tráfego pago dentro do sistema (regra 27 e backlog) |
 | 15/11/2026 | `f9fd684` | Fase 1 e 2 da Beatriz: fila de avisos do pedido (em preparo, a caminho, entregue) para site e WhatsApp, visível no detalhe do pedido; migração `add_avisos_do_pedido`; regra 26.10 |
 | 15/11/2026 | `2840fb0` | Link de pagamento da Beatriz com origem WhatsApp e etapas do pedido na página do site (sem migração); regras 26.8 e 26.9 |
 | 15/11/2026 | `245c6fa` | Documentação: visão da Beatriz como vendedora, caixa e relacionamento (avisos do pedido, pós-venda e clube) e a ordem de construção em fases; sem código; regras 26.1 a 26.7 |

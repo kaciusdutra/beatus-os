@@ -56,6 +56,8 @@ export interface PedidoDetalhe extends PedidoListado {
     operador?: string;
     criadoEm: string;
   }[];
+  // Campanha de anúncio de onde o pedido veio, quando houver.
+  campanha?: string;
   // Avisos ao cliente sobre o andamento (só pedidos do site e do WhatsApp).
   avisos?: {
     id: string;

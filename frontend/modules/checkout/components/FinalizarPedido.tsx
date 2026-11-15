@@ -12,6 +12,8 @@ import { dinheiro, totalDoCarrinho, type ItemDoCarrinho } from "@/modules/site/s
 
 import type { OrigemDoCheckout } from "../services/entradaDoCheckout";
 
+import { lerCampanhaGuardada } from "@/modules/site/services/campanhaGuardada";
+
 import type { Estimativa } from "../types/checkout";
 
 const CAMPO =
@@ -95,6 +97,8 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento, i
 
   const montarCorpo = () => ({
     origem,
+    // Campanha de anúncio de onde o cliente veio (o servidor limpa e confere de novo).
+    origemDaCampanha: lerCampanhaGuardada(localStorage, Date.now()),
     cliente: { nome, telefone, cpf, email, dataNascimento },
     endereco: { cep, logradouro, numero, complemento, bairro, cidade, estado },
     itens: itens.map((item) => ({ produtoId: item.id, quantidade: item.quantidade })),

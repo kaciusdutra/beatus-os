@@ -106,6 +106,7 @@ const pedidos: PedidosDoCheckoutPort = {
         canal: dados.dados.origem,
         entrada: dados.dados.origem === "WHATSAPP" ? "IA" : "ONLINE",
         clienteId: dados.clienteId,
+        origemDaCampanha: dados.dados.origemDaCampanha,
         enderecoEntrega: {
           enderecoId: dados.enderecoId,
           rotulo: "CASA",
