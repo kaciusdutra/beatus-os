@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 15/11/2026 | `PENDENTE` | Dourado da marca nas telas (PDV, Marketplace, Horários, Dashboard) no lugar do laranja, com escala `ouro-50` a `ouro-900` no tema (sem migração) |
+| 15/11/2026 | `644180c` | Dourado da marca nas telas (PDV, Marketplace, Horários, Dashboard) no lugar do laranja, com escala `ouro-50` a `ouro-900` no tema (sem migração) |
 | 15/11/2026 | `524607d` | Identidade visual: símbolo da marca em vetor, ícone do app, topo do menu e item ativo em dourado, cores da marca no tema (sem migração); `docs/IDENTIDADE_VISUAL.md` |
 | 15/11/2026 | `b482a0f` | Modo celular com QR: menu em gaveta, tela do celular, QR por insumo e por lote (etiquetas), leitor pela câmera, conferência no checklist de abertura e ajustes para amanhã no fechamento; instalável na tela inicial; biblioteca `qrcode` (sem migração); regras 21.1 a 21.7 |
 | 15/11/2026 | `e1cf704` | G04 bloco 2: checklist persistido e editável (abertura, fechamento e dia de produção), itens automáticos (temperatura, cartões vencidos, estoque mínimo), estoque do dia, concluir e reabrir, aviso no Dashboard e diário; só avisa, não bloqueia (migração); regras 8.11 a 8.14 |
