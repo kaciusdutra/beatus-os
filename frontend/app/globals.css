@@ -8,6 +8,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* Marca Beatus (medidas do manual de identidade) */
+  --color-ouro: #c3965c;
+  --color-marca-preto: #111111;
+  --color-marca-cinza: #d9d9d9;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

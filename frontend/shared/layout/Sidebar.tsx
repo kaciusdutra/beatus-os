@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -71,11 +72,28 @@ export default function Sidebar({ aberto = false, onNavegar }: Props) {
     >
       {/* Identidade */}
       <div className="border-b border-slate-800 p-6">
-        <div className="text-xl font-bold">
-          🍔 Beatus OS
+        <div className="flex items-center gap-3">
+          <Image
+            src="/marca/beatus-simbolo.svg"
+            alt=""
+            width={40}
+            height={36}
+            unoptimized
+            priority
+          />
+
+          <div>
+            <div className="text-xl font-extrabold leading-none tracking-wide text-ouro">
+              BEATUS
+            </div>
+
+            <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-slate-300">
+              Burger Delivery
+            </p>
+          </div>
         </div>
 
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-400">
           Sistema Operacional
         </p>
       </div>
@@ -133,7 +151,7 @@ export default function Sidebar({ aberto = false, onNavegar }: Props) {
                     href={module.rota}
                     className={`flex items-center gap-3 rounded-lg px-4 py-3 transition ${
                       ativo
-                        ? "bg-orange-600"
+                        ? "bg-ouro font-semibold text-black"
                         : "hover:bg-slate-800"
                     }`}
                   >

@@ -234,6 +234,8 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] Limpar os dados de teste antes da produção (inclui o fornecedor de CNPJ 11.222.333/0001-81).
 - [ ] Testes de ponta a ponta, auditoria, logs, performance e monitoramento.
 
+- [ ] **Identidade visual da marca (manual enviado em 15/11/2026, `docs/IDENTIDADE_VISUAL.md`):** feitos o símbolo em vetor, o ícone do app, o topo do menu e o item ativo em dourado. Falta: trocar o laranja de destaque das telas (PDV, Pedidos, Operação) pelo dourado, **adotar as fontes Gelion (títulos) e Satoshi (textos)** (precisa de autorização e dos arquivos ou de uma alternativa livre), aplicar a marca em etiquetas, comprovantes, cartão-convite e cardápio online, e obter o logotipo original em SVG ou PNG transparente.
+
 ## Em avaliação (ainda sem decisão)
 
 - Conferir no código as regras de PDV já implementadas pela outra IA (bloqueio de cobrança, campos obrigatórios, novo endereço) antes de reprogramar qualquer coisa.
