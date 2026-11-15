@@ -330,6 +330,29 @@ Endereços: `/celular` (modo celular), `/estoque/qr` (imprimir QR dos insumos) e
 | 192 | Em `/atividades`, filtre a área Operação e a área Estoque | Aparecem os ajustes anotados e resolvidos e as conferências, com quem fez |
 | 193 | Abra o endereço do QR de um item que foi desativado | Mensagem "Item não encontrado", sem erro técnico |
 
+## Parte 20: Login e permissões
+
+Os acessos de teste estão em `docs/ACESSOS_DE_TESTE.local.md` (arquivo local, fora do Git). Antes de testar, saia (botão **Sair**) e entre com cada perfil.
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 194 | Saindo do sistema, abra `/pdv` ou qualquer tela | Vai para o login; nada de dados aparece |
+| 195 | Entre com a senha errada | "Usuário ou senha incorretos." (a mesma mensagem para usuário inexistente) |
+| 196 | Erre a senha 5 vezes seguidas | "Muitas tentativas erradas. Tente de novo em 15 minuto(s)."; nem a senha certa entra nesse período |
+| 197 | Como administrador, em **Configurações → Usuários e acessos**, clique em **Desbloquear** | A pessoa volta a entrar |
+| 198 | Entre como **administrador** | Vê todos os módulos; o topo mostra o nome e **Sair**; os módulos não ficam trancados pelo estado da operação |
+| 199 | Entre como **operador de caixa** | Abre o PDV e lança pedido; Financeiro, Compras e Configurações dão "Acesso restrito" |
+| 200 | Como operador, tente `/financeiro` digitando o endereço | "Acesso restrito" (não só o menu escondido) |
+| 201 | Entre como **produção** | Abre a cozinha, a produção e a ficha de produção; a ficha **não mostra custo** nem o link "com custos" |
+| 202 | Como produção, tente cancelar um pedido | Recusa: "Seu perfil não pode cancelar pedidos."; iniciar preparo e marcar pronto funcionam |
+| 203 | Entre como **financeiro** | Abre Financeiro, Fichas e Insumos; não abre PDV nem Checklist |
+| 204 | Entre como **gestor** | Vê Financeiro e o Registro de atividades; não vê Compras nem Usuários |
+| 205 | Faça uma ação (ex.: anotar um ajuste para amanhã) e veja `/atividades` | O nome registrado é o do usuário que está logado |
+| 206 | Em **Minha conta** (clique no seu nome no topo), troque a senha | Aceita; a senha antiga deixa de valer; entradas em outros aparelhos saem |
+| 207 | Como administrador, **Desative** uma pessoa que está logada em outro navegador | A pessoa é levada ao login na próxima ação |
+| 208 | Tente desativar ou mudar o perfil do próprio usuário | Recusa; a linha do seu usuário não deixa mudar o perfil |
+| 209 | No celular, entre pelo endereço da rede e use o checklist | Funciona igual (o cookie vale no celular) |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

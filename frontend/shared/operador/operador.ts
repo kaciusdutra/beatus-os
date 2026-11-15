@@ -1,3 +1,6 @@
+// LEGADO (S3): o seletor de operador foi substituído pelo login; o nome que vai
+// para o Registro de atividades agora é o do usuário logado (cabeçalhos do proxy).
+// Nada mais chama este arquivo; fica até haver autorização para removê-lo.
 // Operador provisório (até existir login): escolhido no topo da tela, guardado
 // no navegador e enviado no cabeçalho x-operador de cada requisição à API.
 // O registro de atividades grava esse nome.

@@ -44,6 +44,7 @@ model Empresa {
   excecoesDeHorario       ExcecaoDeHorario[]
   checklistItensModelo    ChecklistItemModelo[]
   checklistExecucoes      ChecklistExecucao[]
+  usuarios                Usuario[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -1253,4 +1254,67 @@ model ChecklistExecucaoItem {
   execucao ChecklistExecucao @relation(fields: [execucaoId], references: [id], onDelete: Cascade)
 
   @@index([execucaoId])
+}
+
+// Quem entra no sistema. A senha nunca é guardada: só o hash (scrypt) com o sal.
+model Usuario {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // Nome de usuário para entrar: minúsculo, sem espaços.
+  login String
+
+  // Como a pessoa aparece nas telas e no Registro de atividades.
+  nome String
+
+  email String?
+
+  // ADMIN | GESTOR | OPERADOR | PRODUCAO | FINANCEIRO
+  papel String
+
+  senhaHash String
+
+  ativo Boolean @default(true)
+
+  // Limite de tentativas: após erros seguidos, o acesso fica bloqueado por um tempo.
+  tentativasFalhas Int       @default(0)
+  bloqueadoAte     DateTime?
+
+  ultimoAcessoEm DateTime?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id])
+  sessoes Sessao[]
+
+  @@unique([empresaId, login])
+  @@index([empresaId])
+}
+
+// Uma entrada no sistema (um aparelho). O cookie leva um token aleatório; aqui
+// fica só o hash dele, então quem lê o banco não consegue entrar como a pessoa.
+model Sessao {
+  id String @id @default(uuid())
+
+  usuarioId String
+
+  tokenHash String @unique
+
+  criadoEm DateTime @default(now())
+
+  expiraEm DateTime
+
+  ultimoUsoEm DateTime @default(now())
+
+  revogadaEm DateTime?
+
+  // Navegador ou aparelho, só para a pessoa reconhecer a entrada.
+  dispositivo String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([expiraEm])
 }

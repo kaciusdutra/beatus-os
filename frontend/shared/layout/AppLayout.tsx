@@ -1,6 +1,10 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+
+import { usePathname } from "next/navigation";
+
+import { instalarTratamentoDeSessao } from "@/shared/auth/sessaoNoNavegador";
 
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
@@ -14,6 +18,21 @@ export default function AppLayout({
 }: Props) {
   // No celular o menu lateral vira uma gaveta que abre pelo botão do topo.
   const [menuAberto, setMenuAberto] = useState(false);
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    instalarTratamentoDeSessao();
+  }, []);
+
+  // As telas de entrada aparecem sozinhas, sem menu nem topo.
+  if (pathname === "/login" || pathname === "/primeiro-acesso") {
+    return (
+      <div className="min-h-[100dvh] w-full bg-slate-100">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden bg-slate-100 print:block print:h-auto print:overflow-visible print:bg-white">

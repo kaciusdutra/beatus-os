@@ -1,17 +1,8 @@
-// O operador escolhido no topo da tela vai no cabeçalho x-operador de cada
-// requisição (provisório, até o login existir).
-export const CABECALHO_DO_OPERADOR = "x-operador";
+import { usuarioDosCabecalhos } from "@/core/auth/cabecalhos";
 
+// Quem fez a ação, para o Registro de atividades: o usuário que entrou no
+// sistema. O proxy confere a sessão e escreve o cabeçalho; um cabeçalho igual
+// vindo de fora é apagado antes, então ninguém assina como outra pessoa.
 export function operadorDaRequisicao(request: Request): string | null {
-  const bruto = request.headers.get(CABECALHO_DO_OPERADOR);
-
-  if (!bruto) {
-    return null;
-  }
-
-  try {
-    return decodeURIComponent(bruto).trim().slice(0, 40) || null;
-  } catch {
-    return null;
-  }
+  return usuarioDosCabecalhos(request.headers)?.nome.trim().slice(0, 40) || null;
 }

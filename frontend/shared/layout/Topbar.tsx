@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import Link from "next/link";
 
-import { currentUser } from "@/core/permissions/currentUser";
+import { ROTULO_DO_PAPEL } from "@/modules/acesso/types/acesso";
 
-import {
-  OPERADORES,
-  assinarOperador,
-  guardarOperador,
-  instalarOperadorNasRequisicoes,
-  lerOperador,
-} from "@/shared/operador/operador";
+import { useUsuario } from "@/shared/auth/UsuarioContext";
+
+import { sairDoSistema } from "@/shared/auth/sessaoNoNavegador";
 
 interface Props {
   // Abre o menu lateral (só aparece no celular).
@@ -18,26 +14,14 @@ interface Props {
 }
 
 export default function Topbar({ onMenu }: Props) {
-  // Operador provisório até o login existir (grava o nome no registro de atividades).
-  const operador = useSyncExternalStore(
-    assinarOperador,
-    lerOperador,
-    () => OPERADORES[0]
-  );
+  // Quem entrou no sistema. O nome dele é o que vai para o Registro de atividades.
+  const usuario = useUsuario();
 
-  useEffect(() => {
-    instalarOperadorNasRequisicoes();
-  }, []);
+  const nome = usuario?.nome ?? "";
 
-  const nome = currentUser.nome;
   const inicial = nome.charAt(0).toUpperCase();
 
-  const papel =
-    currentUser.papel === "ADMIN"
-      ? "Administrador"
-      : currentUser.papel === "PRODUCAO"
-        ? "Produção"
-        : "Usuário";
+  const papel = usuario ? ROTULO_DO_PAPEL[usuario.papel] : "";
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 shadow-sm sm:px-6 print:hidden">
@@ -65,34 +49,13 @@ export default function Topbar({ onMenu }: Props) {
 
       {/* Área do usuário */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Operador */}
-        <label className="flex items-center gap-2 text-xs text-slate-500">
-          <span className="hidden sm:inline">Operador</span>
-          <select
-            value={operador}
-            onChange={(evento) => guardarOperador(evento.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm font-semibold text-slate-800"
-          >
-            {OPERADORES.map((nome) => (
-              <option key={nome} value={nome}>
-                {nome}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {/* Notificações */}
-        <button
-          type="button"
-          className="hidden h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg transition hover:bg-slate-50 sm:flex"
-          aria-label="Notificações"
-        >
-          🔔
-        </button>
-
         {/* Usuário */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
+        <Link
+          href="/conta"
+          className="flex items-center gap-3"
+          title="Minha conta"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-marca-preto font-bold text-ouro">
             {inicial}
           </div>
 
@@ -105,7 +68,15 @@ export default function Topbar({ onMenu }: Props) {
               {papel}
             </p>
           </div>
-        </div>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => void sairDoSistema()}
+          className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Sair
+        </button>
       </div>
     </header>
   );

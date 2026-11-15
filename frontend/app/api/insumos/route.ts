@@ -1,3 +1,7 @@
+import { usuarioDosCabecalhos } from "@/core/auth/cabecalhos";
+
+import { paraOPapel } from "@/core/permissions/semCustos";
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
@@ -7,7 +11,7 @@ import { criarInsumoServicePostgres } from "@/modules/insumos/services/server/in
 const EMPRESA_DESENVOLVIMENTO_ID =
   "00000000-0000-0000-0000-000000000001";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const service =
       criarInsumoServicePostgres();
@@ -17,7 +21,7 @@ export async function GET() {
 
     return NextResponse.json({
       sucesso: true,
-      insumos,
+      insumos: paraOPapel(usuarioDosCabecalhos(request.headers)?.papel, insumos),
     });
   } catch (erro) {
     const mensagem =

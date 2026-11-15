@@ -1,6 +1,14 @@
 import Link from "next/link";
 
-export default function ConfiguracoesPage() {
+import { usuarioAtualDoServidor } from "@/core/auth/usuarioDoServidor";
+
+import { possuiPermissao } from "@/core/permissions/permissionMatrix";
+
+export default async function ConfiguracoesPage() {
+  const usuario = await usuarioAtualDoServidor();
+
+  const gerencia = usuario !== null && possuiPermissao(usuario.papel, "configuracoes.gerenciar");
+
   return (
     <div className="space-y-6">
       <div>
@@ -12,6 +20,16 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {gerencia && (
+          <Link href="/configuracoes/usuarios" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
+            <p className="text-lg font-bold text-slate-800">Usuários e acessos</p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Quem entra no sistema, o perfil de cada pessoa (o que ela vê e faz) e as senhas.
+            </p>
+          </Link>
+        )}
+
         <Link href="/configuracoes/horarios" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
           <p className="text-lg font-bold text-slate-800">Horários de funcionamento</p>
 

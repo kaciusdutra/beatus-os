@@ -1,3 +1,7 @@
+import { usuarioDosCabecalhos } from "@/core/auth/cabecalhos";
+
+import { paraOPapel } from "@/core/permissions/semCustos";
+
 import {
   NextRequest,
   NextResponse,
@@ -19,7 +23,7 @@ interface Contexto {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: Contexto
 ) {
   try {
@@ -37,7 +41,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ sucesso: true, ficha });
+    return NextResponse.json({ sucesso: true, ficha: paraOPapel(usuarioDosCabecalhos(request.headers)?.papel, ficha) });
   } catch (error) {
     console.error("ERRO AO BUSCAR FICHA:", error);
 

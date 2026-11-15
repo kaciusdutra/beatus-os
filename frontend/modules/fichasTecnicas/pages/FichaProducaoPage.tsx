@@ -8,6 +8,8 @@ import {
 
 import Link from "next/link";
 
+import { usePode } from "@/shared/auth/UsuarioContext";
+
 import {
   converterSeCompativel,
 } from "../services/conversaoUnidade";
@@ -46,6 +48,9 @@ export default function FichaProducaoPage({
   fichaId,
   quantoInicial,
 }: Props) {
+  // Quem não vê o financeiro não recebe o link para a ficha com custos.
+  const verCustos = usePode("financeiro.visualizar");
+
   const [dados, setDados] =
     useState<DadosFichas | null>(null);
 
@@ -216,12 +221,16 @@ export default function FichaProducaoPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6 print:max-w-none print:space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link
-          href={`/fichas/${ficha.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-700"
-        >
-          ← Ficha técnica (com custos)
-        </Link>
+        {verCustos ? (
+          <Link
+            href={`/fichas/${ficha.id}`}
+            className="text-sm font-medium text-slate-500 hover:text-slate-700"
+          >
+            ← Ficha técnica (com custos)
+          </Link>
+        ) : (
+          <span />
+        )}
 
         <button
           type="button"

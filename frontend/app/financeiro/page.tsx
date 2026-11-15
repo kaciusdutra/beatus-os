@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 
-import { verificarAcesso } from "@/core/permissions/accessControl";
+import { usePode } from "@/shared/auth/UsuarioContext";
 
 import ResumoDoMes from "@/modules/financeiro/components/ResumoDoMes";
 
 export default function FinanceiroPage() {
-  const acesso = verificarAcesso(
+  const permitido = usePode(
     "financeiro.visualizar"
   );
 
-  if (!acesso.permitido) {
+  if (!permitido) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">

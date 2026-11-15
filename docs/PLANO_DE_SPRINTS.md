@@ -67,7 +67,7 @@ S6 upload + backup (depois que a G07 fechar)
 
 ## S3: Login e perfis de acesso
 
-> **Adiada para o final (12/11/2026):** o Kacius quer fechar primeiro todas as telas e funcionalidades; depois se setorizam os acessos. No início só ele e o irmão usam o sistema.
+> **Concluída em 15/11/2026** (regras 22.1 a 22.11 e testes 194 a 209). Antes disso foi **adiada para o final (12/11/2026):** o Kacius quer fechar primeiro todas as telas e funcionalidades; depois se setorizam os acessos. No início só ele e o irmão usam o sistema.
 
 **Objetivo:** só quem entrou vê o sistema, e cada pessoa vê o que seu perfil permite.
 

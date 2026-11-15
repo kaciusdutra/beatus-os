@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 import { getOperacaoPedidoService } from "@/modules/pedidos/services/server/operacaoPedidoService";
 
+import { usuarioDosCabecalhos } from "@/core/auth/cabecalhos";
+
+import { possuiPermissao } from "@/core/permissions/permissionMatrix";
+
 import { operadorDaRequisicao } from "@/modules/atividades/services/operador";
 
 // Muda o status do pedido: EM_PREPARO, PRONTO, EM_ROTA, ENTREGUE ou CANCELADO.
@@ -15,6 +19,13 @@ export async function POST(
     const { id } = await context.params;
 
     const corpo = await request.json();
+
+    // A cozinha (produção) pode iniciar o preparo e marcar pronto; cancelar é de quem gerencia pedidos.
+    const usuario = usuarioDosCabecalhos(request.headers);
+
+    if (corpo?.status === "CANCELADO" && (!usuario || !possuiPermissao(usuario.papel, "pedidos.gerenciar"))) {
+      return NextResponse.json({ sucesso: false, mensagem: "Seu perfil não pode cancelar pedidos." }, { status: 403 });
+    }
 
     const resultado = await getOperacaoPedidoService().mudarStatus({
       pedidoId: id,

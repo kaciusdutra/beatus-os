@@ -1,3 +1,5 @@
+// LEGADO (S3): depende do usuário fixo de currentUser.ts. Use usePode()/useUsuario()
+// nas telas e possuiPermissao(papel, permissao) com o papel da sessão.
 import {
   Permission,
   UserRole,

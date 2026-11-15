@@ -84,3 +84,6 @@ Claude outputs/
 
 # Fontes da marca (licença do Kacius; não redistribuir em repositório público)
 /frontend/public/fonts/
+
+# Acessos de teste (senhas; repositório público)
+/docs/*.local.md

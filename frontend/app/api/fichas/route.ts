@@ -1,3 +1,7 @@
+import { usuarioDosCabecalhos } from "@/core/auth/cabecalhos";
+
+import { paraOPapel } from "@/core/permissions/semCustos";
+
 import {
   NextRequest,
   NextResponse,
@@ -17,11 +21,11 @@ const fichaService =
 // Lista todas as fichas (preparações e produtos), com os itens.
 // O custo é calculado pela tela (e pelo motor de custo), sempre com os
 // preços atuais dos insumos.
-export async function GET() {
+export async function GET(request: Request) {
   try {
     return NextResponse.json({
       sucesso: true,
-      fichas: await fichaService.listar(),
+      fichas: paraOPapel(usuarioDosCabecalhos(request.headers)?.papel, await fichaService.listar()),
     });
   } catch (error) {
     console.error("ERRO AO LISTAR FICHAS:", error);

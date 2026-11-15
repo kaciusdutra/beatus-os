@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 
 import { useSystem } from "@/core/system/SystemContext";
 import { moduleRegistry } from "@/core/modules/moduleRegistry";
-import { verificarAcesso } from "@/core/permissions/accessControl";
+import { possuiPermissao } from "@/core/permissions/permissionMatrix";
+import { useUsuario } from "@/shared/auth/UsuarioContext";
 
 interface Props {
   // No celular o menu é uma gaveta: `aberto` mostra, `onNavegar` fecha ao tocar num link.
@@ -18,6 +19,8 @@ export default function Sidebar({ aberto = false, onNavegar }: Props) {
   const pathname = usePathname();
 
   const { systemState } = useSystem();
+
+  const usuario = useUsuario();
 
   const operationState = systemState.operation;
 
@@ -102,14 +105,21 @@ export default function Sidebar({ aberto = false, onNavegar }: Props) {
       <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-2">
           {moduleRegistry.map((module) => {
-            const acesso =
-              verificarAcesso(
-                module.permissaoVisualizacao
-              );
+            const acesso = {
+              permitido:
+                !module.permissaoVisualizacao ||
+                (usuario !== null &&
+                  possuiPermissao(
+                    usuario.papel,
+                    module.permissaoVisualizacao
+                  )),
+            };
 
+            // O administrador usa todos os módulos a qualquer hora (regra 8.3).
             const bloqueadoPorOperacao =
               module.requerOperacao &&
-              !operacaoAtiva;
+              !operacaoAtiva &&
+              usuario?.papel !== "ADMIN";
 
             const ativo =
               pathname === module.rota;
