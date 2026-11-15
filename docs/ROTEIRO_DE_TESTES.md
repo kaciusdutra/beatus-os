@@ -271,6 +271,23 @@ Endereço direto: `/inteligencia/beatriz`. Antes, defina os preços do site de a
 | 154 | Dê nome, endereço com referência e confirme o resumo | Aparece "O cliente confirmou o pedido"; as pendências somem |
 | 155 | Confira o rodapé | Mostra o modelo e os tokens usados (para acompanhar o custo) |
 
+## Parte 17: Horários e calendário
+
+Endereço direto: `/configuracoes/horarios` (e `/operacao/horarios` leva para lá).
+
+| # | O que fazer | O que esperar |
+|---|---|---|
+| 156 | Abra a tela | O horário da semana já vem certo: qua e qui 18h–22h, sex e sáb 18h–23h, dom 18h–22h; segunda e terça "dia de produção" |
+| 157 | Mude um dia (ex.: sábado até 23:30) e **Salvar horário da semana** | Salva; o Dashboard e o estado da operação acompanham; em `/atividades` (área Operação) aparece "Horário da semana alterado" com o antes e o depois |
+| 158 | Tente abrir um dia com a abertura depois do fechamento | Recusa, apontando o dia |
+| 159 | No calendário, veja um mês com feriado em segunda ou terça (ex.: novembro de 2026, Finados em 2/11) | O dia fica marcado, e aparece o aviso "Feriado em dia de produção neste mês" |
+| 160 | Clique nesse dia, escolha **Abrir**, defina o horário e **Aplicar a este dia** | O dia vira "aberto por exceção" (azul) e deixa de ser pendência |
+| 161 | Clique no mesmo dia e **Remover exceção** | O dia volta a "produção" |
+| 162 | Em **Exceção por período**, feche de uma data a outra (ex.: folga) | Os dias aparecem fechados (vermelho) no calendário e na lista de exceções |
+| 163 | Crie uma exceção de um dia dentro de uma de período | O dia de exceção própria vale sobre o período |
+| 164 | Cadastre como exceção um feriado de Manaus, com observação | A observação aparece no dia do calendário |
+| 165 | Em `/atividades`, filtre a área Operação | Aparecem as mudanças de horário e as exceções, com quem fez |
+
 ## O que anotar
 
 - Qualquer número que você ache errado (custo, preço, margem): diga o produto, o canal e o valor esperado.

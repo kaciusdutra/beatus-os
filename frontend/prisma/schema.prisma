@@ -40,6 +40,8 @@ model Empresa {
   lancamentosFinanceiros  LancamentoFinanceiro[]
   contasPagar             ContaPagar[]
   integracoesMarketplace  IntegracaoMarketplace[]
+  horariosDeFuncionamento HorarioDeFuncionamento[]
+  excecoesDeHorario       ExcecaoDeHorario[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -1119,4 +1121,52 @@ model VinculoItemMarketplace {
 
   @@unique([empresaId, canal, codigoItemExterno])
   @@index([empresaId, canal])
+}
+
+// Horário de funcionamento por dia da semana (G04). Sem linha para um dia, vale o
+// padrão do sistema (quarta e quinta 18h às 22h, sexta e sábado 18h às 23h,
+// domingo 18h às 22h; segunda e terça fechadas, dias de produção).
+model HorarioDeFuncionamento {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  // 0 = domingo ... 6 = sábado
+  diaDaSemana Int
+
+  aberto Boolean @default(true)
+
+  // "HH:MM"; só quando aberto
+  abertura   String?
+  fechamento String?
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, diaDaSemana])
+}
+
+// Exceção ao horário normal, por dia ou por período (feriado, semana de folga,
+// abrir mais cedo ou fechar mais tarde em um dia).
+model ExcecaoDeHorario {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  inicio DateTime @db.Date
+  fim    DateTime @db.Date
+
+  aberto Boolean
+
+  abertura   String?
+  fechamento String?
+
+  observacao String?
+
+  criadoEm DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId, inicio, fim])
 }

@@ -1,142 +1,65 @@
 import {
-  DailyException,
-  OperationSchedule,
-  OperationScheduleConfig,
-  defaultOperationSchedule,
-} from "./operationSchedule";
+  configuracaoPadrao,
+  resolverHorarioDoDia,
+  textoDaData,
+  type ConfiguracaoDeHorarios,
+} from "@/modules/operacao/services/horarios";
 
-let scheduleConfig: OperationScheduleConfig = {
-  ...defaultOperationSchedule,
-  semanal: {
-    ...defaultOperationSchedule.semanal,
-  },
-  mensais: [...defaultOperationSchedule.mensais],
-  excecoes: [...defaultOperationSchedule.excecoes],
-};
+import type { OperationSchedule } from "./operationSchedule";
 
-const diasDaSemana: Array<
-  keyof OperationScheduleConfig["semanal"]
-> = [
-  "domingo",
-  "segunda",
-  "terca",
-  "quarta",
-  "quinta",
-  "sexta",
-  "sabado",
-];
+// Horário de funcionamento visto pelas telas. A fonte de verdade é o banco
+// (Configurações → Horários); aqui fica uma cópia, carregada do servidor ao abrir
+// o sistema e a cada minuto. Enquanto a cópia não chega (ou se o servidor não
+// responder), vale o padrão do Beatus: quarta e quinta 18h às 22h, sexta e
+// sábado 18h às 23h, domingo 18h às 22h; segunda e terça fechadas.
+let configuracao: ConfiguracaoDeHorarios = configuracaoPadrao();
 
-function formatarData(data: Date): string {
-  const ano = data.getFullYear();
-  const mes = String(data.getMonth() + 1).padStart(2, "0");
-  const dia = String(data.getDate()).padStart(2, "0");
-
-  return `${ano}-${mes}-${dia}`;
+export function definirConfiguracaoDeHorarios(nova: ConfiguracaoDeHorarios): void {
+  configuracao = nova;
 }
 
-function obterDiaDaSemana(
-  data: Date
-): keyof OperationScheduleConfig["semanal"] {
-  return diasDaSemana[data.getDay()];
+export function obterConfiguracaoDeHorarios(): ConfiguracaoDeHorarios {
+  return configuracao;
 }
 
-function buscarExcecao(
-  data: Date
-): DailyException | undefined {
-  const dataFormatada = formatarData(data);
+// Busca a configuração gravada. Falha de rede não derruba nada: continua valendo
+// a última cópia que se tinha.
+export async function carregarConfiguracaoDoServidor(): Promise<void> {
+  try {
+    const resposta = await fetch("/api/operacao/horarios", { cache: "no-store" });
 
-  return scheduleConfig.excecoes.find(
-    (excecao) => excecao.data === dataFormatada
-  );
-}
+    const dados = await resposta.json();
 
-function buscarProgramacaoMensal(
-  data: Date
-): OperationSchedule | undefined {
-  const ano = data.getFullYear();
-  const mes = data.getMonth() + 1;
-  const dataFormatada = formatarData(data);
-
-  const mesConfigurado = scheduleConfig.mensais.find(
-    (configuracao) =>
-      configuracao.ano === ano &&
-      configuracao.mes === mes
-  );
-
-  if (!mesConfigurado) {
-    return undefined;
+    if (resposta.ok && dados.sucesso && dados.configuracao) {
+      definirConfiguracaoDeHorarios(dados.configuracao as ConfiguracaoDeHorarios);
+    }
+  } catch {
+    // sem rede: mantém a cópia atual
   }
-
-  return mesConfigurado.horarios.find(
-    (horario) => horario.data === dataFormatada
-  );
 }
 
-export function obterHorarioOperacao(
-  data: Date = new Date()
-): OperationSchedule {
-  const excecao = buscarExcecao(data);
+export function obterHorarioOperacao(data: Date = new Date()): OperationSchedule {
+  const dia = textoDaData(data);
 
-  if (excecao) {
-    return excecao;
-  }
+  const horario = resolverHorarioDoDia(dia, configuracao);
 
-  const programacaoMensal =
-    buscarProgramacaoMensal(data);
-
-  if (programacaoMensal) {
-    return programacaoMensal;
-  }
-
-  const diaDaSemana = obterDiaDaSemana(data);
-
-  return scheduleConfig.semanal[diaDaSemana];
+  return {
+    data: dia,
+    status: horario.aberto ? "ABERTO" : "FECHADO",
+    abertura: horario.abertura,
+    fechamento: horario.fechamento,
+    observacao: horario.excecao?.observacao,
+  };
 }
 
-export function estaAberto(
-  data: Date = new Date()
-): boolean {
-  const horario = obterHorarioOperacao(data);
-
-  return horario.status === "ABERTO";
+export function estaAberto(data: Date = new Date()): boolean {
+  return obterHorarioOperacao(data).status === "ABERTO";
 }
 
-export function obterHorarioAbertura(
-  data: Date = new Date()
-): string | undefined {
+export function obterHorarioAbertura(data: Date = new Date()): string | undefined {
   return obterHorarioOperacao(data).abertura;
 }
 
-export function obterHorarioFechamento(
-  data: Date = new Date()
-): string | undefined {
+export function obterHorarioFechamento(data: Date = new Date()): string | undefined {
   return obterHorarioOperacao(data).fechamento;
-}
-
-export function obterProgramacaoSemanal(): OperationScheduleConfig["semanal"] {
-  return {
-    ...scheduleConfig.semanal,
-  };
-}
-
-export function salvarProgramacaoSemanal(
-  semanal: OperationScheduleConfig["semanal"]
-): void {
-  scheduleConfig = {
-    ...scheduleConfig,
-    semanal: {
-      ...semanal,
-    },
-  };
-}
-
-export function obterConfiguracaoHorarios(): OperationScheduleConfig {
-  return {
-    ...scheduleConfig,
-    semanal: {
-      ...scheduleConfig.semanal,
-    },
-    mensais: [...scheduleConfig.mensais],
-    excecoes: [...scheduleConfig.excecoes],
-  };
 }

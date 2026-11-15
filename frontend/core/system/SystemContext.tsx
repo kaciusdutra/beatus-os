@@ -17,6 +17,10 @@ import {
   obterEstadoSimulado,
 } from "./systemSimulation";
 
+import {
+  carregarConfiguracaoDoServidor,
+} from "@/core/operation/scheduleService";
+
 interface SystemContextValue {
   systemState: SystemState;
   atualizarEstado: () => void;
@@ -83,13 +87,31 @@ export function SystemProvider({
      */
     atualizarEstado();
 
+    // Os horários gravados no banco (Configurações → Horários) chegam ao abrir
+    // o sistema e a cada minuto; o estado é recalculado a cada segundo.
+    async function buscarHorarios() {
+      await carregarConfiguracaoDoServidor();
+
+      atualizarEstado();
+    }
+
+    void buscarHorarios();
+
     const intervalo = setInterval(
       atualizarEstado,
       1000,
     );
 
-    return () =>
+    const intervaloDosHorarios = setInterval(
+      () => void buscarHorarios(),
+      60000,
+    );
+
+    return () => {
       clearInterval(intervalo);
+
+      clearInterval(intervaloDosHorarios);
+    };
   }, []);
 
   return (

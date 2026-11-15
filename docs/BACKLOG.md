@@ -84,7 +84,11 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 
 ## G04: Operação do restaurante
 
-- [ ] Tela de horários dentro do módulo de Configurações, com exceções por dia, semana ou mês (hoje existe em `/operacao/horarios`).
+- [x] **Horários persistidos, com exceções e calendário (G04 bloco 1, 15/11/2026, migração `add_horarios_de_funcionamento_e_excecoes`):** padrão da rotina (qua e qui 18h–22h, sex e sáb 18h–23h, dom 18h–22h; seg e ter produção), exceções por dia ou período, calendário com feriados nacionais e pendência de feriado em dia de produção, estado da operação vindo do banco e diário no Registro de atividades. Tela em Configurações → Horários. Regras 8.7 a 8.10.
+- [ ] **Bloco 2 da G04 (próximo):** checklist persistido e editável (abertura, fechamento e dia de produção), com itens automáticos pelo estoque, validade e temperatura; aviso no Dashboard; estoque do dia na abertura. O checklist só avisa, sem bloquear (regra 8.10).
+- [ ] **Feriados estaduais e municipais** (Amazonas, Manaus) já cadastrados no calendário, se o Kacius quiser (hoje ele os cadastra como exceção).
+- [ ] **Estado da operação calculado também no servidor** (hoje a tela calcula a cada segundo a partir dos horários que busca a cada minuto): serve a Beatriz (loja fechada) e às integrações.
+- [ ] **Remover componentes sem uso da tela antiga de horários** (`OperationScheduleCard`), com autorização.
 - [ ] Mostrar o estoque atualizado do dia na abertura do sistema.
 - [ ] Diário da operação gravado em logs.
 
