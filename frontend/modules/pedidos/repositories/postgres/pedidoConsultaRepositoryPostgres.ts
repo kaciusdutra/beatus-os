@@ -175,6 +175,7 @@ export class PedidoConsultaRepositoryPostgres
         status: aviso.status,
         criadoEm: aviso.criadoEm.toISOString(),
         enviadoEm: aviso.enviadoEm?.toISOString(),
+        erro: aviso.erro ?? undefined,
       })),
       atividades: atividades.map((atividade) => ({
         id: atividade.id,

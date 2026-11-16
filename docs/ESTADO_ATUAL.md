@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 16/11/2026 | (este commit) | Fase 3a da Beatriz: envio dos avisos do pedido pela API da Meta (WhatsApp), com repetição, motivo da falha e aviso do site dispensado; a tela Pedidos mostra o motivo; sem migração; regra 26.11 e `docs/WHATSAPP_AVISOS.md` |
 | 16/11/2026 | `02ac4a5` | Ticket automático da cozinha: botão na tela `/cozinha` que imprime sozinha o ticket de cada pedido novo (só pedidos dos últimos 15 minutos) e marca IMPRESSO; sem migração; regra 25.4 |
 | 15/11/2026 | `d534e24` | Preço premium no site: sem "R$" e sem centavos (cardápio, checkout e acompanhamento); regra 23.8 |
 | 16/11/2026 | `8f0af92` | Origem da campanha de anúncio (UTM) guardada no site e gravada no pedido do site e do WhatsApp, visível no detalhe do pedido; migração `add_origem_campanha_pedido`; regra 27.8 (a regra e o roteiro já estavam no commit `f246b3f`) |

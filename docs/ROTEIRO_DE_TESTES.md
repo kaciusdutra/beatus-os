@@ -444,6 +444,11 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 264 | Recarregue `/cozinha` com pedidos antigos parados na fila | Nenhum ticket antigo (de mais de 15 minutos) sai de uma vez |
 | 265 | Faça dois pedidos pagos seguidos | Os tickets saem um de cada vez, do mais antigo ao mais novo |
 | 266 | Toque no botão para desligar e faça outro pedido | O ticket não sai sozinho; o link "Ticket" continua imprimindo com clique |
+| 267 | Sem configurar o WhatsApp, faça um pedido do WhatsApp e toque em "Iniciar preparo" | Em Pedidos, o aviso aparece "aguardando envio" e nada quebra |
+| 268 | Faça o mesmo com um pedido do site | O aviso do site aparece "dispensado" (a página do pedido já mostra a etapa) |
+| 269 | Configure o WhatsApp (`docs/WHATSAPP_AVISOS.md`), reinicie, faça um pedido de teste com o seu número e inicie o preparo | Em até 15 segundos o aviso chega ao seu WhatsApp e, em Pedidos, aparece "enviado" |
+| 270 | Marque "Saiu para entrega" e "Entregue" | Chegam os avisos "a caminho" e "entregue", um de cada vez, sem repetir |
+| 271 | Faça um pedido com um telefone sem WhatsApp | O aviso fica "falhou" e mostra o motivo no detalhe do pedido |
 
 ## O que anotar
 

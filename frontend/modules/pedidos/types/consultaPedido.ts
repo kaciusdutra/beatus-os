@@ -67,6 +67,8 @@ export interface PedidoDetalhe extends PedidoListado {
     status: string;
     criadoEm: string;
     enviadoEm?: string;
+    // Por que o aviso falhou ou foi dispensado.
+    erro?: string;
   }[];
 }
 

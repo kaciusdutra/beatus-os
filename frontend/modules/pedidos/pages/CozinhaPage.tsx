@@ -10,6 +10,8 @@ import { marcarComoVistos, pedidosNovosDaFila, textoDoAlerta, tituloDaAba } from
 
 import ConsultaAutomaticaDoMarketplace from "@/modules/marketplace/components/ConsultaAutomaticaDoMarketplace";
 
+import EnvioAutomaticoDeAvisos from "../components/EnvioAutomaticoDeAvisos";
+
 import ImpressaoAutomaticaDoTicket from "../components/ImpressaoAutomaticaDoTicket";
 
 interface ConsumoDoPedido {
@@ -316,6 +318,8 @@ export default function CozinhaPage() {
   return (
     <div className="space-y-6">
       <ConsultaAutomaticaDoMarketplace segundos={30} />
+
+      <EnvioAutomaticoDeAvisos />
 
       <ImpressaoAutomaticaDoTicket pedidos={pedidos} ligada={impressaoLigada} />
 

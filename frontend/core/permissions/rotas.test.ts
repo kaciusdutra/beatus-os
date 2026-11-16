@@ -150,6 +150,9 @@ verificar(pode("PRODUCAO", "GET", "/api/fichas"), "produção lê as fichas para
 verificar(!pode("PRODUCAO", "POST", "/api/fichas"), "produção não edita ficha");
 verificar(pode("PRODUCAO", "POST", "/api/producao/lotes"), "produção registra lote");
 verificar(pode("PRODUCAO", "POST", "/api/pedidos/abc/status"), "produção muda status do pedido na cozinha");
+verificar(pode("PRODUCAO", "POST", "/api/pedidos/avisos/enviar"), "a cozinha envia os avisos do pedido");
+verificar(pode("OPERADOR", "POST", "/api/pedidos/avisos/enviar"), "operador também envia os avisos do pedido");
+verificar(!pode("FINANCEIRO", "POST", "/api/pedidos/avisos/enviar"), "financeiro não envia avisos do pedido");
 verificar(!pode("PRODUCAO", "POST", "/api/pedidos"), "produção não lança pedido");
 verificar(!pode("PRODUCAO", "GET", "/pdv"), "produção não abre o PDV");
 verificar(pode("PRODUCAO", "POST", "/api/estoque/quadro/mover"), "produção move cartão no quadro");

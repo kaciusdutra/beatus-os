@@ -376,6 +376,7 @@ export default function PedidosPage() {
                             {detalhe.avisos?.map((aviso) => (
                               <li key={aviso.id}>
                                 {dataHora(aviso.criadoEm)} · {aviso.canal === "WHATSAPP" ? "WhatsApp" : "Site"} · {STATUS_DO_AVISO[aviso.status] ?? aviso.status} · {aviso.texto}
+                                {aviso.erro && (aviso.status === "FALHOU" || aviso.status === "PENDENTE") ? <span className="text-red-700"> ({aviso.erro})</span> : null}
                               </li>
                             ))}
                           </ul>

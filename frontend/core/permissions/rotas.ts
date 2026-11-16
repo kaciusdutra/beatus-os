@@ -126,6 +126,8 @@ const REGRAS: Regra[] = [
   // A cozinha muda o status (preparo, pronto). Cancelar é conferido dentro da rota.
   { padrao: "/api/pedidos/:x/status", metodos: "ESCRITA", exige: p("pedidos.gerenciar", "producao.gerenciar") },
   { padrao: "/api/pedidos/:x/ticket", exige: p("pedidos.visualizar", "producao.visualizar") },
+  // A tela da cozinha envia os avisos do pedido (WhatsApp) enquanto está aberta.
+  { padrao: "/api/pedidos/avisos/enviar", metodos: "ESCRITA", exige: p("pedidos.gerenciar", "producao.gerenciar") },
   { padrao: "/api/pedidos/:x/consumo", exige: p("pedidos.visualizar", "producao.visualizar") },
 
   { padrao: "/api/pix/cobranca", exige: p("pdv.gerenciar", "financeiro.gerenciar") },
