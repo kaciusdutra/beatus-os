@@ -90,6 +90,8 @@ const enorme = lerCarrinhoGuardado(Array.from({ length: 100 }, (_, i) => ({ id: 
 
 verificar(enorme.length === MAXIMO_DE_ITENS, "lista guardada enorme é cortada");
 
-verificar(dinheiro(44.9).replace(/\s/g, " ") === "R$ 44,90", "formata em reais");
+verificar(dinheiro(45) === "45", "preço cheio sem R$ e sem centavos");
+verificar(dinheiro(1234) === "1.234", "milhar com ponto");
+verificar(dinheiro(44.9) === "44,90", "preço quebrado nunca é arredondado na tela");
 
 console.log(`✅ Testes do carrinho do site passaram (${verificacoes} verificações).`);

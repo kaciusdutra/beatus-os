@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 15/11/2026 | (este commit) | Preço premium no site: sem "R$" e sem centavos (cardápio, checkout e acompanhamento); regra 23.8 |
 | 16/11/2026 | `8f0af92` | Origem da campanha de anúncio (UTM) guardada no site e gravada no pedido do site e do WhatsApp, visível no detalhe do pedido; migração `add_origem_campanha_pedido`; regra 27.8 (a regra e o roteiro já estavam no commit `f246b3f`) |
 | 15/11/2026 | `996c10d` | Documentação: marketing e tráfego pago dentro do sistema (regra 27 e backlog) |
 | 15/11/2026 | `f9fd684` | Fase 1 e 2 da Beatriz: fila de avisos do pedido (em preparo, a caminho, entregue) para site e WhatsApp, visível no detalhe do pedido; migração `add_avisos_do_pedido`; regra 26.10 |

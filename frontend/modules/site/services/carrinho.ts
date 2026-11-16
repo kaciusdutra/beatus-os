@@ -87,5 +87,9 @@ export function lerCarrinhoGuardado(bruto: unknown): ItemDoCarrinho[] {
 }
 
 export function dinheiro(valor: number): string {
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  // Visual premium: sem "R$" e sem centavos. Preço quebrado nunca é arredondado na tela (o cliente
+  // pagaria um valor diferente do mostrado): mostra os centavos até a precificação fechar o valor.
+  const inteiro = Number.isInteger(valor);
+
+  return valor.toLocaleString("pt-BR", { minimumFractionDigits: inteiro ? 0 : 2, maximumFractionDigits: inteiro ? 0 : 2 });
 }
