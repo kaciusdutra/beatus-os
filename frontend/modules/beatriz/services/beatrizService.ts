@@ -4,7 +4,10 @@ import { ErroDaBeatriz, type ModeloDeLinguagemPort } from "../modelos/modeloPort
 
 import type { CardapioParaIAPort } from "../repositories/cardapioParaIAPort";
 
+import type { MemoriaDoClientePort } from "../repositories/memoriaDoClientePort";
+
 import type {
+  MemoriaDoCliente,
   MensagemDaConversa,
   RascunhoDePedido,
   RespostaDaBeatriz,
@@ -13,7 +16,11 @@ import type {
 
 import { cardapioEmTexto } from "./cardapioParaIA";
 
+import { telefoneDoCadastro } from "@/core/memoria/etiquetasDoCliente";
+
 import { montarInstrucoes } from "./instrucoesDaBeatriz";
+
+import { memoriaEmTexto } from "./memoriaParaIA";
 
 import { interpretarRespostaDaBeatriz } from "./interpretarRespostaDaBeatriz";
 
@@ -27,6 +34,8 @@ const TAMANHO_MAXIMO_DA_MENSAGEM = 1000;
 export interface RespostaComUso extends RespostaDaBeatriz {
   modelo: string;
   uso: UsoDoModelo;
+  // O que ela sabia do cliente nesta conversa e as etiquetas que ficaram depois dela (só com telefone identificado).
+  memoria?: MemoriaDoCliente;
 }
 
 // Beatriz, atendente por conversa. Ela entende o cliente e anota o pedido, mas
@@ -36,7 +45,9 @@ export interface RespostaComUso extends RespostaDaBeatriz {
 export class BeatrizService {
   constructor(
     private readonly cardapio: CardapioParaIAPort,
-    private readonly modelo: ModeloDeLinguagemPort
+    private readonly modelo: ModeloDeLinguagemPort,
+    // Sem a memória, a Beatriz atende todo mundo como se fosse a primeira conversa.
+    private readonly memoria?: MemoriaDoClientePort
   ) {}
 
   async responder(entrada: {
@@ -44,6 +55,9 @@ export class BeatrizService {
     canal?: CanalPedido;
     // O rascunho da resposta anterior, para a conversa não perder o pedido.
     rascunhoAtual?: RascunhoDePedido;
+    // O telefone de quem fala, JÁ CONFIRMADO pelo canal (o número do WhatsApp, ou o código enviado pelo WhatsApp
+    // no site). Sem ele a Beatriz não abre nem grava memória: digitar o telefone de outra pessoa não pode revelar nada.
+    telefoneIdentificado?: string;
   }): Promise<RespostaComUso> {
     const canal = entrada.canal ?? "WHATSAPP";
 
@@ -78,14 +92,30 @@ export class BeatrizService {
       );
     }
 
-    const sistema = montarInstrucoes(cardapioEmTexto(itensDoCardapio), entrada.rascunhoAtual);
+    const telefone = this.memoria ? telefoneDoCadastro(entrada.telefoneIdentificado) : undefined;
+
+    const conhecimento = telefone ? await this.memoria?.carregar(telefone) : undefined;
+
+    const sistema = montarInstrucoes(cardapioEmTexto(itensDoCardapio), entrada.rascunhoAtual, memoriaEmTexto(conhecimento));
 
     const { texto, modelo, uso } = await this.modelo.responder({ sistema, mensagens });
 
+    const resposta = interpretarRespostaDaBeatriz(texto, itensDoCardapio);
+
+    // O que ela aprendeu vira etiquetas no cadastro (ou no contato, se a pessoa ainda não é cliente).
+    let memoria = conhecimento;
+
+    const { adicionar, remover } = resposta.etiquetas;
+
+    if (telefone && conhecimento && (adicionar.length > 0 || remover.length > 0)) {
+      memoria = { ...conhecimento, etiquetas: await this.memoria!.gravar(telefone, { adicionar, remover }) };
+    }
+
     return {
-      ...interpretarRespostaDaBeatriz(texto, itensDoCardapio),
+      ...resposta,
       modelo,
       uso,
+      memoria,
     };
   }
 }

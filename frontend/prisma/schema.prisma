@@ -48,6 +48,7 @@ model Empresa {
   eventosPagamento        EventoPagamento[]
   checkoutsDoSite         CheckoutSite[]
   avisosDoPedido          AvisoDoPedido[]
+  contatosDaBeatriz       ContatoDaBeatriz[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -295,6 +296,10 @@ model Cliente {
   versaoDaPolitica   String?
   aceitaMarketing    Boolean   @default(false)
   aceitaMarketingEm  DateTime?
+
+  // Memória da Beatriz: o que ela aprendeu do cliente, em etiquetas curtas (gosto:agnus, evita:cebola).
+  // Nunca guarda conversa nem dado de saúde.
+  etiquetas String[] @default([])
 
   empresa   Empresa    @relation(fields: [empresaId], references: [id])
   enderecos Endereco[]
@@ -1484,4 +1489,28 @@ model AvisoDoPedido {
 
   @@unique([pedidoId, evento])
   @@index([empresaId, status, criadoEm])
+}
+
+// Quem conversou com a Beatriz e ainda não é cliente (sem CPF): só o telefone e as etiquetas do que ela
+// aprendeu. Quando o cadastro é criado no checkout, as etiquetas passam para o cliente e o contato é apagado.
+// Sem cadastro, é apagado em 30 dias (expiraEm).
+model ContatoDaBeatriz {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  telefone String
+
+  etiquetas String[] @default([])
+
+  criadoEm DateTime @default(now())
+
+  atualizadoEm DateTime @updatedAt
+
+  expiraEm DateTime
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, telefone])
+  @@index([expiraEm])
 }

@@ -34,6 +34,8 @@ export default function ClientesPage() {
 
   const [edicao, setEdicao] = useState({ nome: "", email: "", dataNascimento: "" });
 
+  const [novaEtiqueta, setNovaEtiqueta] = useState("");
+
   const carregar = useCallback(async () => {
     const resposta = await fetch(`/api/clientes/lista?busca=${encodeURIComponent(busca)}`, {
       cache: "no-store",
@@ -131,6 +133,36 @@ export default function ClientesPage() {
       await carregar();
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Não foi possível salvar o cliente.");
+    }
+  }
+
+  // A memória da Beatriz do cliente: a equipe vê, acrescenta e apaga etiquetas.
+  async function salvarEtiquetas(etiquetas: string[]) {
+    if (!detalhe) {
+      return;
+    }
+
+    try {
+      setErro("");
+      setMensagem("");
+
+      const resposta = await fetch(`/api/clientes/${detalhe.id}/etiquetas`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etiquetas }),
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados.sucesso) {
+        throw new Error(dados.mensagem || "Não foi possível salvar as etiquetas.");
+      }
+
+      setDetalhe(dados.cliente);
+      setNovaEtiqueta("");
+      setMensagem("Memória da Beatriz salva.");
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Não foi possível salvar as etiquetas.");
     }
   }
 
@@ -246,6 +278,57 @@ export default function ClientesPage() {
                         </div>
 
                         <div className="space-y-3">
+                          <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Memória da Beatriz</h3>
+
+                            <p className="text-xs text-slate-400">O que ela aprendeu deste cliente. Sem saúde nem dados pessoais. Você pode apagar ou acrescentar.</p>
+
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                              {detalhe.etiquetas.length === 0 && <span className="text-xs text-slate-400">Nada aprendido ainda.</span>}
+
+                              {detalhe.etiquetas.map((etiqueta) => (
+                                <span key={etiqueta} className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
+                                  #{etiqueta}
+
+                                  <button
+                                    type="button"
+                                    aria-label={`Apagar a etiqueta ${etiqueta}`}
+                                    onClick={() => void salvarEtiquetas(detalhe.etiquetas.filter((outra) => outra !== etiqueta))}
+                                    className="cursor-pointer text-sky-700 hover:text-red-700"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="mt-2 flex gap-2">
+                              <input
+                                aria-label="Nova etiqueta"
+                                value={novaEtiqueta}
+                                onChange={(evento) => setNovaEtiqueta(evento.target.value)}
+                                onKeyDown={(evento) => {
+                                  if (evento.key === "Enter" && novaEtiqueta.trim()) {
+                                    evento.preventDefault();
+
+                                    void salvarEtiquetas([...detalhe.etiquetas, novaEtiqueta]);
+                                  }
+                                }}
+                                placeholder="Ex.: gosto:agnus"
+                                className={CLASSE_CAMPO}
+                              />
+
+                              <button
+                                type="button"
+                                disabled={!novaEtiqueta.trim()}
+                                onClick={() => void salvarEtiquetas([...detalhe.etiquetas, novaEtiqueta])}
+                                className="cursor-pointer rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Acrescentar
+                              </button>
+                            </div>
+                          </div>
+
                           <div>
                             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Endereços</h3>
 

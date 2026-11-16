@@ -1,3 +1,5 @@
+import { MAXIMO_DE_ETIQUETAS, limparEtiqueta, mesclarEtiquetas } from "@/core/memoria/etiquetasDoCliente";
+
 import type { ClienteConsultaRepositoryPort } from "../repositories/clienteConsultaRepositoryPort";
 
 import type {
@@ -61,6 +63,33 @@ export function aplicarEdicao(cliente: Cliente, edicao: EdicaoDeCliente): Client
   return atualizado;
 }
 
+// A lista de etiquetas que a equipe mandou, limpa. Etiqueta de saúde ou de dado pessoal é recusada com o motivo.
+export function etiquetasDaEdicao(brutas: unknown): string[] {
+  if (!Array.isArray(brutas)) {
+    throw new Error("Informe a lista de etiquetas.");
+  }
+
+  const limpas: string[] = [];
+
+  for (const bruta of brutas.slice(0, MAXIMO_DE_ETIQUETAS * 2)) {
+    const { etiqueta, recusada } = limparEtiqueta(bruta);
+
+    if (recusada === "SENSIVEL") {
+      throw new Error(`A etiqueta "${String(bruta).slice(0, 40)}" fala de saúde, crença ou outro dado sensível e não pode ficar na memória.`);
+    }
+
+    if (recusada === "DADO_PESSOAL") {
+      throw new Error(`A etiqueta "${String(bruta).slice(0, 40)}" parece um dado pessoal (telefone, CPF, e-mail ou link) e não pode ficar na memória.`);
+    }
+
+    if (etiqueta && !limpas.includes(etiqueta)) {
+      limpas.push(etiqueta);
+    }
+  }
+
+  return mesclarEtiquetas([], { adicionar: limpas, remover: [] });
+}
+
 export class ConsultaClienteService {
   constructor(
     private readonly repository: ClienteConsultaRepositoryPort,
@@ -88,6 +117,26 @@ export class ConsultaClienteService {
     }
 
     return cliente;
+  }
+
+  // A equipe vê e ajusta o que a Beatriz aprendeu do cliente.
+  async editarEtiquetas(id: string, brutas: unknown, operador?: string | null): Promise<ClienteDetalhe> {
+    const etiquetas = etiquetasDaEdicao(brutas);
+
+    if (!(await this.repository.definirEtiquetas(id, etiquetas))) {
+      throw new Error("Cliente não encontrado.");
+    }
+
+    const detalhe = await this.detalhe(id);
+
+    await this.registrar?.({
+      acao: "ETIQUETAS",
+      resumo: `Memória da Beatriz do cliente ${detalhe.nome} ajustada (${etiquetas.length} etiqueta(s)).`,
+      referenciaId: id,
+      operador,
+    });
+
+    return detalhe;
   }
 
   async editar(

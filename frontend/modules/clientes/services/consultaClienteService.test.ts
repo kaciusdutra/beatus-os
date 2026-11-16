@@ -1,4 +1,4 @@
-import { aplicarEdicao } from "./consultaClienteService";
+import { aplicarEdicao, etiquetasDaEdicao } from "./consultaClienteService";
 
 import type { Cliente } from "../types/cliente";
 
@@ -56,5 +56,14 @@ function executarTestes(): void {
 }
 
 executarTestes();
+
+// Etiquetas (a memória da Beatriz) editadas pela equipe
+verificar(etiquetasDaEdicao(["Gosto:Agnus", "evita:cebola", "gosto:agnus", ""]).join() === "gosto:agnus,evita:cebola", "limpa, tira repetidas e vazias");
+verificar(etiquetasDaEdicao([]).length === 0, "lista vazia apaga tudo");
+verificar(etiquetasDaEdicao(["apelido:biel", "apelido:gabriel"]).join() === "apelido:gabriel", "apelido tem um valor só");
+verificar(etiquetasDaEdicao(Array.from({ length: 80 }, (_, i) => `gosto:item${i}`)).length === 50, "no máximo 50 etiquetas");
+verificar(recusa(() => etiquetasDaEdicao(["alergia:amendoim"])).includes("sensível"), "etiqueta de saúde é recusada com o motivo");
+verificar(recusa(() => etiquetasDaEdicao(["telefone:92988880001"])).includes("dado pessoal"), "etiqueta com telefone é recusada com o motivo");
+verificar(recusa(() => etiquetasDaEdicao("gosto:agnus")).includes("lista"), "o que não é lista é recusado");
 
 console.log(`✅ Testes da consulta de clientes passaram (${verificacoes} verificações).`);

@@ -8,6 +8,8 @@ import { criarContextoDesenvolvimento } from "@/core/context/empresaContext";
 
 import { registrarAtividade } from "@/modules/atividades/services/server/atividadeService";
 
+import { absorverContatoDaBeatriz } from "@/modules/beatriz/repositories/postgres/memoriaDoClienteRepositoryPostgres";
+
 import { ErroDePedido } from "@/modules/pedidos/services/calcularPedido";
 
 import { calcularPedidoSemGravar } from "@/modules/pedidos/services/server/calculoPedidoService";
@@ -162,6 +164,9 @@ const clientes: ClientesDoCheckoutPort = {
       throw new Error("O cadastro deste cliente está inativo.");
     }
 
+    // Cadastro novo: o que a Beatriz aprendeu dessa pessoa antes (pelo telefone) passa para ele.
+    const cadastroNovo = !cliente;
+
     const nascimento = pessoa.dataNascimento ? new Date(`${pessoa.dataNascimento}T00:00:00.000Z`) : undefined;
 
     if (!cliente) {
@@ -194,6 +199,15 @@ const clientes: ClientesDoCheckoutPort = {
             : {}),
         },
       });
+    }
+
+    if (cadastroNovo || mesmaPessoa) {
+      try {
+        await absorverContatoDaBeatriz(empresaId, pessoa.telefone, cliente.id);
+      } catch (error) {
+        // A memória da Beatriz nunca impede o pedido.
+        console.error("ERRO AO PASSAR A MEMÓRIA DA BEATRIZ PARA O CADASTRO:", error);
+      }
     }
 
     const existente = await prisma.endereco.findFirst({

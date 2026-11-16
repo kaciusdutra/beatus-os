@@ -9,4 +9,7 @@ export interface ClienteConsultaRepositoryPort {
   listar(busca: string | undefined, limite: number): Promise<ClienteListado[]>;
 
   buscarDetalhe(id: string): Promise<ClienteDetalhe | null>;
+
+  // Troca as etiquetas do cliente (já limpas pelo serviço). Devolve false se o cliente não existe.
+  definirEtiquetas(id: string, etiquetas: string[]): Promise<boolean>;
 }

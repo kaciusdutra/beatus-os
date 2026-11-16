@@ -7,7 +7,9 @@ import { ErroDaBeatriz } from "@/modules/beatriz/modelos/modeloPort";
 import type { CanalPedido } from "@/modules/pedidos/types/pedido";
 
 // A Beatriz responde ao cliente e anota o pedido (conferido com o cardápio).
-// Corpo: { mensagens: [{ papel: "cliente" | "beatriz", texto }], canal?, rascunhoAtual? }
+// Corpo: { mensagens: [{ papel: "cliente" | "beatriz", texto }], canal?, rascunhoAtual?, telefoneIdentificado? }
+// telefoneIdentificado liga a memória do cliente (etiquetas, último pedido). Esta rota é só da equipe (exige login);
+// o canal que chamar com o telefone de um cliente tem de ter confirmado quem é (número do WhatsApp, código).
 // A conversa fica com quem chama: nada é guardado aqui.
 export async function POST(request: Request) {
   try {
@@ -17,6 +19,7 @@ export async function POST(request: Request) {
       mensagens: Array.isArray(corpo?.mensagens) ? corpo.mensagens : [],
       canal: typeof corpo?.canal === "string" ? (corpo.canal as CanalPedido) : undefined,
       rascunhoAtual: corpo?.rascunhoAtual && typeof corpo.rascunhoAtual === "object" ? corpo.rascunhoAtual : undefined,
+      telefoneIdentificado: typeof corpo?.telefoneIdentificado === "string" ? corpo.telefoneIdentificado : undefined,
     });
 
     return NextResponse.json({ sucesso: true, resposta });

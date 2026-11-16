@@ -5,13 +5,14 @@ import LinkDePagamento from "../components/LinkDePagamento";
 import { useEffect, useRef, useState } from "react";
 
 import type {
+  MemoriaDoCliente,
   MensagemDaConversa,
   RascunhoDePedido,
   RespostaDaBeatriz,
   UsoDoModelo,
 } from "../types/beatriz";
 
-type RespostaComUso = RespostaDaBeatriz & { modelo: string; uso: UsoDoModelo };
+type RespostaComUso = RespostaDaBeatriz & { modelo: string; uso: UsoDoModelo; memoria?: MemoriaDoCliente };
 
 const ROTULO_PENDENCIA: Record<string, string> = {
   ITENS: "falta o pedido",
@@ -31,6 +32,9 @@ export default function BeatrizPage() {
   const [conversa, setConversa] = useState<MensagemDaConversa[]>([]);
 
   const [texto, setTexto] = useState("");
+
+  // Telefone de quem está "falando": liga a memória do cliente (etiquetas, último pedido). Aqui a equipe é quem confirma.
+  const [telefone, setTelefone] = useState("");
 
   const [ultima, setUltima] = useState<RespostaComUso | null>(null);
 
@@ -82,6 +86,7 @@ export default function BeatrizPage() {
           mensagens: nova,
           canal: "WHATSAPP",
           rascunhoAtual: ultima?.rascunho as RascunhoDePedido | undefined,
+          telefoneIdentificado: telefone.trim() || undefined,
         }),
       });
 
@@ -137,6 +142,25 @@ export default function BeatrizPage() {
       {estado?.configurada && <p className="text-xs text-slate-500">IA ligada · modelo {estado.modelo}</p>}
 
       {erro && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</div>}
+
+      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <label htmlFor="telefone-do-cliente" className="block text-xs font-semibold text-slate-600">
+          Telefone do cliente (opcional)
+        </label>
+
+        <input
+          id="telefone-do-cliente"
+          value={telefone}
+          onChange={(evento) => setTelefone(evento.target.value)}
+          placeholder="Ex.: 92988880001 (liga a memória: último pedido, gostos e etiquetas)"
+          inputMode="tel"
+          className="mt-1 w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+        />
+
+        <p className="mt-1 text-xs text-slate-500">
+          Com o telefone de um cliente cadastrado, a Beatriz lembra dele. Com um número novo, ela guarda o que aprender por 30 dias e passa para o cadastro quando ele fizer o primeiro pedido.
+        </p>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="flex min-h-[28rem] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
@@ -225,6 +249,43 @@ export default function BeatrizPage() {
               </>
             )}
           </div>
+
+          {ultima?.memoria && (
+            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">O que ela sabe do cliente</h2>
+
+              <p className="text-xs text-slate-600">
+                {ultima.memoria.conhecido ? `Cliente cadastrado${ultima.memoria.nome ? `: ${ultima.memoria.nome}` : ""} · ${ultima.memoria.quantidadeDePedidos} pedido(s)` : "Ainda não é cliente cadastrado"}
+                {ultima.memoria.aceitaClube ? " · aceitou o clube" : ""}
+              </p>
+
+              {ultima.memoria.ultimoPedido && (
+                <p className="text-xs text-slate-600">
+                  Último pedido há {ultima.memoria.ultimoPedido.diasAtras} dia(s): {ultima.memoria.ultimoPedido.itens.map((item) => `${item.quantidade}× ${item.nome}`).join(", ")}
+                </p>
+              )}
+
+              {ultima.memoria.favoritos.length > 0 && <p className="text-xs text-slate-600">Mais pede: {ultima.memoria.favoritos.join(", ")}</p>}
+
+              <div className="flex flex-wrap gap-1.5">
+                {ultima.memoria.etiquetas.length === 0 && <span className="text-xs text-slate-400">Nenhuma etiqueta ainda.</span>}
+
+                {ultima.memoria.etiquetas.map((etiqueta) => (
+                  <span key={etiqueta} className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
+                    #{etiqueta}
+                  </span>
+                ))}
+              </div>
+
+              {(ultima.etiquetas.adicionar.length > 0 || ultima.etiquetas.remover.length > 0 || ultima.etiquetas.recusadas.length > 0) && (
+                <p className="text-xs text-slate-500">
+                  Nesta mensagem: {ultima.etiquetas.adicionar.length > 0 ? `aprendeu ${ultima.etiquetas.adicionar.map((e) => `#${e}`).join(" ")}` : ""}
+                  {ultima.etiquetas.remover.length > 0 ? ` esqueceu ${ultima.etiquetas.remover.map((e) => `#${e}`).join(" ")}` : ""}
+                  {ultima.etiquetas.recusadas.length > 0 ? ` · o sistema recusou ${ultima.etiquetas.recusadas.length} (dado sensível ou pessoal)` : ""}
+                </p>
+              )}
+            </div>
+          )}
 
           {ultima && (
             <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

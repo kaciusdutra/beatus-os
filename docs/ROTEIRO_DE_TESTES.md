@@ -449,6 +449,14 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 269 | Configure o WhatsApp (`docs/WHATSAPP_AVISOS.md`), reinicie, faça um pedido de teste com o seu número e inicie o preparo | Em até 15 segundos o aviso chega ao seu WhatsApp e, em Pedidos, aparece "enviado" |
 | 270 | Marque "Saiu para entrega" e "Entregue" | Chegam os avisos "a caminho" e "entregue", um de cada vez, sem repetir |
 | 271 | Faça um pedido com um telefone sem WhatsApp | O aviso fica "falhou" e mostra o motivo no detalhe do pedido |
+| 272 | Em Clientes, abra um cliente: em "Memória da Beatriz" escreva `Gosto: Agnus` e toque em Acrescentar | Aparece a etiqueta `#gosto:agnus` e "Memória da Beatriz salva" |
+| 273 | Toque no × da etiqueta | Ela some |
+| 274 | Tente acrescentar `alergia:amendoim` e depois `telefone:92988880001` | O sistema recusa e explica (dado sensível; dado pessoal) |
+| 275 | Em Inteligência → Beatriz (com a chave da IA), preencha o telefone de um cliente que já pediu e converse | O painel "O que ela sabe do cliente" mostra o último pedido, o que mais pede e as etiquetas; ela chama pelo apelido e pergunta se vai no de sempre ou quer experimentar outro sabor |
+| 276 | Diga "pode me chamar de Biel e não gosto de cebola" | Ela aprende `#apelido:biel` e `#evita:cebola` (aparece em "Nesta mensagem") |
+| 277 | Diga que tem alergia a amendoim | Não vira etiqueta; marca "precisa de uma pessoa" |
+| 278 | Use um telefone novo, converse e depois faça o primeiro pedido pelo link com o mesmo telefone | Antes do pedido o painel diz "ainda não é cliente"; depois do pedido as etiquetas aparecem no cadastro do cliente |
+| 279 | Converse sem preencher o telefone | Ela atende como primeira conversa, sem citar nada de ninguém |
 
 ## O que anotar
 

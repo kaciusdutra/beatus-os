@@ -132,6 +132,7 @@ export class ClienteConsultaRepositoryPostgres
     return {
       ...montar(cliente, estatisticas.get(cliente.id)),
       cpf: cliente.cpf,
+      etiquetas: cliente.etiquetas,
       dataNascimento: cliente.dataNascimento
         ? cliente.dataNascimento.toISOString().slice(0, 10)
         : undefined,
@@ -160,6 +161,15 @@ export class ClienteConsultaRepositoryPostgres
         criadoEm: pedido.criadoEm.toISOString(),
       })),
     };
+  }
+
+  async definirEtiquetas(id: string, etiquetas: string[]): Promise<boolean> {
+    const { count } = await prisma.cliente.updateMany({
+      where: { id, empresaId: this.contexto.empresaId },
+      data: { etiquetas },
+    });
+
+    return count > 0;
   }
 }
 

@@ -40,6 +40,28 @@ export interface DadosDoClienteNaConversa {
   referencia?: string;
 }
 
+// O que a Beatriz sabe de quem está falando (vem do cadastro e dos pedidos; nada da conversa é guardado).
+export interface MemoriaDoCliente {
+  // Já tem cadastro de cliente (senão, no máximo um contato com etiquetas).
+  conhecido: boolean;
+  // Primeiro nome do cadastro.
+  nome?: string;
+  etiquetas: string[];
+  aceitaClube: boolean;
+  quantidadeDePedidos: number;
+  ultimoPedido?: { itens: { nome: string; quantidade: number }[]; diasAtras: number };
+  // Os produtos que mais pede.
+  favoritos: string[];
+}
+
+// O que a Beatriz aprendeu nesta conversa, já limpo pelo sistema.
+export interface EtiquetasAprendidas {
+  adicionar: string[];
+  remover: string[];
+  // O que o sistema recusou (saúde, dado pessoal...), só para a equipe saber.
+  recusadas: string[];
+}
+
 export interface RespostaDaBeatriz {
   intencao: IntencaoDoCliente;
   // Texto pronto para enviar ao cliente: o que a Beatriz disse (sem valores) mais
@@ -57,6 +79,8 @@ export interface RespostaDaBeatriz {
   resumoParaOperador: string;
   // O que o sistema corrigiu ou descartou na resposta da IA (ex.: produto que não existe).
   avisos: string[];
+  // O que ela aprendeu do cliente nesta mensagem (vira etiquetas no cadastro).
+  etiquetas: EtiquetasAprendidas;
 }
 
 export interface UsoDoModelo {

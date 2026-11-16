@@ -15,6 +15,8 @@ export interface ClienteListado {
 
 export interface ClienteDetalhe extends ClienteListado {
   cpf: string;
+  // O que a Beatriz aprendeu do cliente (gostos, apelido...). A equipe pode ver e apagar.
+  etiquetas: string[];
   dataNascimento?: string;
   enderecos: {
     id: string;

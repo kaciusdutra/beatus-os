@@ -1,5 +1,7 @@
 import type { ItemDoCardapioIA } from "./cardapioParaIA";
 
+import { lerMudancaDeEtiquetas } from "@/core/memoria/etiquetasDoCliente";
+
 import type {
   AdicionalDoRascunho,
   DadosDoClienteNaConversa,
@@ -209,6 +211,7 @@ export function interpretarRespostaDaBeatriz(
       motivoHumano: "A IA não devolveu uma resposta que o sistema consiga ler.",
       resumoParaOperador: "Resposta da IA ilegível; atender manualmente.",
       avisos: ["Resposta da IA fora do formato esperado."],
+      etiquetas: { adicionar: [], remover: [], recusadas: [] },
     };
   }
 
@@ -294,5 +297,6 @@ export function interpretarRespostaDaBeatriz(
       texto(dados.resumoParaOperador) ??
       (rascunho.itens.length > 0 ? `${rascunho.itens.length} item(ns) anotado(s).` : "Sem pedido ainda."),
     avisos,
+    etiquetas: lerMudancaDeEtiquetas(dados.etiquetas),
   };
 }

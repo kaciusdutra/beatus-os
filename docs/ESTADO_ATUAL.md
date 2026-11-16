@@ -16,7 +16,7 @@
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 37 migrações aplicadas, de 19/08 a 16/11/2026 (as últimas: `add_checkout_site`, `add_avisos_do_pedido` e `add_origem_campanha_pedido`, com os checkpoints `checkpoint-antes-checkout-site`, `checkpoint-antes-avisos` e `checkpoint-antes-origem-campanha`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
+- 38 migrações aplicadas, de 19/08 a 16/11/2026 (as últimas: `add_avisos_do_pedido`, `add_origem_campanha_pedido` e `add_memoria_da_beatriz`, com os checkpoints `checkpoint-antes-avisos`, `checkpoint-antes-origem-campanha` e `checkpoint-antes-memoria-beatriz`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 16/11/2026 | (este commit) | Memória da Beatriz: etiquetas no cadastro do cliente e contato temporário (30 dias) para quem ainda não é cliente; ela lembra do último pedido e dos gostos e fala como gente; a equipe vê e apaga as etiquetas em Clientes; migração `add_memoria_da_beatriz`; regra 26.12 |
 | 16/11/2026 | `aaf3451` | Fase 3a da Beatriz: envio dos avisos do pedido pela API da Meta (WhatsApp), com repetição, motivo da falha e aviso do site dispensado; a tela Pedidos mostra o motivo; sem migração; regra 26.11 e `docs/WHATSAPP_AVISOS.md` |
 | 16/11/2026 | `02ac4a5` | Ticket automático da cozinha: botão na tela `/cozinha` que imprime sozinha o ticket de cada pedido novo (só pedidos dos últimos 15 minutos) e marca IMPRESSO; sem migração; regra 25.4 |
 | 15/11/2026 | `d534e24` | Preço premium no site: sem "R$" e sem centavos (cardápio, checkout e acompanhamento); regra 23.8 |
