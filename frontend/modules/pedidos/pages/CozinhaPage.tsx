@@ -10,6 +10,8 @@ import { marcarComoVistos, pedidosNovosDaFila, textoDoAlerta, tituloDaAba } from
 
 import ConsultaAutomaticaDoMarketplace from "@/modules/marketplace/components/ConsultaAutomaticaDoMarketplace";
 
+import ImpressaoAutomaticaDoTicket from "../components/ImpressaoAutomaticaDoTicket";
+
 interface ConsumoDoPedido {
   itemTipo: "INSUMO" | "PREPARACAO";
   id: string;
@@ -36,6 +38,9 @@ const PROXIMO: Record<string, { status: string; rotulo: string } | undefined> = 
 const SEGUNDOS_ENTRE_CONSULTAS = 5;
 
 const CHAVE_DO_SOM = "beatus.cozinha.som";
+
+// Liga só neste computador: quem tem a impressora da cozinha liga, os outros ficam sem.
+const CHAVE_DA_IMPRESSAO = "beatus.cozinha.impressao";
 
 // Três toques curtos, sem arquivo de áudio.
 function tocarAviso(contexto: AudioContext): void {
@@ -96,6 +101,9 @@ export default function CozinhaPage() {
 
   const [alerta, setAlerta] = useState("");
 
+  // Impressão automática do ticket (só neste computador)
+  const [impressaoLigada, setImpressaoLigada] = useState(false);
+
   const [destacados, setDestacados] = useState<string[]>([]);
 
   const vistosRef = useRef<Set<string> | null>(null);
@@ -144,10 +152,24 @@ export default function CozinhaPage() {
       somLigadoRef.current = guardado;
 
       setSomLigado(guardado);
+
+      setImpressaoLigada(localStorage.getItem(CHAVE_DA_IMPRESSAO) === "ligada");
     } catch {
       // sem armazenamento: continua ligado
     }
   }, []);
+
+  function alternarImpressao() {
+    const nova = !impressaoLigada;
+
+    setImpressaoLigada(nova);
+
+    try {
+      localStorage.setItem(CHAVE_DA_IMPRESSAO, nova ? "ligada" : "desligada");
+    } catch {
+      // sem armazenamento: vale só nesta tela
+    }
+  }
 
   // O título da aba mostra quantos pedidos novos esperam na fila.
   const naFila = pedidos.filter((pedido) => pedido.statusOperacional === "NOVO").length;
@@ -295,6 +317,8 @@ export default function CozinhaPage() {
     <div className="space-y-6">
       <ConsultaAutomaticaDoMarketplace segundos={30} />
 
+      <ImpressaoAutomaticaDoTicket pedidos={pedidos} ligada={impressaoLigada} />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500">Módulo</p>
@@ -318,6 +342,17 @@ export default function CozinhaPage() {
             }`}
           >
             {!somLiberado ? "🔕 Toque para ativar o som" : somLigado ? "🔔 Som ligado (tocar para desligar)" : "🔕 Som desligado (tocar para ligar)"}
+          </button>
+
+          <button
+            type="button"
+            onClick={alternarImpressao}
+            title="Imprime sozinho o ticket de cada pedido novo. Sem clique só com o Chrome da cozinha aberto em modo de impressão silenciosa (--kiosk-printing)."
+            className={`cursor-pointer rounded-xl border px-5 py-3 text-sm font-semibold shadow-sm ${
+              impressaoLigada ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-slate-300 bg-white text-slate-700"
+            }`}
+          >
+            {impressaoLigada ? "🖨️ Ticket automático ligado (tocar para desligar)" : "🖨️ Ticket automático desligado (tocar para ligar)"}
           </button>
 
           <Link href="/integracoes/marketplace" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Ticket {
   id: string;
@@ -17,10 +17,43 @@ interface Ticket {
 // Ticket da cozinha em bobina de 80 mm. Sai pela impressão do navegador;
 // quando a impressora existir, a fila de impressão alimenta um impressor
 // automático com os mesmos dados.
-export default function TicketCozinhaPage({ pedidoId }: { pedidoId: string }) {
+export default function TicketCozinhaPage({ pedidoId, automatico = false }: { pedidoId: string; automatico?: boolean }) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
 
   const [erro, setErro] = useState("");
+
+  const jaImprimiu = useRef(false);
+
+  // No modo automático (quadro escondido da tela da cozinha) o ticket marca a situação e imprime sozinho,
+  // depois avisa a tela da cozinha, que segue para o próximo.
+  useEffect(() => {
+    if (!automatico || jaImprimiu.current || (!ticket && !erro)) {
+      return;
+    }
+
+    jaImprimiu.current = true;
+
+    void (async () => {
+      try {
+        await fetch(`/api/pedidos/${pedidoId}/ticket`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: ticket ? "IMPRESSO" : "FALHOU" }),
+        });
+      } catch {
+        // o registro não impede a impressão
+      }
+
+      if (ticket) {
+        // espera o ticket aparecer na página antes de imprimir
+        await new Promise((resolver) => setTimeout(resolver, 400));
+
+        window.print();
+      }
+
+      window.parent.postMessage({ tipo: "beatus-ticket-impresso", id: pedidoId }, window.location.origin);
+    })();
+  }, [automatico, ticket, erro, pedidoId]);
 
   useEffect(() => {
     void (async () => {

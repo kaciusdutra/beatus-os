@@ -439,6 +439,11 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 259 | Faça um pedido pelo checkout, pague no sandbox e abra o detalhe do pedido em Pedidos | Aparece "Campanha · instagram / paid / clube-outubro / video_1" |
 | 260 | Faça outro pedido de um navegador que nunca abriu link de anúncio | O detalhe do pedido não mostra campanha |
 | 261 | Faça um pedido pelo PDV | O detalhe do pedido não mostra campanha |
+| 262 | Em `/cozinha`, toque em "Ticket automático desligado" | O botão passa a "ligado" e fica assim ao recarregar a página (só neste computador) |
+| 263 | Com ele ligado, faça um pedido pago | O ticket do pedido novo sai sozinho (com a impressão silenciosa) e a cozinha mostra "Ticket: impresso" |
+| 264 | Recarregue `/cozinha` com pedidos antigos parados na fila | Nenhum ticket antigo (de mais de 15 minutos) sai de uma vez |
+| 265 | Faça dois pedidos pagos seguidos | Os tickets saem um de cada vez, do mais antigo ao mais novo |
+| 266 | Toque no botão para desligar e faça outro pedido | O ticket não sai sozinho; o link "Ticket" continua imprimindo com clique |
 
 ## O que anotar
 
