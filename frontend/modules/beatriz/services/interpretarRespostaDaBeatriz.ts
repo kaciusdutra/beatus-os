@@ -171,7 +171,7 @@ export function montarRascunho(itensDaIA: unknown, cardapio: ItemDoCardapioIA[])
 }
 
 // O resumo do pedido, com os valores do cardápio, montado pelo sistema.
-export function resumoDoPedido(rascunho: RascunhoDePedido, premium = false): string {
+export function resumoDoPedido(rascunho: RascunhoDePedido, premium = true): string {
   if (rascunho.itens.length === 0) {
     return "";
   }
@@ -201,7 +201,7 @@ const MENSAGEM_DE_ATENDENTE =
 export function interpretarRespostaDaBeatriz(
   textoDaIA: string,
   cardapio: ItemDoCardapioIA[],
-  // No site o resumo usa o preço premium (regra 23.8); no WhatsApp, o valor completo.
+  // O resumo usa o preço premium (regra 23.8) em todos os canais, site e WhatsApp.
   opcoes: { precoPremium?: boolean } = {}
 ): RespostaDaBeatriz {
   let dados: Record<string, unknown>;
@@ -289,7 +289,7 @@ export function interpretarRespostaDaBeatriz(
 
   const fala = removerValoresDoTexto(texto(dados.resposta) ?? "") || (precisaDeHumano ? MENSAGEM_DE_ATENDENTE : "");
 
-  const resumo = resumoDoPedido(rascunho, opcoes.precoPremium === true);
+  const resumo = resumoDoPedido(rascunho, opcoes.precoPremium !== false);
 
   const resposta = [fala, resumo].filter(Boolean).join("\n\n").slice(0, TAMANHO_MAXIMO_DA_RESPOSTA);
 

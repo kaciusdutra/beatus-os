@@ -3,7 +3,7 @@ import { cpfValido, somenteDigitos } from "@/modules/fornecedores/domain/documen
 import { limparOrigemDaCampanha, type OrigemDaCampanha } from "@/modules/pedidos/services/origemDaCampanha";
 
 // Versão da política de privacidade que o cliente aceita no checkout (fica gravada no cadastro).
-export const VERSAO_DA_POLITICA = "2026-11-15-rascunho";
+export const VERSAO_DA_POLITICA = "2026-11-17-rascunho";
 
 export const MAXIMO_DE_ITENS_DO_CHECKOUT = 30;
 

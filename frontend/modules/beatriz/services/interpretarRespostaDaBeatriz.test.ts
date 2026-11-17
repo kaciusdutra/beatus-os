@@ -101,8 +101,8 @@ function executarTestes(): void {
   // ---------- Resumo ----------
   const resumo = resumoDoPedido(rascunho);
 
-  verificar(resumo.includes("2× Sanctum — R$ 100,00") && resumo.includes("+ 1× Bacon extra — R$ 6,50"), "resumo com os valores do cardápio");
-  verificar(resumo.includes("Subtotal: R$ 121,50"), "subtotal no resumo");
+  verificar(resumo.includes("2× Sanctum — 100") && resumo.includes("+ 1× Bacon extra — 6,50"), "resumo com os valores do cardápio, no preço premium (sem R$; inteiro sem centavos)");
+  verificar(resumo.includes("Subtotal: 121,50"), "subtotal no resumo (centavos continuam quando o valor não é inteiro)");
   verificar(resumoDoPedido({ itens: [], subtotal: 0 }) === "", "sem itens, sem resumo");
 
   // ---------- Resposta completa ----------
@@ -121,7 +121,7 @@ function executarTestes(): void {
   );
 
   verificar(!completa.resposta.includes("99,00"), "o valor inventado pela IA não chega ao cliente");
-  verificar(completa.resposta.includes("Pode me passar o endereço?") && completa.resposta.includes("Subtotal: R$ 50,00"), "fala da Beatriz + resumo do sistema");
+  verificar(completa.resposta.includes("Pode me passar o endereço?") && completa.resposta.includes("Subtotal: 50 "), "fala da Beatriz + resumo do sistema (preço premium: 50, sem R$ nem centavos)");
   verificar(completa.pendencias.includes("ENDERECO") && !completa.pendencias.includes("NOME") && !completa.pendencias.includes("ITENS"), "pendências conferidas com os fatos");
   verificar(!completa.pedidoConfirmadoPeloCliente && completa.pendencias.includes("CONFIRMACAO"), "confirmação sem endereço não vale");
 

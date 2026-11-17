@@ -107,7 +107,8 @@ verificar(respostaPublicaDaBeatriz(respostaDaIA({ rascunho: { itens: [], subtota
 
   verificar(resumoDoPedido(inteiro, true).includes("2× Sanctum — 90") && resumoDoPedido(inteiro, true).includes("Subtotal: 90 ") && !resumoDoPedido(inteiro, true).includes("R$"), "site: preço inteiro sem R$ e sem centavos");
   verificar(resumoDoPedido(quebrado, true).includes("— 44,90") && !resumoDoPedido(quebrado, true).includes("R$"), "site: preço com centavos nunca é arredondado");
-  verificar(resumoDoPedido(inteiro).includes("R$ 90,00") && resumoDoPedido(quebrado).includes("R$ 44,90"), "WhatsApp e equipe: valor completo com R$");
+  verificar(resumoDoPedido(inteiro).includes("— 90") && !resumoDoPedido(inteiro).includes("R$") && resumoDoPedido(quebrado).includes("— 44,90"), "sem pedir o formato, o resumo já sai premium (também no WhatsApp)");
+  verificar(resumoDoPedido(inteiro, false).includes("R$ 90,00"), "o formato completo com R$ continua existindo, mas ninguém o usa por padrão");
   verificar(resumoDoPedido({ itens: [{ ...inteiro.itens[0], precoUnitario: 1250, subtotal: 2500 }], subtotal: 2500 }, true).includes("2.500"), "milhar com ponto");
 }
 
@@ -156,7 +157,7 @@ async function principal() {
 
   verificar(modelo.sistemas[1].includes("(ainda não há itens)") && modelo.sistemas[2].includes("(ainda não há itens)"), "rascunho estragado vira pedido vazio");
 
-  // O site recebe o resumo premium; o WhatsApp, o completo
+  // O site e o WhatsApp recebem o mesmo resumo, no preço premium
   class ModeloComItem implements ModeloDeLinguagemPort {
     async responder() {
       return { texto: JSON.stringify({ intencao: "PEDIDO", resposta: "Anotei!", itens: [{ produtoId: "agnus", quantidade: 1, adicionais: [] }] }), modelo: "falso", uso: { entrada: 1, saida: 1 } };
@@ -168,7 +169,7 @@ async function principal() {
   const noWhatsapp = await new BeatrizService(cardapio, new ModeloComItem()).responder({ mensagens: [{ papel: "cliente", texto: "agnus" }], canal: "WHATSAPP" });
 
   verificar(noSite.resposta.includes("— 44,90") && !noSite.resposta.includes("R$"), "pelo site o resumo sai no formato premium");
-  verificar(noWhatsapp.resposta.includes("R$ 44,90"), "pelo WhatsApp o resumo sai completo");
+  verificar(noWhatsapp.resposta.includes("— 44,90") && !noWhatsapp.resposta.includes("R$"), "pelo WhatsApp o resumo sai igual ao do site (premium)");
 
   console.log(`✅ Testes do chat da Beatriz no site passaram (${verificacoes} verificações).`);
 }

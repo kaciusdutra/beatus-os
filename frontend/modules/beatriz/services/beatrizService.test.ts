@@ -105,7 +105,7 @@ async function executarTestes(): Promise<void> {
 
   verificar(resposta.rascunho.subtotal === 56.5, "subtotal calculado pelo sistema (50 + 6,50)");
   verificar(!resposta.resposta.includes("77,00"), "o total inventado não chega ao cliente");
-  verificar(resposta.resposta.includes("Subtotal: R$ 56,50"), "o resumo traz o subtotal do cardápio");
+  verificar(resposta.resposta.includes("Subtotal: 56,50"), "o resumo traz o subtotal do cardápio (preço premium)");
   verificar(resposta.pendencias.includes("NOME") && resposta.pendencias.includes("ENDERECO"), "pendências devolvidas");
   verificar(resposta.modelo === "modelo-falso" && resposta.uso.entrada === 100, "devolve o modelo e o uso de tokens");
 

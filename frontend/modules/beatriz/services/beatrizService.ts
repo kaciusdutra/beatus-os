@@ -116,7 +116,7 @@ export class BeatrizService {
 
     const { texto, modelo, uso } = await this.modelo.responder({ sistema, mensagens });
 
-    const resposta = interpretarRespostaDaBeatriz(texto, itensDoCardapio, { precoPremium: canal === "CARDAPIO_ONLINE" });
+    const resposta = interpretarRespostaDaBeatriz(texto, itensDoCardapio);
 
     // O que ela aprendeu vira etiquetas no cadastro (ou no contato, se a pessoa ainda não é cliente).
     let memoria = conhecimento;
