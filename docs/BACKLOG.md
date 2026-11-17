@@ -253,6 +253,8 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] S2 a S6 do plano de endurecimento (pedido seguro no servidor, login e perfis, canais sem duplicidade, diagnóstico do legado, upload reforçado e backup testado).
 - [ ] Revisar os padrões de pastas e nomes (exemplo: `verificarEmpresa.ts` parece estar fora do lugar).
 - [ ] Organizar os arquivos soltos da raiz (`README.md.txt` e `REGRAS_DE_NEGOCIO.md.txt` vazios, `utf8-test.json`, PDFs de teste em `frontend/`), com autorização do Kacius.
+- [ ] **Hospedagem no VPS (Hostinger):** arquivos prontos em `deploy/` e `frontend/Dockerfile`, guia em `docs/HOSPEDAGEM.md` (preparados em 17/11/2026, ainda sem rodar num servidor). Falta contratar o VPS e o domínio, seguir o guia, testar o backup e a restauração e conferir a imagem Docker no primeiro uso.
+- [ ] **Agendador no servidor (depois da hospedagem):** com o servidor sempre ligado, tirar da tela da Cozinha o envio dos avisos do WhatsApp e a consulta ao iFood, e guardar o teto diário da Beatriz fora da memória do aplicativo.
 - [ ] Limpar os dados de teste antes da produção (inclui o fornecedor de CNPJ 11.222.333/0001-81).
 - [ ] Testes de ponta a ponta, auditoria, logs, performance e monitoramento.
 

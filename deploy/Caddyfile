@@ -1,0 +1,27 @@
+# Porta de entrada do Beatus. O Caddy pede e renova sozinho o certificado HTTPS (Let's Encrypt).
+# O DOMINIO vem do .env (ex.: beatus.com.br). O DNS do domínio precisa apontar para o IP do servidor.
+#
+# Atrás do Caddy o aplicativo recebe o endereço real do visitante (X-Forwarded-For, que o Caddy refaz e
+# o visitante não consegue forjar) e o protocolo https (X-Forwarded-Proto): é isso que faz funcionar
+# o limite de abuso por visitante, o cookie seguro do login e a conferência de origem dos pedidos.
+
+{$DOMINIO} {
+	encode zstd gzip
+
+	# A raiz do domínio leva ao cardápio do site.
+	redir / /cardapio 302
+
+	reverse_proxy app:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Para a versão com www apontando para o mesmo lugar, crie o registro no DNS e descomente:
+# www.{$DOMINIO} {
+# 	redir https://{$DOMINIO}{uri} permanent
+# }

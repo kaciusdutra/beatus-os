@@ -1,0 +1,85 @@
+# O servidor do Beatus: banco, aplicativo e HTTPS. Guia completo em docs/HOSPEDAGEM.md.
+# Rode sempre dentro da pasta deploy/, com o arquivo .env ao lado (copie de .env.example).
+#
+#   docker compose up -d --build     sobe tudo (ou atualiza)
+#   docker compose logs -f app       acompanha o aplicativo
+#   docker compose ps                mostra o que está no ar
+
+name: beatus
+
+services:
+  # PostgreSQL. Nunca é exposto à internet: só o aplicativo enxerga, pela rede interna do Docker.
+  banco:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beatus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: beatus
+      TZ: America/Manaus
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U beatus -d beatus"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Aplica as migrações do banco e termina. O aplicativo só sobe se ela der certo.
+  migrar:
+    build:
+      context: ../frontend
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://beatus:${POSTGRES_PASSWORD}@banco:5432/beatus
+    depends_on:
+      banco:
+        condition: service_healthy
+
+  # O Beatus OS: site, sistema, Beatriz, webhooks.
+  app:
+    build:
+      context: ../frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://beatus:${POSTGRES_PASSWORD}@banco:5432/beatus
+      SITE_URL_BASE: https://${DOMINIO:?defina DOMINIO no .env}
+      TZ: America/Manaus
+    volumes:
+      - storage:/dados/storage
+    depends_on:
+      banco:
+        condition: service_healthy
+      migrar:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/publico/cardapio').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # HTTPS automático (Let's Encrypt) e porta de entrada. É o único serviço aberto para a internet.
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMINIO: ${DOMINIO}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_dados:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  storage:
+  caddy_dados:
+  caddy_config:

@@ -1,0 +1,23 @@
+# Nada disto entra na imagem do Docker.
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Dependências e compilações (a imagem gera as suas)
+node_modules
+.next
+lib/generated
+*.tsbuildinfo
+
+# Dados e arquivos de teste locais
+storage
+*.pdf
+utf8-test.json
+
+# Controle de versão e ferramentas
+.git
+.claude
+.vscode
+npm-debug.log*
