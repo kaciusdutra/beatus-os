@@ -466,6 +466,9 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 286 | Defina `BEATRIZ_TETO_DIARIO_SITE=3`, reinicie e mande 4 mensagens | A 4ª recebe "descansando por hoje" e o botão do WhatsApp |
 | 287 | Mande mais de 20 mensagens em 10 minutos | A Beatriz pede para esperar um pouco |
 | 288 | No PDV (ou em Financeiro → Pix, "Pix de teste"), com a chave do Pix configurada, gere um Pix | Aparece o QR da cobrança acima do copia e cola; o app do banco lê o QR e mostra o mesmo valor |
+| 289 | Em Pedidos, abra o detalhe de um pedido de cliente que já pediu antes | "Percurso do pedido" com 4 etapas (Cliente, Pagamento, Cozinha, Entrega) e, em "Cliente e entrega", a data do cadastro, o clube e os pedidos anteriores |
+| 290 | Abra o primeiro pedido de um cliente | A etapa Cliente diz "Cliente novo, cadastrado neste pedido" |
+| 291 | Abra um pedido cancelado e um de marketplace | Cancelado: Cozinha com problema e Entrega "não se aplica"; marketplace: cliente e pagamento "da plataforma" |
 
 ## O que anotar
 

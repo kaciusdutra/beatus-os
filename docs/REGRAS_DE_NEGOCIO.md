@@ -17,6 +17,7 @@
 5. IDs nunca são apagados nem reaproveitados. Eles são a base de relatórios e auditorias. O que compõe um registro pode mudar; o registro permanece.
 6. Na abertura, o sistema roda apenas no computador da loja.
 7. Multiempresa: o `empresaId` já existe para facilitar futuras unidades e marcas. Uma futura dark kitchen (várias marcas na mesma cozinha) exigirá ajustes para que o PDV de uma empresa não interfira no da outra. Isso não é prioridade agora.
+8. **Banco único (decisão do Kacius em 17/11/2026):** o cadastro de clientes e os preços dos produtos vivem no banco, e **todos os canais consultam o mesmo banco**: o PDV, o site, o WhatsApp e a Beatriz. Nenhum canal guarda a sua própria cópia. Todo pedido segue o mesmo caminho, e cada pedido volta ao sistema com tudo o que importa a ele: de quem é, quais pedidos o cliente já fez, se pagou, se foi autorizado e em que ponto da cozinha e da entrega está. Cliente **já cadastrado** (reconhecido pelo telefone): usa o cadastro e o histórico. Cliente **não cadastrado**: é cadastrado no próprio fluxo do pedido (no PDV, no checkout do site ou no link da Beatriz, com os consentimentos de LGPD), e só então o pedido segue: paga, é autorizado e vai para a cozinha. Por isso não há um "cadastro de cliente" separado como etapa do atendimento: a tela Clientes consulta e corrige.
 
 ## 2. Clientes
 
@@ -226,6 +227,7 @@
 1. A tela **Pedidos** é de **consulta**: lista todos os pedidos de qualquer situação, com busca por número, cliente ou telefone e filtro por situação, canal e período, e mostra o detalhe (itens, valores, entrega, pagamento e o histórico do Registro de atividades). **Mudar a situação e cancelar ficam na Cozinha**, que exige o motivo e cuida do estoque.
 2. O resumo da lista (quantidade, valor vendido e ticket médio) **não conta os pedidos cancelados** no valor.
 3. A tela **Clientes** lista e busca por nome, telefone, CPF ou e-mail, mostra endereços e os últimos pedidos, e permite corrigir **nome, e-mail e data de nascimento** ou inativar o cliente. **Telefone e CPF identificam o cliente e não mudam por essa tela.** Quantidade de pedidos, total e ticket médio são calculados dos pedidos reais, sem os cancelados. Cliente novo entra pelo PDV, na hora do pedido. Toda edição entra no Registro de atividades.
+4. **Percurso do pedido (17/11/2026):** o detalhe do pedido, em Pedidos, mostra em quatro etapas o que o banco sabe: **Cliente** (novo, cadastrado neste pedido, ou cadastrado com quantos pedidos antes), **Pagamento** (aprovado, com o meio e a hora; pendente; ou com problema), **Cozinha** (na fila, em preparo, preparada; só entra depois do pagamento aprovado; cancelado aparece como problema) e **Entrega** (a caminho, entregue). No bloco do cliente, a data do cadastro, se aceitou o clube e os **5 pedidos anteriores mais recentes** (sem os cancelados). Pedido de marketplace mostra o cliente e o pagamento como "da plataforma". Vale para qualquer canal.
 
 ## 14. Dashboard
 

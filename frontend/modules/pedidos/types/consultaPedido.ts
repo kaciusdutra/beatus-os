@@ -18,7 +18,21 @@ export interface PedidoListado {
   codigoExterno?: string;
 }
 
+// Quem é o cliente deste pedido, vindo do cadastro e do histórico no banco (o mesmo para PDV, WhatsApp e site).
+export interface ClienteDoPedido {
+  cadastradoEm: string;
+  // Nenhum pedido válido antes deste: o cadastro nasceu junto com ele.
+  novoNestePedido: boolean;
+  // Aceitou participar do clube de vantagens (mensagens de relacionamento).
+  aceitaClube: boolean;
+  totalDePedidosAnteriores: number;
+  // Os mais recentes antes deste (sem os cancelados).
+  pedidosAnteriores: { id: string; numero: string; canal: string; status: string; total: number; criadoEm: string }[];
+}
+
 export interface PedidoDetalhe extends PedidoListado {
+  // Ausente nos pedidos de marketplace (o cliente é da plataforma).
+  clienteDoPedido?: ClienteDoPedido;
   subtotal: number;
   descontos: number;
   taxaEntrega: number;

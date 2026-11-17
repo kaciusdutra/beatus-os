@@ -10,6 +10,8 @@ import type {
   ResumoDePedidos,
 } from "../types/consultaPedido";
 
+import { percursoDoPedido, type SituacaoDaEtapa } from "../services/percursoDoPedido";
+
 const CLASSE_CAMPO =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500";
 
@@ -23,6 +25,22 @@ const STATUS: { chave: string; rotulo: string; cor: string }[] = [
 ];
 
 const CANAIS = ["PDV", "WHATSAPP", "CARDAPIO_ONLINE", "IFOOD", "99FOOD", "KEETA"];
+
+const COR_DA_ETAPA: Record<SituacaoDaEtapa, string> = {
+  FEITO: "border-emerald-200 bg-emerald-50 text-emerald-900",
+  EM_ANDAMENTO: "border-sky-200 bg-sky-50 text-sky-900",
+  PENDENTE: "border-slate-200 bg-white text-slate-500",
+  PROBLEMA: "border-red-200 bg-red-50 text-red-800",
+  NAO_SE_APLICA: "border-slate-200 bg-slate-50 text-slate-400",
+};
+
+const ICONE_DA_ETAPA: Record<SituacaoDaEtapa, string> = {
+  FEITO: "✓",
+  EM_ANDAMENTO: "●",
+  PENDENTE: "○",
+  PROBLEMA: "!",
+  NAO_SE_APLICA: "–",
+};
 
 function moeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -297,6 +315,25 @@ export default function PedidosPage() {
 
                   {detalhe && detalhe.id === pedido.id && (
                     <>
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Percurso do pedido</h3>
+
+                        <ol className="mt-1 grid gap-2 sm:grid-cols-4">
+                          {percursoDoPedido(
+                            { status: detalhe.status, marketplace: Boolean(detalhe.codigoExterno), clienteDoPedido: detalhe.clienteDoPedido, pagamentos: detalhe.pagamentos },
+                            dataHora
+                          ).map((etapa) => (
+                            <li key={etapa.chave} className={`rounded-lg border px-3 py-2 text-xs ${COR_DA_ETAPA[etapa.situacao]}`}>
+                              <p className="font-bold">
+                                {ICONE_DA_ETAPA[etapa.situacao]} {etapa.rotulo}
+                              </p>
+
+                              <p>{etapa.detalhe}</p>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Itens</h3>
@@ -344,6 +381,32 @@ export default function PedidosPage() {
                                 <p>{detalhe.cliente.nome} · {detalhe.cliente.telefone}</p>
 
                                 <p className="text-xs text-slate-600">{detalhe.endereco || "Sem endereço"}</p>
+
+                                {detalhe.clienteDoPedido && (
+                                  <div className="mt-1 space-y-0.5 text-xs text-slate-600">
+                                    <p>
+                                      Cadastrado em {new Date(detalhe.clienteDoPedido.cadastradoEm).toLocaleDateString("pt-BR")}
+                                      {detalhe.clienteDoPedido.aceitaClube ? " · aceitou o clube" : " · não aceitou o clube"}
+                                    </p>
+
+                                    {detalhe.clienteDoPedido.pedidosAnteriores.length > 0 && (
+                                      <>
+                                        <p className="font-semibold">
+                                          Pedidos anteriores ({detalhe.clienteDoPedido.totalDePedidosAnteriores}
+                                          {detalhe.clienteDoPedido.totalDePedidosAnteriores > detalhe.clienteDoPedido.pedidosAnteriores.length ? `, os ${detalhe.clienteDoPedido.pedidosAnteriores.length} mais recentes` : ""}):
+                                        </p>
+
+                                        <ul className="space-y-0.5">
+                                          {detalhe.clienteDoPedido.pedidosAnteriores.map((anterior) => (
+                                            <li key={anterior.id}>
+                                              #{anterior.numero} · {dataHora(anterior.criadoEm)} · {anterior.canal} · {anterior.status.toLowerCase().replace("_", " ")} · {moeda(anterior.total)}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               </>
                             )}
                           </div>

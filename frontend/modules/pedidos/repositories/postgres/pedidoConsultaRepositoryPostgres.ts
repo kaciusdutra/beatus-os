@@ -8,7 +8,7 @@ import type { PedidoConsultaRepositoryPort } from "../pedidoConsultaRepositoryPo
 
 import type { StatusOperacional } from "../../types/pedido";
 
-import type { PedidoDetalhe, PedidoListado } from "../../types/consultaPedido";
+import type { ClienteDoPedido, PedidoDetalhe, PedidoListado } from "../../types/consultaPedido";
 
 import { rotuloDoPagamento } from "../../services/formaDePagamento";
 
@@ -96,6 +96,33 @@ export class PedidoConsultaRepositoryPostgres
     return pedidos.map(mapearListado);
   }
 
+  // O cadastro e o histórico do cliente deste pedido: tudo do banco, para qualquer canal.
+  private async clienteDoPedido(clienteId: string, pedidoId: string, criadoEm: Date): Promise<ClienteDoPedido | undefined> {
+    const cliente = await prisma.cliente.findFirst({
+      where: { id: clienteId, empresaId: this.contexto.empresaId },
+      select: { criadoEm: true, aceitaMarketing: true },
+    });
+
+    if (!cliente) {
+      return undefined;
+    }
+
+    const anteriores = { empresaId: this.contexto.empresaId, clienteId, id: { not: pedidoId }, criadoEm: { lt: criadoEm }, statusOperacional: { not: "CANCELADO" } };
+
+    const [total, recentes] = await Promise.all([
+      prisma.pedido.count({ where: anteriores }),
+      prisma.pedido.findMany({ where: anteriores, orderBy: { criadoEm: "desc" }, take: 5, select: { id: true, numero: true, canal: true, statusOperacional: true, total: true, criadoEm: true } }),
+    ]);
+
+    return {
+      cadastradoEm: cliente.criadoEm.toISOString(),
+      novoNestePedido: total === 0,
+      aceitaClube: cliente.aceitaMarketing,
+      totalDePedidosAnteriores: total,
+      pedidosAnteriores: recentes.map((anterior) => ({ id: anterior.id, numero: anterior.numero, canal: anterior.canal, status: anterior.statusOperacional, total: Number(anterior.total), criadoEm: anterior.criadoEm.toISOString() })),
+    };
+  }
+
   async buscarDetalhe(id: string): Promise<PedidoDetalhe | null> {
     const pedido = await prisma.pedido.findFirst({
       where: { id, empresaId: this.contexto.empresaId },
@@ -124,6 +151,8 @@ export class PedidoConsultaRepositoryPostgres
       orderBy: { criadoEm: "asc" },
     });
 
+    const clienteDoPedido = pedido.codigoExterno ? undefined : await this.clienteDoPedido(pedido.clienteId, pedido.id, pedido.criadoEm);
+
     const endereco = [
       [pedido.enderecoLogradouro, pedido.enderecoNumero].filter(Boolean).join(", "),
       pedido.enderecoComplemento,
@@ -136,6 +165,7 @@ export class PedidoConsultaRepositoryPostgres
 
     return {
       ...mapearListado(pedido),
+      clienteDoPedido,
       subtotal: Number(pedido.subtotal),
       descontos: Number(pedido.descontos),
       taxaEntrega: Number(pedido.taxaEntrega),
