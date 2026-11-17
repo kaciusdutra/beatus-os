@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 17/11/2026 | (este commit) | Hospedagem preparada, sem uso ainda: `frontend/Dockerfile`, `deploy/` (docker-compose, Caddy com HTTPS, backup, restauração, atualização, cadastro da empresa) e o guia `docs/HOSPEDAGEM.md` para um VPS; nenhuma mudança no código do sistema |
+| 17/11/2026 | `1788f27` | Hospedagem preparada, sem uso ainda: `frontend/Dockerfile`, `deploy/` (docker-compose, Caddy com HTTPS, backup, restauração, atualização, cadastro da empresa) e o guia `docs/HOSPEDAGEM.md` para um VPS; nenhuma mudança no código do sistema |
 | 17/11/2026 | `e0cc9e7` | Valores da Beatriz no WhatsApp iguais aos do site (preço premium); política de privacidade com a Beatriz, a IA e a memória (versão 2026-11-17-rascunho); guia `docs/BEATRIZ_IA.md` para ligar a chave da IA |
 | 17/11/2026 | `297ac1c` | Beatriz no chat do site: botão no cardápio, conversa só no navegador, teto de 300 mensagens por dia e 20 por visitante, link de pagamento ao confirmar, WhatsApp da casa quando precisa de uma pessoa; resumo no preço premium; sem migração; regra 26.13 |
 | 16/11/2026 | `a32e4d1` | Memória da Beatriz: etiquetas no cadastro do cliente e contato temporário (30 dias) para quem ainda não é cliente; ela lembra do último pedido e dos gostos e fala como gente; a equipe vê e apaga as etiquetas em Clientes; migração `add_memoria_da_beatriz`; regra 26.12 |
