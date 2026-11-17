@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import QrImagem from "@/modules/qr/components/QrImagem";
+
 import type { CobrancaPix, ConfiguracaoDoPix } from "../types/pix";
 
 const CLASSE_CAMPO =
@@ -170,6 +172,10 @@ export default function PixPage() {
             aparecem o nome <strong>{teste.recebedor.nome}</strong> e o valor <strong>R$ 1,00</strong>. Não precisa pagar: é só para
             validar o código.
           </p>
+
+          <div className="flex justify-center rounded-lg bg-white p-3">
+            <QrImagem conteudo={teste.copiaECola} lado={240} className="h-44 w-44" />
+          </div>
 
           <textarea readOnly aria-label="Pix de teste" value={teste.copiaECola} rows={4} onFocus={(evento) => evento.currentTarget.select()} className="w-full resize-none rounded-lg border border-sky-200 bg-white px-3 py-2 text-xs" />
 

@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 17/11/2026 | (este commit) | QR do Pix em imagem no PDV e na tela de teste do Pix, além do copia e cola; sem migração |
 | 17/11/2026 | `496243a` | Revisão e agendador: o servidor entrega sozinho os avisos do WhatsApp (15 s) e consulta os marketplaces (30 s), sem tela aberta (`instrumentation.ts`); chat da Beatriz endurecido (corpo e rascunho com teto de tamanho, link conferido) e avisos do site não ficam atrás dos do WhatsApp na fila; sem migração |
 | 17/11/2026 | `1788f27` | Hospedagem preparada, sem uso ainda: `frontend/Dockerfile`, `deploy/` (docker-compose, Caddy com HTTPS, backup, restauração, atualização, cadastro da empresa) e o guia `docs/HOSPEDAGEM.md` para um VPS; nenhuma mudança no código do sistema |
 | 17/11/2026 | `e0cc9e7` | Valores da Beatriz no WhatsApp iguais aos do site (preço premium); política de privacidade com a Beatriz, a IA e a memória (versão 2026-11-17-rascunho); guia `docs/BEATRIZ_IA.md` para ligar a chave da IA |

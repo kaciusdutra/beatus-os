@@ -465,6 +465,7 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 285 | Feche e reabra o chat, ou recarregue a página | A conversa continua (neste aparelho, por 24 horas); "Nova conversa" apaga |
 | 286 | Defina `BEATRIZ_TETO_DIARIO_SITE=3`, reinicie e mande 4 mensagens | A 4ª recebe "descansando por hoje" e o botão do WhatsApp |
 | 287 | Mande mais de 20 mensagens em 10 minutos | A Beatriz pede para esperar um pouco |
+| 288 | No PDV (ou em Financeiro → Pix, "Pix de teste"), com a chave do Pix configurada, gere um Pix | Aparece o QR da cobrança acima do copia e cola; o app do banco lê o QR e mostra o mesmo valor |
 
 ## O que anotar
 

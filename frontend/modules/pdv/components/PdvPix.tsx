@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import QrImagem from "@/modules/qr/components/QrImagem";
+
 export interface PixDoPdv {
   copiaECola: string;
   total: number;
@@ -91,6 +93,12 @@ export default function PdvPix({ pix, gerando, erro, podeGerar, recebido, totalD
               O servidor calculou {moeda(pix.total)}, diferente do total da tela ({moeda(totalDaTela)}). Vale o valor do servidor.
             </p>
           )}
+
+          <div className="flex flex-col items-center gap-1 rounded-lg bg-white p-3">
+            <QrImagem conteudo={pix.copiaECola} lado={240} className="h-44 w-44" />
+
+            <p className="text-center text-xs text-slate-500">Ou mostre este QR: o cliente lê no app do banco.</p>
+          </div>
 
           <textarea
             readOnly
