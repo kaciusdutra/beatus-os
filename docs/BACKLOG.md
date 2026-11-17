@@ -190,7 +190,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [x] **Integração com marketplaces, estrutura pronta (13/11/2026, migração `add_integracao_marketplace_eventos_e_vinculos`):** caixa de entrada de eventos sem repetição, vínculo de itens, aceite automático, cancelamento pela plataforma, consulta a cada 30 s pela Cozinha, avisos no Dashboard e modo simulação. Regras 16.1 a 16.7.
 - [ ] **Adaptador do iFood de verdade (G10):** depende de o Kacius criar a conta de desenvolvedor, colocar `IFOOD_CLIENT_ID` e `IFOOD_CLIENT_SECRET` no `.env` e trazer a documentação oficial e um exemplo real de pedido (o portal bloqueou a leitura automática). Inclui a homologação que o iFood exige do integrador e a delimitação da área de entrega.
 - [ ] **Adaptadores do 99Food e do Keeta** (o Keeta usa o padrão Open Delivery, parecido com o do iFood).
-- [ ] **Agendador no servidor:** hoje a consulta ao iFood só roda com a Cozinha aberta; em produção, um agendador (ou `instrumentation` do Next) precisa consultar a cada 30 s mesmo sem tela aberta.
+- [x] **Agendador no servidor (feito em 17/11/2026, `instrumentation.ts`, sem migração):** os avisos do WhatsApp (15 s) e a consulta aos marketplaces (30 s) rodam sozinhos enquanto o sistema está no ar, sem tela aberta; uma tarefa nunca roda em cima dela mesma e um erro não derruba o servidor. Falta só o adaptador real do iFood.
 - [x] **Vínculo automático e correção dos pedidos em Novo ao ligar um item** (13/11/2026). Regras 16.7 e 16.8.
 - [x] **Conferência do dia por canal** (Financeiro, 13/11/2026, sem migração). Regras 18.1 a 18.4.
 - [ ] **Fechar o dia:** gravar a conferência do dia como fechada (quem fechou e quando) e bloquear mudanças nos pedidos daquele dia, se o Kacius quiser.
@@ -254,7 +254,7 @@ Concluído no bloco 7F (falta só a chave de API): leitura dos itens por foto (I
 - [ ] Revisar os padrões de pastas e nomes (exemplo: `verificarEmpresa.ts` parece estar fora do lugar).
 - [ ] Organizar os arquivos soltos da raiz (`README.md.txt` e `REGRAS_DE_NEGOCIO.md.txt` vazios, `utf8-test.json`, PDFs de teste em `frontend/`), com autorização do Kacius.
 - [ ] **Hospedagem no VPS (Hostinger):** arquivos prontos em `deploy/` e `frontend/Dockerfile`, guia em `docs/HOSPEDAGEM.md` (preparados em 17/11/2026, ainda sem rodar num servidor). Falta contratar o VPS e o domínio, seguir o guia, testar o backup e a restauração e conferir a imagem Docker no primeiro uso.
-- [ ] **Agendador no servidor (depois da hospedagem):** com o servidor sempre ligado, tirar da tela da Cozinha o envio dos avisos do WhatsApp e a consulta ao iFood, e guardar o teto diário da Beatriz fora da memória do aplicativo.
+- [ ] **Depois da hospedagem:** tirar da tela da Cozinha o envio dos avisos e a consulta ao iFood (o agendador já cobre), e guardar o teto diário da Beatriz fora da memória do aplicativo.
 - [ ] Limpar os dados de teste antes da produção (inclui o fornecedor de CNPJ 11.222.333/0001-81).
 - [ ] Testes de ponta a ponta, auditoria, logs, performance e monitoramento.
 

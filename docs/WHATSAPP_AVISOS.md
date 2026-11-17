@@ -2,7 +2,7 @@
 
 O Beatus avisa o cliente do WhatsApp quando o pedido entra em preparo, sai para a entrega e é entregue. O envio usa a **API oficial da Meta (WhatsApp Business Cloud API)**. Sem a configuração abaixo, **nada é enviado** e os avisos do WhatsApp continuam "aguardando envio" (nada quebra).
 
-Quem envia: a tela **Cozinha**, enquanto está aberta, chama o envio a cada 15 segundos. Um agendador no servidor, para quando ninguém tem a tela aberta, está no backlog.
+Quem envia: o **agendador do servidor** entrega a fila de avisos a cada 15 segundos, **sem precisar de nenhuma tela aberta** (ele sobe junto com o sistema; para desligá-lo, `BEATUS_AGENDADOR=desligado` no `.env`). A tela **Cozinha**, enquanto aberta, também chama o envio: é inofensivo, porque cada aviso é reservado antes de sair e ninguém recebe duas vezes.
 
 ## O que você precisa providenciar (lado da Meta)
 

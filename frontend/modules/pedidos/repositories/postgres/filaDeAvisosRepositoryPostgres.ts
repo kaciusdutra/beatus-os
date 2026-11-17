@@ -15,7 +15,9 @@ export class FilaDeAvisosRepositoryPostgres implements FilaDeAvisosPort {
   async pendentes(limite: number): Promise<AvisoParaEnviar[]> {
     const avisos = await prisma.avisoDoPedido.findMany({
       where: { empresaId: this.contexto.empresaId, status: "PENDENTE" },
-      orderBy: { criadoEm: "asc" },
+      // Os avisos do site primeiro (são só dispensados, não custam nada) e depois os do WhatsApp, do mais antigo ao mais novo:
+      // assim uma fila de avisos do WhatsApp esperando a conexão com a Meta não atrasa os do site.
+      orderBy: [{ canalDoAviso: "asc" }, { criadoEm: "asc" }],
       take: limite,
       include: { pedido: { select: { numero: true, statusOperacional: true, cliente: { select: { telefone: true } } } } },
     });

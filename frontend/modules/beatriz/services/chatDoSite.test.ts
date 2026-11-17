@@ -151,6 +151,16 @@ async function principal() {
   verificar(sistema.includes("1× Agnus (id agnus)") && sistema.includes("1× Bacon extra"), "nome e adicional vêm do cardápio");
   verificar(!sistema.includes("IGNORE AS REGRAS") && !sistema.includes("Produto falso") && !sistema.includes("Hack") && !sistema.includes("0.01"), "texto e preço escritos pelo navegador não chegam à IA");
 
+  // Rascunho gigante: só as 30 primeiras linhas (e 10 adicionais por item) entram; o resto é ignorado
+  const gigante = Array.from({ length: 200 }, () => ({ produtoId: "agnus", quantidade: 1, adicionais: Array.from({ length: 50 }, () => ({ produtoId: "bacon", quantidade: 1 })) }));
+
+  const modeloGigante = new ModeloFalso();
+
+  await new BeatrizService(cardapio, modeloGigante).responder({ mensagens: [{ papel: "cliente", texto: "oi" }], canal: "CARDAPIO_ONLINE", rascunhoAtual: { itens: gigante, subtotal: 0 } as never });
+
+  verificar(modeloGigante.sistemas[0].includes("30× Agnus") && !modeloGigante.sistemas[0].includes("31× Agnus") && !modeloGigante.sistemas[0].includes("200×"), "rascunho gigante: só 30 linhas entram");
+  verificar(modeloGigante.sistemas[0].split("1× Bacon extra (id bacon)").length - 1 === 10, "rascunho gigante: só 10 adicionais por item entram");
+
   // Rascunho estragado não derruba a conversa
   await new BeatrizService(cardapio, modelo).responder({ mensagens: [{ papel: "cliente", texto: "oi" }], canal: "CARDAPIO_ONLINE", rascunhoAtual: { itens: "lixo" } as never });
   await new BeatrizService(cardapio, modelo).responder({ mensagens: [{ papel: "cliente", texto: "oi" }], canal: "CARDAPIO_ONLINE", rascunhoAtual: { itens: [null, 5, {}] } as never });

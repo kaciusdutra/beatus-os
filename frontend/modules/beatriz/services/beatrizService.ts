@@ -33,6 +33,11 @@ const MENSAGENS_MAXIMAS = 20;
 
 const TAMANHO_MAXIMO_DA_MENSAGEM = 1000;
 
+// O rascunho que vem de fora não é confiável nem no tamanho: sem teto, alguém mandaria milhares de linhas só para gastar o servidor.
+export const ITENS_MAXIMOS_DO_RASCUNHO = 30;
+
+export const ADICIONAIS_MAXIMOS_POR_ITEM = 10;
+
 export interface RespostaComUso extends RespostaDaBeatriz {
   modelo: string;
   uso: UsoDoModelo;
@@ -102,11 +107,11 @@ export class BeatrizService {
     // quantidades, e nome, preço e adicionais saem de novo do cardápio. Nada escrito pelo chamador vai para a IA.
     const rascunhoConferido = Array.isArray(entrada.rascunhoAtual?.itens)
       ? montarRascunho(
-          entrada.rascunhoAtual?.itens.map((item) => ({
+          entrada.rascunhoAtual?.itens.slice(0, ITENS_MAXIMOS_DO_RASCUNHO).map((item) => ({
             produtoId: item?.produtoId,
             quantidade: item?.quantidade,
             observacao: item?.observacao,
-            adicionais: Array.isArray(item?.adicionais) ? item.adicionais.map((adicional) => ({ produtoId: adicional?.produtoId, quantidade: adicional?.quantidade })) : [],
+            adicionais: Array.isArray(item?.adicionais) ? item.adicionais.slice(0, ADICIONAIS_MAXIMOS_POR_ITEM).map((adicional) => ({ produtoId: adicional?.produtoId, quantidade: adicional?.quantidade })) : [],
           })),
           itensDoCardapio
         ).rascunho

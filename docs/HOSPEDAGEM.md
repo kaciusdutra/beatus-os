@@ -166,7 +166,7 @@ Existem formas de deixar uma IA mexer no VPS: o assistente do terminal do painel
 ## Limitações conhecidas
 
 - **Um servidor só:** o limite por visitante e o teto da Beatriz ficam na memória (valem para um servidor).
-- **Sem agendador:** os avisos do WhatsApp e a consulta ao iFood só andam com a tela da Cozinha aberta (item no backlog). Com o servidor sempre ligado, o próximo passo é um agendador no próprio aplicativo.
+- **Agendador:** o próprio aplicativo entrega os avisos do WhatsApp (a cada 15 s) e consulta os marketplaces (a cada 30 s) sem tela aberta. Ele sobe junto com o sistema; `BEATUS_AGENDADOR=desligado` no `.env` o desliga (por exemplo, numa segunda cópia). Só o teto diário da Beatriz continua na memória do aplicativo.
 - **Fotos de produtos** (backlog) vão usar o volume `storage`, que já entra no backup.
 - Atualizar derruba o site por alguns segundos (troca do contêiner).
 

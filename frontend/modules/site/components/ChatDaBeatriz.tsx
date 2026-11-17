@@ -233,7 +233,7 @@ export default function ChatDaBeatriz() {
 
             {erro && <p className="rounded-lg border border-red-400/40 bg-red-950/40 px-3 py-2 text-xs text-red-200">{erro}</p>}
 
-            {linkDePagamento && (
+            {linkDePagamento && (linkDePagamento.startsWith("https://") || linkDePagamento.startsWith("http://")) && (
               <a href={linkDePagamento} className="block rounded-xl bg-ouro px-4 py-3 text-center text-sm font-bold text-black hover:bg-ouro-400">
                 Ir para o pagamento
               </a>

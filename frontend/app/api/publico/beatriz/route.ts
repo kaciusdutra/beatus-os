@@ -33,6 +33,9 @@ const MENSAGENS_MAXIMAS = 20;
 
 const TAMANHO_MAXIMO_DA_MENSAGEM = 500;
 
+// 20 mensagens de 500 caracteres mais o pedido anotado cabem folgados em 40 KB; mais que isso é abuso.
+const TAMANHO_MAXIMO_DO_CORPO = 40_000;
+
 // O chat só aparece se a IA estiver ligada.
 export async function GET() {
   return NextResponse.json({ sucesso: true, disponivel: beatrizConfigurada() });
@@ -49,8 +52,21 @@ export async function POST(request: Request) {
     return limite;
   }
 
+  const tamanhoDeclarado = Number(request.headers.get("content-length") ?? 0);
+
+  if (Number.isFinite(tamanhoDeclarado) && tamanhoDeclarado > TAMANHO_MAXIMO_DO_CORPO) {
+    return NextResponse.json({ sucesso: false, mensagem: "Mensagem grande demais." }, { status: 413 });
+  }
+
   try {
-    const corpo = await request.json();
+    const texto = await request.text();
+
+    // Sem Content-Length (envio em partes) também vale o teto.
+    if (texto.length > TAMANHO_MAXIMO_DO_CORPO) {
+      return NextResponse.json({ sucesso: false, mensagem: "Mensagem grande demais." }, { status: 413 });
+    }
+
+    const corpo = JSON.parse(texto);
 
     const mensagens = (Array.isArray(corpo?.mensagens) ? corpo.mensagens : [])
       .filter((mensagem: unknown): mensagem is { papel: "cliente" | "beatriz"; texto: string } => {
