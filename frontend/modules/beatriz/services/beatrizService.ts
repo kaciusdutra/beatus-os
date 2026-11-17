@@ -22,6 +22,8 @@ import { montarInstrucoes } from "./instrucoesDaBeatriz";
 
 import { memoriaEmTexto } from "./memoriaParaIA";
 
+import { montarRascunho } from "./interpretarRespostaDaBeatriz";
+
 import { interpretarRespostaDaBeatriz } from "./interpretarRespostaDaBeatriz";
 
 const CANAIS_DA_BEATRIZ: CanalPedido[] = ["WHATSAPP", "CARDAPIO_ONLINE", "PDV"];
@@ -96,11 +98,25 @@ export class BeatrizService {
 
     const conhecimento = telefone ? await this.memoria?.carregar(telefone) : undefined;
 
-    const sistema = montarInstrucoes(cardapioEmTexto(itensDoCardapio), entrada.rascunhoAtual, memoriaEmTexto(conhecimento));
+    // O rascunho que vem de fora (a tela, o navegador do cliente) não é confiável: só entram os produtos e as
+    // quantidades, e nome, preço e adicionais saem de novo do cardápio. Nada escrito pelo chamador vai para a IA.
+    const rascunhoConferido = Array.isArray(entrada.rascunhoAtual?.itens)
+      ? montarRascunho(
+          entrada.rascunhoAtual?.itens.map((item) => ({
+            produtoId: item?.produtoId,
+            quantidade: item?.quantidade,
+            observacao: item?.observacao,
+            adicionais: Array.isArray(item?.adicionais) ? item.adicionais.map((adicional) => ({ produtoId: adicional?.produtoId, quantidade: adicional?.quantidade })) : [],
+          })),
+          itensDoCardapio
+        ).rascunho
+      : undefined;
+
+    const sistema = montarInstrucoes(cardapioEmTexto(itensDoCardapio), rascunhoConferido, memoriaEmTexto(conhecimento));
 
     const { texto, modelo, uso } = await this.modelo.responder({ sistema, mensagens });
 
-    const resposta = interpretarRespostaDaBeatriz(texto, itensDoCardapio);
+    const resposta = interpretarRespostaDaBeatriz(texto, itensDoCardapio, { precoPremium: canal === "CARDAPIO_ONLINE" });
 
     // O que ela aprendeu vira etiquetas no cadastro (ou no contato, se a pessoa ainda não é cliente).
     let memoria = conhecimento;

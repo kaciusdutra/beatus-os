@@ -49,6 +49,8 @@ const REGRAS: Regra[] = [
   { padrao: "/api/publico/checkout", metodos: "ESCRITA", exato: true, exige: publica },
   { padrao: "/api/publico/checkout/estimativa", metodos: "ESCRITA", exato: true, exige: publica },
   { padrao: "/api/publico/mercadopago/webhook", metodos: "ESCRITA", exato: true, exige: publica },
+  // O chat da Beatriz no site (com limite por visitante e teto diário dentro da rota).
+  { padrao: "/api/publico/beatriz", metodos: "ESCRITA", exato: true, exige: publica },
 
   // ---------- Qualquer pessoa que entrou ----------
   { padrao: "/api/auth", exige: autenticada },

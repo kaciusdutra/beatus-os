@@ -457,6 +457,14 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 277 | Diga que tem alergia a amendoim | Não vira etiqueta; marca "precisa de uma pessoa" |
 | 278 | Use um telefone novo, converse e depois faça o primeiro pedido pelo link com o mesmo telefone | Antes do pedido o painel diz "ainda não é cliente"; depois do pedido as etiquetas aparecem no cadastro do cliente |
 | 279 | Converse sem preencher o telefone | Ela atende como primeira conversa, sem citar nada de ninguém |
+| 280 | Com a chave da IA no `.env`, abra `/cardapio` | Aparece o botão "Falar com a Beatriz" (sem a chave, ele não aparece) |
+| 281 | Abra o chat e peça um hambúrguer | Ela responde como gente e o resumo sai sem "R$" e sem centavos quando o preço é inteiro |
+| 282 | Confirme o pedido na conversa | Aparece "Ir para o pagamento" e o checkout abre com os itens do pedido |
+| 283 | Pergunte se ela é uma pessoa ou um robô | Ela diz que é a atendente virtual do Beatus |
+| 284 | Faça uma reclamação ou fale de alergia | Aparece "Falar com a equipe no WhatsApp" e o botão leva ao WhatsApp da casa com o resumo |
+| 285 | Feche e reabra o chat, ou recarregue a página | A conversa continua (neste aparelho, por 24 horas); "Nova conversa" apaga |
+| 286 | Defina `BEATRIZ_TETO_DIARIO_SITE=3`, reinicie e mande 4 mensagens | A 4ª recebe "descansando por hoje" e o botão do WhatsApp |
+| 287 | Mande mais de 20 mensagens em 10 minutos | A Beatriz pede para esperar um pouco |
 
 ## O que anotar
 

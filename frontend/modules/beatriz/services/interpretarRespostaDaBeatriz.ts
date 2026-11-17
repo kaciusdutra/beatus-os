@@ -28,6 +28,11 @@ function reais(valor: number): string {
   return valor.toFixed(2).replace(".", ",");
 }
 
+// Preço premium do site (regra 23.8): sem "R$" e sem centavos quando o valor é inteiro; com centavos, nunca arredonda.
+function precoPremium(valor: number): string {
+  return Number.isInteger(valor) ? valor.toLocaleString("pt-BR") : reais(valor);
+}
+
 // A IA devolve só JSON, mas às vezes envolve em ```json ... ```. Pega do primeiro
 // "{" ao último "}".
 export function extrairJson(texto: string): unknown {
@@ -166,16 +171,18 @@ export function montarRascunho(itensDaIA: unknown, cardapio: ItemDoCardapioIA[])
 }
 
 // O resumo do pedido, com os valores do cardápio, montado pelo sistema.
-export function resumoDoPedido(rascunho: RascunhoDePedido): string {
+export function resumoDoPedido(rascunho: RascunhoDePedido, premium = false): string {
   if (rascunho.itens.length === 0) {
     return "";
   }
 
+  const valor = (numero: number) => (premium ? precoPremium(numero) : `R$ ${reais(numero)}`);
+
   const linhas = rascunho.itens.map((item) => {
-    const principal = `• ${item.quantidade}× ${item.nome} — R$ ${reais(item.precoUnitario * item.quantidade)}`;
+    const principal = `• ${item.quantidade}× ${item.nome} — ${valor(item.precoUnitario * item.quantidade)}`;
 
     const extras = item.adicionais.map(
-      (adicional) => `   + ${adicional.quantidade}× ${adicional.nome} — R$ ${reais(adicional.precoUnitario * adicional.quantidade)}`
+      (adicional) => `   + ${adicional.quantidade}× ${adicional.nome} — ${valor(adicional.precoUnitario * adicional.quantidade)}`
     );
 
     const observacao = item.observacao ? [`   obs.: ${item.observacao}`] : [];
@@ -183,7 +190,7 @@ export function resumoDoPedido(rascunho: RascunhoDePedido): string {
     return [principal, ...extras, ...observacao].join("\n");
   });
 
-  return `Resumo do pedido:\n${linhas.join("\n")}\nSubtotal: R$ ${reais(rascunho.subtotal)} (a entrega é somada pelo endereço)`;
+  return `Resumo do pedido:\n${linhas.join("\n")}\nSubtotal: ${valor(rascunho.subtotal)} (a entrega é somada pelo endereço)`;
 }
 
 const MENSAGEM_DE_ATENDENTE =
@@ -193,7 +200,9 @@ const MENSAGEM_DE_ATENDENTE =
 // Se o texto não for um JSON utilizável, a conversa vai para uma pessoa.
 export function interpretarRespostaDaBeatriz(
   textoDaIA: string,
-  cardapio: ItemDoCardapioIA[]
+  cardapio: ItemDoCardapioIA[],
+  // No site o resumo usa o preço premium (regra 23.8); no WhatsApp, o valor completo.
+  opcoes: { precoPremium?: boolean } = {}
 ): RespostaDaBeatriz {
   let dados: Record<string, unknown>;
 
@@ -280,7 +289,7 @@ export function interpretarRespostaDaBeatriz(
 
   const fala = removerValoresDoTexto(texto(dados.resposta) ?? "") || (precisaDeHumano ? MENSAGEM_DE_ATENDENTE : "");
 
-  const resumo = resumoDoPedido(rascunho);
+  const resumo = resumoDoPedido(rascunho, opcoes.precoPremium === true);
 
   const resposta = [fala, resumo].filter(Boolean).join("\n\n").slice(0, TAMANHO_MAXIMO_DA_RESPOSTA);
 

@@ -93,6 +93,10 @@ verificar(exigenciaDaRota("POST", "/api/publico/cardapio").exige.tipo === "PERMI
 verificar(!pode("GESTOR", "POST", "/api/publico/qualquer-coisa"), "escrita pública sem regra cai no padrão restrito");
 verificar(exigenciaDaRota("POST", "/api/publico/checkout").exige.tipo === "PUBLICA", "fechar o pedido do site é público");
 verificar(exigenciaDaRota("POST", "/api/publico/checkout/estimativa").exige.tipo === "PUBLICA", "a estimativa é pública");
+verificar(exigenciaDaRota("POST", "/api/publico/beatriz").exige.tipo === "PUBLICA", "o chat da Beatriz no site é público");
+verificar(exigenciaDaRota("GET", "/api/publico/beatriz").exige.tipo === "PUBLICA", "saber se o chat está disponível é público");
+verificar(exigenciaDaRota("POST", "/api/publico/beatriz/outra").exige.tipo === "PERMISSAO", "escrita em outro caminho da Beatriz pública não é pública");
+verificar(exigenciaDaRota("POST", "/api/beatriz/responder").exige.tipo === "PERMISSAO", "a Beatriz da equipe continua exigindo login e permissão");
 verificar(exigenciaDaRota("POST", "/api/publico/mercadopago/webhook").exige.tipo === "PUBLICA", "o webhook do gateway é público (a rota confere a assinatura)");
 verificar(exigenciaDaRota("GET", "/api/publico/checkout/abc").exige.tipo === "PUBLICA", "o status do pedido é público");
 verificar(exigenciaDaRota("POST", "/api/publico/checkout/abc").exige.tipo === "PERMISSAO", "escrita em outro caminho do checkout não é pública");

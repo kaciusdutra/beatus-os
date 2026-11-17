@@ -235,7 +235,7 @@ async function executarTestes(): Promise<void> {
     verificar(sistema.includes("NÃO prometa desconto, brinde, ponto, nível, prazo"), "não promete benefício que o sistema não tem");
     verificar(sistema.includes("só fale dele se o cliente aceitou participar"), "clube só para quem aceitou");
     verificar(sistema.includes("etiquetas.adicionar") && sistema.includes("NUNCA guarde"), "ensina a aprender e o que nunca guardar");
-    verificar(sistema.includes("Nada de tom de robô"), "tom humano");
+    verificar(sistema.includes("nada de tom de robô") && sistema.includes("atendente virtual"), "tom humano, sem negar que é a atendente virtual");
   }
 }
 

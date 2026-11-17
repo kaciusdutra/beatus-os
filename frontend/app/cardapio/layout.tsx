@@ -4,6 +4,8 @@ import CabecalhoDoSite from "@/modules/site/components/CabecalhoDoSite";
 
 import CapturaDeCampanha from "@/modules/site/components/CapturaDeCampanha";
 
+import ChatDaBeatriz from "@/modules/site/components/ChatDaBeatriz";
+
 import CarrinhoDoSite from "@/modules/site/components/CarrinhoDoSite";
 
 import RodapeDoSite from "@/modules/site/components/RodapeDoSite";
@@ -41,6 +43,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <RodapeDoSite semana={semana} />
 
       <CarrinhoDoSite recebePedidos={funcionamento.recebePedidos} />
+
+      <ChatDaBeatriz />
     </div>
   );
 }
