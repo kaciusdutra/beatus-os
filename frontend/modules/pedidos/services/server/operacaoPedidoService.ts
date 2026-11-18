@@ -15,6 +15,10 @@ import {
 
 import { podeMudarStatus } from "../../domain/pedidoStatus";
 
+import { SELOS_PARA_A_VANTAGEM } from "@/modules/clube/regras";
+
+import { creditarSeloDaEntrega } from "@/modules/clube/services/server/clubeService";
+
 import { avisoParaMudanca } from "../avisoDoPedido";
 
 import type { StatusOperacional } from "../../types/pedido";
@@ -145,7 +149,7 @@ export class OperacaoPedidoService {
       throw new Error("Informe o motivo do cancelamento.");
     }
 
-    return prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async (tx) => {
       const pedido = await tx.pedido.findFirst({
         where: { id: dados.pedidoId, empresaId: this.empresaId },
         include: { itens: true, pagamentos: true },
@@ -256,6 +260,50 @@ export class OperacaoPedidoService {
 
       return { statusOperacional: novo, avisos };
     });
+
+    // Clube (seção 28): a entrega já está gravada; o selo vem depois e nunca a atrapalha.
+    if (novo === "ENTREGUE") {
+      await this.darSeloDoClube(dados.pedidoId, dados.operador);
+    }
+
+    return resultado;
+  }
+
+  // O pedido foi entregue: credita o selo do clube, se for o caso. Desligado, não faz nada. Se falhar, a entrega continua
+  // valendo e o erro fica no registro do servidor (o selo é idempotente: pode ser creditado depois, sem duplicar).
+  private async darSeloDoClube(pedidoId: string, operador?: string | null): Promise<void> {
+    try {
+      const pedido = await prisma.pedido.findFirst({ where: { id: pedidoId, empresaId: this.empresaId } });
+
+      if (!pedido) {
+        return;
+      }
+
+      const selo = await creditarSeloDaEntrega(prisma, {
+        id: pedido.id,
+        empresaId: this.empresaId,
+        clienteId: pedido.clienteId,
+        canal: pedido.canal,
+        codigoExterno: pedido.codigoExterno,
+        criadoEm: pedido.criadoEm,
+        subtotal: pedido.subtotal,
+        descontos: pedido.descontos,
+      });
+
+      if (selo.creditar) {
+        await registrarAtividade(prisma, {
+          entidade: "PEDIDO",
+          acao: "SELO_DO_CLUBE",
+          resumo: `Pedido ${pedido.numero}: selo do clube creditado (${selo.selosApos} de ${SELOS_PARA_A_VANTAGEM} no ciclo ${selo.ciclo})${selo.completa ? ". Cartão completo!" : "."}`,
+          referenciaId: pedido.id,
+          referenciaNumero: pedido.numero,
+          operador,
+          detalhes: { ciclo: selo.ciclo, selosApos: selo.selosApos, completa: selo.completa, reiniciou: selo.reiniciar },
+        });
+      }
+    } catch (error) {
+      console.error("ERRO AO CREDITAR O SELO DO CLUBE:", error);
+    }
   }
 
   // ---------- ticket e fila de impressão ----------

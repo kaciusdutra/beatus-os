@@ -10,6 +10,8 @@ import { registrarAtividade } from "@/modules/atividades/services/server/ativida
 
 import { absorverContatoDaBeatriz } from "@/modules/beatriz/repositories/postgres/memoriaDoClienteRepositoryPostgres";
 
+import { ativarCartaoDoPedido } from "@/modules/clube/services/server/clubeService";
+
 import { ErroDePedido } from "@/modules/pedidos/services/calcularPedido";
 
 import { calcularPedidoSemGravar } from "@/modules/pedidos/services/server/calculoPedidoService";
@@ -68,6 +70,15 @@ function criarGateway(requisicao?: Request): GatewayDePagamento | null {
   });
 }
 
+// O clube nunca impede nem atrasa o pedido: se algo falhar aqui, o pedido segue e o erro fica no registro do servidor.
+async function acionarCartaoDoClube(pedidoId: string): Promise<void> {
+  try {
+    await ativarCartaoDoPedido(pedidoId);
+  } catch (error) {
+    console.error("ERRO AO ACIONAR O CARTÃO DO CLUBE:", error);
+  }
+}
+
 // ---------- Ligações com o resto do sistema ----------
 
 // A mesma conta e o mesmo caminho do PDV, pelo canal "cardápio online".
@@ -97,6 +108,8 @@ const pedidos: PedidosDoCheckoutPort = {
     const existente = await prisma.pedido.findFirst({ where: { id: dados.checkoutId, empresaId }, include: { pagamentos: true } });
 
     if (existente) {
+      await acionarCartaoDoClube(existente.id);
+
       return { pedidoId: existente.id, numero: String(existente.numero), pagamentoId: existente.pagamentos[0]?.id ?? "", total: Number(existente.total) };
     }
 
@@ -125,6 +138,9 @@ const pedidos: PedidosDoCheckoutPort = {
         pagamento: { modalidade: "ELETRONICO", forma: dados.forma, status: "APROVADO", transacaoExterna: dados.transacaoExterna },
       },
     });
+
+    // Clube (seção 28): pedido pago de quem aceitou o clube aciona o cartão. Desligado, não faz nada.
+    await acionarCartaoDoClube(resultado.pedido.id);
 
     return { pedidoId: resultado.pedido.id, numero: String(resultado.pedido.numero), pagamentoId: resultado.pagamento.id, total: resultado.pedido.total };
   },

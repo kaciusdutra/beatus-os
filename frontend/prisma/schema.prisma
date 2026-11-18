@@ -49,6 +49,8 @@ model Empresa {
   checkoutsDoSite         CheckoutSite[]
   avisosDoPedido          AvisoDoPedido[]
   contatosDaBeatriz       ContatoDaBeatriz[]
+  cartoesDoClube          CartaoDoClube[]
+  selosDoClube            SeloDoClube[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -305,6 +307,9 @@ model Cliente {
   enderecos Endereco[]
   pedidos   Pedido[]
 
+  // No máximo um por cliente (índice único empresa + cliente); lista porque o Prisma só aceita 1:1 com campo único simples.
+  cartoesDoClube CartaoDoClube[]
+
   @@unique([empresaId, telefone])
   @@unique([empresaId, cpf])
   @@index([empresaId])
@@ -389,6 +394,7 @@ model Pedido {
   itens           PedidoItem[]
   filaImpressao   FilaImpressao[]
   avisosDoPedido  AvisoDoPedido[]
+  seloDoClube     SeloDoClube?
 
   @@unique([empresaId, numero])
   @@unique([empresaId, canal, codigoExterno])
@@ -1513,4 +1519,69 @@ model ContatoDaBeatriz {
 
   @@unique([empresaId, telefone])
   @@index([expiraEm])
+}
+
+// O cartão do clube de vantagens (seção 28 das regras): um por cliente, acionado quando ele aceita o clube, faz o
+// pedido e paga. O selo de cada pedido entregue está em SeloDoClube. Quem tem o código acessa o cartão (link seguro).
+model CartaoDoClube {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  clienteId String
+
+  // Código longo e aleatório do link do cartão (gerado no servidor).
+  codigo String @unique
+
+  // Quando o cartão foi acionado (o pedido que o acionou). Pedido anterior a isto não conta selo.
+  ativadoEm DateTime
+
+  // O ciclo atual. Reinicia depois de 60 dias sem pedir ou quando a vantagem ganha vence (15 dias).
+  ciclo Int @default(1)
+
+  cicloIniciadoEm DateTime
+
+  // O último pedido entregue de canal próprio (conta os 60 dias sem pedir).
+  ultimoPedidoEm DateTime?
+
+  // Quando o cartão completou os selos. Até resgatar a vantagem, não entram selos novos.
+  completoEm DateTime?
+
+  criadoEm DateTime @default(now())
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+
+  selos SeloDoClube[]
+
+  @@unique([empresaId, clienteId])
+}
+
+// Um selo por pedido entregue (o índice único de pedidoId impede dois selos pelo mesmo pedido).
+model SeloDoClube {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  cartaoId String
+
+  pedidoId String @unique
+
+  ciclo Int
+
+  // Os itens do pedido, sem a entrega e já com os descontos: o valor que justificou o selo.
+  valorDosItens Decimal @db.Decimal(12, 2)
+
+  criadoEm DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  cartao CartaoDoClube @relation(fields: [cartaoId], references: [id])
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id])
+
+  @@index([cartaoId, ciclo])
 }

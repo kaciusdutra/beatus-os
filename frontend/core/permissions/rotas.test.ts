@@ -97,6 +97,7 @@ verificar(exigenciaDaRota("POST", "/api/publico/beatriz").exige.tipo === "PUBLIC
 verificar(exigenciaDaRota("GET", "/convite").exige.tipo === "PUBLICA", "o endereço do QR da embalagem é público");
 verificar(exigenciaDaRota("GET", "/convite/outro").exige.tipo !== "PUBLICA", "só o endereço exato do convite é público");
 verificar(exigenciaDaRota("GET", "/cardapio/convite").exige.tipo === "PUBLICA", "a página de convite do site é pública");
+verificar(exigenciaDaRota("GET", "/cardapio/clube/abc").exige.tipo === "PUBLICA", "o cartão do clube abre pelo link, sem login");
 verificar(exigenciaDaRota("GET", "/configuracoes/convite").exige.tipo === "PERMISSAO", "o gerador do QR é só da equipe");
 verificar(exigenciaDaRota("GET", "/api/publico/beatriz").exige.tipo === "PUBLICA", "saber se o chat está disponível é público");
 verificar(exigenciaDaRota("POST", "/api/publico/beatriz/outra").exige.tipo === "PERMISSAO", "escrita em outro caminho da Beatriz pública não é pública");
