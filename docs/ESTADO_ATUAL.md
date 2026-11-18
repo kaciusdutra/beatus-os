@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 18/11/2026 | (este commit) | Clube, etapa 1: cartão do clube acionado no checkout (aceite + pagamento) e selo creditado na entrega (pedido de R$ 50 ou mais em itens, um por pedido, sem acúmulo, reinício em 60 dias ou 15 dias), página `/cardapio/clube/<código>`; migração `add_cartao_do_clube`; tudo desligado atrás do `CLUBE_ATIVO` até o prêmio existir; regra 28.10 |
+| 18/11/2026 | `16af21a` | Clube, etapa 1: cartão do clube acionado no checkout (aceite + pagamento) e selo creditado na entrega (pedido de R$ 50 ou mais em itens, um por pedido, sem acúmulo, reinício em 60 dias ou 15 dias), página `/cardapio/clube/<código>`; migração `add_cartao_do_clube`; tudo desligado atrás do `CLUBE_ATIVO` até o prêmio existir; regra 28.10 |
 | 18/11/2026 | `19d83ed` | QR do convite: endereço curto `/convite` que redireciona para a página de convite do site (com a origem da embalagem gravada no pedido), página sem promessa de clube enquanto ele não estiver ligado, regras do clube num arquivo só (`modules/clube/regras.ts`) e o gerador do QR para imprimir em Configurações; sem migração |
 | 18/11/2026 | `4346444` | Clube de vantagens definido como cartão de selos digital e automático (regras da seção 28: 1 selo por pedido entregue, 8 selos = hambúrguer por conta da casa, reinicia após 60 dias sem pedir; carteira do celular depois da página web); só documentação |
 | 17/11/2026 | `a7fa8f7` | Desempenho medido em produção (rotas em 14 a 30 ms, 20 acessos simultâneos sem erro), análise do cache em `docs/DESEMPENHO.md` e o teste de velocidade `frontend/scripts/medirDesempenho.mjs`; regra 1.8 (gravação primeiro); sem mudança no sistema |
