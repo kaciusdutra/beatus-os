@@ -19,6 +19,8 @@ import { SELOS_PARA_A_VANTAGEM } from "@/modules/clube/regras";
 
 import { creditarSeloDaEntrega } from "@/modules/clube/services/server/clubeService";
 
+import { consumirResgateDoPedido, liberarResgateDoPedido } from "@/modules/clube/services/server/vantagemService";
+
 import { avisoParaMudanca } from "../avisoDoPedido";
 
 import type { StatusOperacional } from "../../types/pedido";
@@ -266,7 +268,38 @@ export class OperacaoPedidoService {
       await this.darSeloDoClube(dados.pedidoId, dados.operador);
     }
 
+    // Clube: pedido cancelado devolve a vantagem que ele usava (se ainda estiver no prazo).
+    if (novo === "CANCELADO") {
+      await this.devolverVantagemDoClube(dados.pedidoId, dados.operador);
+    }
+
     return resultado;
+  }
+
+  // O pedido foi cancelado: se ele usava uma vantagem do clube, ela volta ao cliente (ou expira, se o prazo passou).
+  private async devolverVantagemDoClube(pedidoId: string, operador?: string | null): Promise<void> {
+    try {
+      const situacao = await liberarResgateDoPedido(pedidoId);
+
+      if (situacao === "NENHUM") {
+        return;
+      }
+
+      const pedido = await prisma.pedido.findFirst({ where: { id: pedidoId, empresaId: this.empresaId }, select: { id: true, numero: true } });
+
+      if (pedido) {
+        await registrarAtividade(prisma, {
+          entidade: "PEDIDO",
+          acao: "VANTAGEM_DO_CLUBE",
+          resumo: `Pedido ${pedido.numero} cancelado: a vantagem do clube ${situacao === "LIBERADO" ? "voltou para o cliente" : "venceu e não volta"}.`,
+          referenciaId: pedido.id,
+          referenciaNumero: pedido.numero,
+          operador,
+        });
+      }
+    } catch (error) {
+      console.error("ERRO AO DEVOLVER A VANTAGEM DO CLUBE:", error);
+    }
   }
 
   // O pedido foi entregue: credita o selo do clube, se for o caso. Desligado, não faz nada. Se falhar, a entrega continua
@@ -277,6 +310,19 @@ export class OperacaoPedidoService {
 
       if (!pedido) {
         return;
+      }
+
+      // Pedido que usou a vantagem do cartão: ela vira usada e o cartão reinicia ANTES do selo, para o selo deste pedido
+      // (itens menos o prêmio, a partir de R$ 50) já contar no ciclo novo.
+      if (await consumirResgateDoPedido(pedidoId)) {
+        await registrarAtividade(prisma, {
+          entidade: "PEDIDO",
+          acao: "VANTAGEM_DO_CLUBE",
+          resumo: `Pedido ${pedido.numero}: vantagem do clube usada. O cartão do cliente recomeçou.`,
+          referenciaId: pedido.id,
+          referenciaNumero: pedido.numero,
+          operador,
+        });
       }
 
       const selo = await creditarSeloDaEntrega(prisma, {

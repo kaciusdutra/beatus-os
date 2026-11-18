@@ -51,6 +51,8 @@ model Empresa {
   contatosDaBeatriz       ContatoDaBeatriz[]
   cartoesDoClube          CartaoDoClube[]
   selosDoClube            SeloDoClube[]
+  vantagensDoClube        VantagemDoClube[]
+  resgatesDoClube         ResgateDoClube[]
   eventosMarketplace      EventoMarketplace[]
   vinculosItemMarketplace VinculoItemMarketplace[]
   configuracaoFinanceira  ConfiguracaoFinanceira?
@@ -395,6 +397,7 @@ model Pedido {
   filaImpressao   FilaImpressao[]
   avisosDoPedido  AvisoDoPedido[]
   seloDoClube     SeloDoClube?
+  resgateDoClube  ResgateDoClube?
 
   @@unique([empresaId, numero])
   @@unique([empresaId, canal, codigoExterno])
@@ -1557,6 +1560,8 @@ model CartaoDoClube {
 
   selos SeloDoClube[]
 
+  resgates ResgateDoClube[]
+
   @@unique([empresaId, clienteId])
 }
 
@@ -1584,4 +1589,94 @@ model SeloDoClube {
   pedido Pedido @relation(fields: [pedidoId], references: [id])
 
   @@index([cartaoId, ciclo])
+}
+
+// O catálogo de vantagens do clube (seção 28 das regras): o que o cliente pode escolher ao completar o cartão.
+// O Kacius cadastra e muda; o resgate guarda uma cópia, então mudar aqui não altera o que já foi escolhido.
+model VantagemDoClube {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  nome String
+
+  descricao String?
+
+  // ITEM_GRATIS, DESCONTO_PERCENTUAL ou ENTREGA_GRATIS
+  tipo String
+
+  // ITEM_GRATIS: categoria do produto que pode sair de graça (ex.: HAMBÚRGUER).
+  categoria String?
+
+  // ITEM_GRATIS: preço máximo do item grátis (vazio = qualquer preço).
+  valorMaximo Decimal? @db.Decimal(12, 2)
+
+  // DESCONTO_PERCENTUAL: de 0 a 100 sobre os itens.
+  percentual Decimal? @db.Decimal(5, 2)
+
+  ativa Boolean @default(true)
+
+  ordem Int @default(0)
+
+  criadoEm DateTime @default(now())
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  resgates ResgateDoClube[]
+
+  @@index([empresaId, ativa])
+}
+
+// A vantagem que o cliente escolheu ao completar o cartão (um por ciclo: o índice único impede prêmio cumulativo).
+// ATIVO (escolhida, ainda não usada) -> EM_PEDIDO (um pedido a usa) -> USADO (pedido entregue; o cartão reinicia).
+// EXPIRADO quando o prazo passa sem uso. Cancelando o pedido, volta a ATIVO se ainda estiver no prazo.
+model ResgateDoClube {
+  id String @id @default(uuid())
+
+  empresaId String
+
+  cartaoId String
+
+  vantagemId String
+
+  ciclo Int
+
+  status String @default("ATIVO")
+
+  // Cópia da vantagem na hora da escolha.
+  nome String
+
+  tipo String
+
+  categoria String?
+
+  valorMaximo Decimal? @db.Decimal(12, 2)
+
+  percentual Decimal? @db.Decimal(5, 2)
+
+  // O pedido que a usa e quanto ela abateu dos itens (para auditoria e para o selo).
+  pedidoId String? @unique
+
+  valorDoPremio Decimal? @db.Decimal(12, 2)
+
+  expiraEm DateTime
+
+  usadoEm DateTime?
+
+  criadoEm DateTime @default(now())
+
+  atualizadoEm DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  cartao CartaoDoClube @relation(fields: [cartaoId], references: [id])
+
+  vantagem VantagemDoClube @relation(fields: [vantagemId], references: [id])
+
+  pedido Pedido? @relation(fields: [pedidoId], references: [id])
+
+  @@unique([cartaoId, ciclo])
+  @@index([empresaId, status])
 }

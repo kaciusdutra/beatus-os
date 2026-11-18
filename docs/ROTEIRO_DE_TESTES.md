@@ -477,6 +477,12 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 297 | Com o `CLUBE_ATIVO` ligado em teste, faça um pedido pelo site aceitando o clube, pague e entregue (Cozinha) um pedido de R$ 50 ou mais em itens | O histórico do pedido mostra "selo do clube creditado (1 de 8...)" |
 | 298 | Entregue um pedido de menos de R$ 50, e outro de um cliente que não aceitou o clube | Nenhum selo |
 | 299 | Abra `/cardapio/clube/<código>` do cliente | O cartão mostra o primeiro nome e os selos; um código errado dá "página não encontrada"; com o clube desligado, 404 |
+| 300 | Em Configurações → Vantagens do clube, crie "Hambúrguer por conta da casa" (item grátis, categoria HAMBÚRGUER) | Aparece na lista; um nome curto ou porcentagem inválida é recusado; dá para desativar e editar |
+| 301 | Com o clube ligado em teste e um cartão completo, abra o link do cartão | Lista as vantagens ativas com o botão Escolher; ao escolher, mostra "Você escolheu..." e "Pedir com a minha vantagem"; escolher de novo mostra a mesma |
+| 302 | Toque em "Pedir com a minha vantagem", monte um pedido com hambúrguer e calcule o total no checkout | Aparece a linha "Vantagem do clube − valor" e o total já com o desconto; o pedido pago grava o desconto |
+| 303 | Entregue esse pedido na Cozinha | O cartão volta a zero (ciclo novo) e, se os itens depois do desconto passarem de R$ 50, o pedido já dá o 1º selo |
+| 304 | Faça outro pedido com o mesmo link | Sem desconto (a vantagem já foi usada) |
+| 305 | Cancele um pedido que usava a vantagem | O histórico diz que a vantagem voltou para o cliente, e ele pode usá-la de novo |
 
 ## O que anotar
 

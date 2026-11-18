@@ -2,6 +2,10 @@ import Link from "next/link";
 
 import { notFound } from "next/navigation";
 
+import EscolherVantagem from "@/modules/clube/components/EscolherVantagem";
+
+import UsarVantagem from "@/modules/clube/components/UsarVantagem";
+
 import { DIAS_DE_VALIDADE_DA_VANTAGEM, VALOR_MINIMO_DO_SELO, valorPremium } from "@/modules/clube/regras";
 
 import { cartaoPorCodigo } from "@/modules/clube/services/server/clubeService";
@@ -63,16 +67,44 @@ export default async function CartaoDoClubePage({ params }: { params: Promise<{ 
       </section>
 
       {estado.completo && estado.vantagemValeAte && (
-        <section className="space-y-3 rounded-2xl border border-ouro/40 bg-ouro/10 p-6">
+        <section className="space-y-4 rounded-2xl border border-ouro/40 bg-ouro/10 p-6">
           <h2 className="font-display text-xl font-bold text-ouro">Sua vantagem</h2>
 
-          <p className="text-slate-200">
-            Você completou o cartão e ganhou uma vantagem do clube. Ela vale até <strong>{dia(estado.vantagemValeAte)}</strong> ({DIAS_DE_VALIDADE_DA_VANTAGEM} dias). Fale com a gente para resgatar.
-          </p>
+          {cartao.resgate ? (
+            cartao.resgate.status === "EM_PEDIDO" ? (
+              <p className="text-slate-200">
+                Você escolheu <strong>{cartao.resgate.nome}</strong> ({cartao.resgate.descricaoParaOCliente}) e ela está em um pedido em andamento. Quando ele for entregue, o seu cartão recomeça.
+              </p>
+            ) : (
+              <>
+                <p className="text-slate-200">
+                  Você escolheu <strong>{cartao.resgate.nome}</strong> ({cartao.resgate.descricaoParaOCliente}). Ela vale até <strong>{dia(estado.vantagemValeAte)}</strong> ({DIAS_DE_VALIDADE_DA_VANTAGEM} dias).
+                </p>
 
-          <a href={linkDoWhatsappDaCasa("Oi! Completei o meu cartão do clube e quero resgatar a minha vantagem.")} target="_blank" rel="noopener noreferrer" className="block rounded-xl bg-ouro px-4 py-3 text-center font-bold text-black hover:bg-ouro-400">
-            Resgatar pelo WhatsApp
-          </a>
+                <UsarVantagem codigo={codigo} />
+
+                <p className="text-xs text-slate-400">O desconto aparece quando você calcula o total, na hora de fechar o pedido.</p>
+              </>
+            )
+          ) : cartao.vantagens.length > 0 ? (
+            <>
+              <p className="text-slate-200">
+                Você completou o cartão! Escolha <strong>uma</strong> vantagem. Ela vale até <strong>{dia(estado.vantagemValeAte)}</strong> ({DIAS_DE_VALIDADE_DA_VANTAGEM} dias).
+              </p>
+
+              <EscolherVantagem codigo={codigo} opcoes={cartao.vantagens.map((vantagem) => ({ id: vantagem.id, nome: vantagem.nome, descricao: vantagem.descricaoParaOCliente }))} />
+            </>
+          ) : (
+            <>
+              <p className="text-slate-200">
+                Você completou o cartão e ganhou uma vantagem do clube. Ela vale até <strong>{dia(estado.vantagemValeAte)}</strong> ({DIAS_DE_VALIDADE_DA_VANTAGEM} dias). Fale com a gente para resgatar.
+              </p>
+
+              <a href={linkDoWhatsappDaCasa("Oi! Completei o meu cartão do clube e quero resgatar a minha vantagem.")} target="_blank" rel="noopener noreferrer" className="block rounded-xl bg-ouro px-4 py-3 text-center font-bold text-black hover:bg-ouro-400">
+                Resgatar pelo WhatsApp
+              </a>
+            </>
+          )}
         </section>
       )}
 

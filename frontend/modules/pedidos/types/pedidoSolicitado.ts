@@ -1,3 +1,5 @@
+import type { VantagemParaCalcular } from "../services/calcularPedido";
+
 import type { OrigemDaCampanha } from "../services/origemDaCampanha";
 
 import type {
@@ -53,6 +55,10 @@ export interface PedidoSolicitado {
 
   // Só pelo caminho interno do checkout; a rota do PDV nunca copia este campo do corpo.
   origemDaCampanha?: OrigemDaCampanha;
+
+  // Só pelo caminho interno do checkout (clube, seção 28): a vantagem escolhida pelo cliente, já conferida no servidor.
+  // A rota do PDV nunca copia este campo do corpo.
+  vantagemDoClube?: { resgateId: string; regra: VantagemParaCalcular };
 
   // Obrigatório nos canais iFood, 99Food e Keeta.
   marketplace?: {

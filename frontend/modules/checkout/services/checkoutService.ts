@@ -1,6 +1,6 @@
 import type { CheckoutRepositoryPort } from "../repositories/checkoutRepositoryPort";
 
-import type { CheckoutSalvo, Estimativa, StatusPublicoDoCheckout } from "../types/checkout";
+import type { CheckoutSalvo, Estimativa, StatusPublicoDoCheckout, VantagemDoCheckout } from "../types/checkout";
 
 import { VERSAO_DA_POLITICA, validarEntradaDoCheckout, type DadosDoCheckout } from "./entradaDoCheckout";
 
@@ -14,7 +14,12 @@ import { ROTULO_DO_METODO, formaDoPedido, type MetodoDoPagamento } from "./statu
 
 export interface PedidosDoCheckoutPort {
   // A mesma conta do PDV (preço do canal Site, taxa de entrega, total), sem gravar.
-  calcular(itens: DadosDoCheckout["itens"], distanciaKm: number, canal: DadosDoCheckout["origem"]): Promise<{ subtotal: number; taxaEntrega: number; total: number; regraEntrega?: string }>;
+  calcular(
+    itens: DadosDoCheckout["itens"],
+    distanciaKm: number,
+    canal: DadosDoCheckout["origem"],
+    vantagem?: VantagemDoCheckout["regra"]
+  ): Promise<{ subtotal: number; taxaEntrega: number; total: number; regraEntrega?: string; descontos?: number; vantagem?: Estimativa["vantagem"] }>;
 
   // Lança o pedido pelo mesmo caminho do PDV, já com o pagamento aprovado.
   lancar(dados: {
@@ -25,6 +30,7 @@ export interface PedidosDoCheckoutPort {
     distanciaKm: number;
     forma: "PIX" | "CARTAO" | "OUTRO";
     transacaoExterna: string;
+    vantagemDoClube?: VantagemDoCheckout;
   }): Promise<{ pedidoId: string; numero: string; pagamentoId: string; total: number }>;
 
   numeroDoPedido(pedidoId: string): Promise<string | undefined>;
@@ -41,6 +47,11 @@ export interface ClientesDoCheckoutPort {
 export interface DistanciaDoEnderecoPort {
   // A distância até o endereço, descoberta pelo servidor. Nulo = fora da área.
   distanciaKm(cep: string): Promise<number | null>;
+}
+
+export interface VantagensDoCheckoutPort {
+  // A vantagem que o cartão (pelo código do link) pode usar agora. Nulo se não há (ou se o clube está desligado).
+  resolver(codigoDoCartao: string): Promise<VantagemDoCheckout | null>;
 }
 
 export interface FuncionamentoDoCheckoutPort {
@@ -72,6 +83,8 @@ export class CheckoutService {
       clientes: ClientesDoCheckoutPort;
       distancia: DistanciaDoEnderecoPort;
       funcionamento: FuncionamentoDoCheckoutPort;
+      // Clube (seção 28): sem isto, o checkout ignora o pedido de usar vantagem.
+      vantagens?: VantagensDoCheckoutPort;
       // Nulo quando as credenciais do gateway ainda não foram colocadas.
       gateway: GatewayDePagamento | null;
       registrar?: RegistrarNoDiarioDoSite;
@@ -100,19 +113,32 @@ export class CheckoutService {
   async estimar(entrada: unknown): Promise<Estimativa> {
     const dados = this.validar(entrada);
 
-    return this.calcular(dados);
+    // O que o cliente pode ver: nunca o identificador interno do resgate nem a regra completa da vantagem.
+    const { subtotal, taxaEntrega, total, distanciaKm, descontos, vantagem } = await this.calcular(dados);
+
+    return { subtotal, taxaEntrega, total, distanciaKm, ...(vantagem ? { descontos, vantagem } : {}) };
   }
 
-  private async calcular(dados: DadosDoCheckout): Promise<Estimativa & { regraEntrega?: string }> {
+  private async calcular(dados: DadosDoCheckout): Promise<Estimativa & { regraEntrega?: string; vantagemDoClube?: VantagemDoCheckout }> {
     const distanciaKm = await this.dependencias.distancia.distanciaKm(dados.endereco.cep);
 
     if (distanciaKm === null) {
       throw new ErroDeCheckout("Ainda não entregamos neste endereço. Confira o CEP ou fale com a gente.");
     }
 
-    const calculo = await this.dependencias.pedidos.calcular(dados.itens, distanciaKm, dados.origem);
+    // Quem pediu a vantagem e tem direito a ela: o servidor a resolve pelo banco. Sem direito, o pedido segue sem desconto.
+    const vantagemDoClube = dados.vantagem && this.dependencias.vantagens ? ((await this.dependencias.vantagens.resolver(dados.vantagem.codigoDoCartao)) ?? undefined) : undefined;
 
-    return { subtotal: calculo.subtotal, taxaEntrega: calculo.taxaEntrega, total: calculo.total, distanciaKm, regraEntrega: calculo.regraEntrega };
+    const calculo = await this.dependencias.pedidos.calcular(dados.itens, distanciaKm, dados.origem, vantagemDoClube?.regra);
+
+    return {
+      subtotal: calculo.subtotal,
+      taxaEntrega: calculo.taxaEntrega,
+      total: calculo.total,
+      distanciaKm,
+      regraEntrega: calculo.regraEntrega,
+      ...(calculo.vantagem ? { descontos: calculo.descontos, vantagem: calculo.vantagem, vantagemDoClube } : {}),
+    };
   }
 
   // Abre o pagamento: guarda o que o cliente pediu e devolve a página de pagamento do gateway.
@@ -143,7 +169,7 @@ export class CheckoutService {
 
     await repositorio.criar({
       id,
-      solicitado: { dados, distanciaKm: calculo.distanciaKm, regraEntrega: calculo.regraEntrega, versaoDaPolitica: VERSAO_DA_POLITICA },
+      solicitado: { dados, distanciaKm: calculo.distanciaKm, regraEntrega: calculo.regraEntrega, versaoDaPolitica: VERSAO_DA_POLITICA, ...(calculo.vantagemDoClube ? { vantagemDoClube: calculo.vantagemDoClube } : {}) },
       subtotal: calculo.subtotal,
       taxaEntrega: calculo.taxaEntrega,
       total: calculo.total,
@@ -353,6 +379,7 @@ export class CheckoutService {
         enderecoId: cliente.enderecoId,
         dados: checkout.solicitado.dados,
         distanciaKm: checkout.solicitado.distanciaKm,
+        vantagemDoClube: checkout.solicitado.vantagemDoClube,
         forma: formaDoPedido(pagamento.metodo),
         transacaoExterna: pagamento.id,
       });

@@ -12,6 +12,8 @@ import { decidirSelo, estadoDoCartao, primeiroNome, type DecisaoDoSelo, type Est
 
 import { CLUBE_ATIVO } from "../../regras";
 
+import { listarVantagens, resgateDoCartao, type ResgateDoCartao, type VantagemListada } from "./vantagemService";
+
 // O cartão do clube no banco (seção 28 das regras). Tudo recebe o cliente do banco (`db`) de quem chama, para rodar
 // na MESMA transação da entrega do pedido: não existe o selo sem a entrega, nem a entrega marcada sem o selo.
 // Enquanto CLUBE_ATIVO for falso, nada aqui cria cartão nem selo.
@@ -159,6 +161,10 @@ export async function creditarSeloDaEntrega(db: Banco, pedido: PedidoEntregue, o
 export interface CartaoParaMostrar {
   primeiroNome: string;
   estado: EstadoDoCartao;
+  // A vantagem que o cliente já escolheu neste ciclo, se escolheu.
+  resgate: ResgateDoCartao | null;
+  // As vantagens que ele pode escolher (só com o cartão completo e sem escolha feita).
+  vantagens: VantagemListada[];
 }
 
 // O cartão que a página mostra, pelo código do link. Nulo se não existe (ou se o clube está desligado).
@@ -176,8 +182,14 @@ export async function cartaoPorCodigo(codigo: string, ativo = CLUBE_ATIVO, agora
 
   const selosNoCiclo = await prisma.seloDoClube.count({ where: { cartaoId: cartao.id, ciclo: cartao.ciclo } });
 
+  const estado = estadoDoCartao({ cicloIniciadoEm: cartao.cicloIniciadoEm, ultimoPedidoEm: cartao.ultimoPedidoEm, completoEm: cartao.completoEm, selosNoCiclo }, agora);
+
+  const resgate = estado.completo ? await resgateDoCartao(cartao.id, cartao.ciclo) : null;
+
   return {
     primeiroNome: primeiroNome(cartao.cliente.nome),
-    estado: estadoDoCartao({ cicloIniciadoEm: cartao.cicloIniciadoEm, ultimoPedidoEm: cartao.ultimoPedidoEm, completoEm: cartao.completoEm, selosNoCiclo }, agora),
+    estado,
+    resgate,
+    vantagens: estado.completo && !resgate ? await listarVantagens(true) : [],
   };
 }

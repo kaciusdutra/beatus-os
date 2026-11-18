@@ -41,6 +41,8 @@ import {
   calcularPedidoNoServidor,
 } from "../calcularPedido";
 
+import { reservarResgateParaPedido } from "@/modules/clube/services/server/vantagemService";
+
 import { limparOrigemDaCampanha } from "../origemDaCampanha";
 
 export interface LancarPedidoPostgresInput {
@@ -287,6 +289,10 @@ export class LancarPedidoServicePostgres {
             itensSemVinculo:
               solicitado.marketplace?.itensSemVinculo,
 
+            // Clube (seção 28): só pedido de canal próprio, e só pelo caminho interno do checkout.
+            vantagem:
+              ehMarketplace ? undefined : solicitado.vantagemDoClube?.regra,
+
             produtos:
               produtos.map(
                 (produto) => ({
@@ -461,6 +467,18 @@ export class LancarPedidoServicePostgres {
             pedido.pagamento
           );
 
+        // Clube: o resgate passa a ser deste pedido. Se já estava em outro (duas compras ao mesmo tempo), o pedido segue com
+        // o valor que o cliente pagou e o aviso fica no histórico para a equipe.
+        let avisoDoClube = "";
+
+        if (solicitado.vantagemDoClube && calculado.vantagemAplicada) {
+          const reservou = await reservarResgateParaPedido(tx, solicitado.vantagemDoClube.resgateId, pedidoCriado.id, calculado.vantagemAplicada.valorNosItens);
+
+          avisoDoClube = reservou
+            ? ` Vantagem do clube: ${calculado.vantagemAplicada.nome ?? "vantagem"} (abateu R$ ${(calculado.vantagemAplicada.valorNosItens + calculado.vantagemAplicada.valorNaEntrega).toFixed(2)}).`
+            : " ATENÇÃO: a vantagem do clube deste pedido já tinha sido usada em outro pedido; o desconto foi mantido porque o cliente já pagou o valor com ele.";
+        }
+
         // Marketplace: guarda o código, a entrega da plataforma e o que ela deve
         // repassar (total menos a comissão do canal), aguardando conferência.
         let complementoDoResumo = "";
@@ -469,6 +487,8 @@ export class LancarPedidoServicePostgres {
         if (!ehMarketplace && solicitado.pagamento?.transacaoExterna) {
           complementoDoResumo = ` Pix ${solicitado.pagamento.transacaoExterna}.`;
         }
+
+        complementoDoResumo += avisoDoClube;
 
         if (ehMarketplace) {
           const canalDePreco = await tx.canalPrecificacao.findFirst({

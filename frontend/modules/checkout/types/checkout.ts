@@ -9,6 +9,8 @@ export interface SolicitadoDoCheckout {
   distanciaKm: number;
   regraEntrega?: string;
   versaoDaPolitica: string;
+  // Clube: a vantagem usada neste pedido, resolvida na hora de abrir o pagamento (o pedido sai com o mesmo desconto que o cliente pagou).
+  vantagemDoClube?: VantagemDoCheckout;
 }
 
 export interface CheckoutSalvo {
@@ -69,4 +71,13 @@ export interface Estimativa {
   taxaEntrega: number;
   total: number;
   distanciaKm: number;
+  // Clube (seção 28): o que a vantagem escolhida abateu, quando entrou na conta.
+  descontos?: number;
+  vantagem?: { nome?: string; tipo: string; valorNosItens: number; valorNaEntrega: number };
+}
+
+// A vantagem do clube já resolvida pelo servidor (vem do banco, nunca do navegador).
+export interface VantagemDoCheckout {
+  resgateId: string;
+  regra: { tipo: "ITEM_GRATIS" | "DESCONTO_PERCENTUAL" | "ENTREGA_GRATIS"; nome?: string; categoria?: string | null; valorMaximo?: number | null; percentual?: number | null };
 }

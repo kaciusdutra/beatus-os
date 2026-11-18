@@ -98,6 +98,11 @@ verificar(exigenciaDaRota("GET", "/convite").exige.tipo === "PUBLICA", "o endere
 verificar(exigenciaDaRota("GET", "/convite/outro").exige.tipo !== "PUBLICA", "só o endereço exato do convite é público");
 verificar(exigenciaDaRota("GET", "/cardapio/convite").exige.tipo === "PUBLICA", "a página de convite do site é pública");
 verificar(exigenciaDaRota("GET", "/cardapio/clube/abc").exige.tipo === "PUBLICA", "o cartão do clube abre pelo link, sem login");
+verificar(exigenciaDaRota("POST", "/api/publico/clube/vantagem").exige.tipo === "PUBLICA", "escolher a vantagem do clube pelo link do cartão é público");
+verificar(exigenciaDaRota("POST", "/api/publico/clube/outra").exige.tipo !== "PUBLICA", "só o endereço exato de escolher a vantagem é público");
+verificar(exigenciaDaRota("POST", "/api/clube/vantagens").exige.tipo === "PERMISSAO" && exigenciaDaRota("GET", "/api/clube/vantagens").exige.tipo === "PERMISSAO", "o catálogo de vantagens é da equipe");
+verificar(!pode("OPERADOR", "POST", "/api/clube/vantagens") && !pode("PRODUCAO", "PUT", "/api/clube/vantagens/abc"), "operador e produção não mudam o catálogo de vantagens");
+verificar(pode("ADMIN", "POST", "/api/clube/vantagens") && pode("ADMIN", "GET", "/configuracoes/vantagens"), "o administrador gerencia as vantagens");
 verificar(exigenciaDaRota("GET", "/configuracoes/convite").exige.tipo === "PERMISSAO", "o gerador do QR é só da equipe");
 verificar(exigenciaDaRota("GET", "/api/publico/beatriz").exige.tipo === "PUBLICA", "saber se o chat está disponível é público");
 verificar(exigenciaDaRota("POST", "/api/publico/beatriz/outra").exige.tipo === "PERMISSAO", "escrita em outro caminho da Beatriz pública não é pública");

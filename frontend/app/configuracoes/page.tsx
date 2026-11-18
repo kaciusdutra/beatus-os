@@ -30,6 +30,14 @@ export default async function ConfiguracoesPage() {
           </Link>
         )}
 
+        {gerencia && (
+          <Link href="/configuracoes/vantagens" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
+            <p className="text-lg font-bold text-slate-800">Vantagens do clube</p>
+
+            <p className="mt-1 text-sm text-slate-500">O que o cliente pode escolher ao completar o cartão de selos: hambúrguer grátis, desconto, entrega grátis.</p>
+          </Link>
+        )}
+
         <Link href="/configuracoes/convite" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
           <p className="text-lg font-bold text-slate-800">QR do convite</p>
 

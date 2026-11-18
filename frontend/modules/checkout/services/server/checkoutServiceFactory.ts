@@ -12,6 +12,8 @@ import { absorverContatoDaBeatriz } from "@/modules/beatriz/repositories/postgre
 
 import { ativarCartaoDoPedido } from "@/modules/clube/services/server/clubeService";
 
+import { resgateParaUsar } from "@/modules/clube/services/server/vantagemService";
+
 import { ErroDePedido } from "@/modules/pedidos/services/calcularPedido";
 
 import { calcularPedidoSemGravar } from "@/modules/pedidos/services/server/calculoPedidoService";
@@ -83,7 +85,7 @@ async function acionarCartaoDoClube(pedidoId: string): Promise<void> {
 
 // A mesma conta e o mesmo caminho do PDV, pelo canal "cardápio online".
 const pedidos: PedidosDoCheckoutPort = {
-  async calcular(itens, distanciaKm, canal) {
+  async calcular(itens, distanciaKm, canal, vantagem) {
     let calculado;
 
     try {
@@ -91,13 +93,21 @@ const pedidos: PedidosDoCheckoutPort = {
         canal,
         itens: itens.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade, observacao: item.observacao })),
         distanciaEntregaKm: distanciaKm,
+        vantagem,
       });
     } catch (error) {
       // As mensagens do cálculo (produto sem preço, fora da área) são escritas para o cliente.
       throw error instanceof ErroDePedido ? new ErroDeCheckout(error.message) : error;
     }
 
-    return { subtotal: calculado.subtotal, taxaEntrega: calculado.taxaEntrega, total: calculado.total, regraEntrega: calculado.regraEntregaAplicada };
+    return {
+      subtotal: calculado.subtotal,
+      taxaEntrega: calculado.taxaEntrega,
+      total: calculado.total,
+      regraEntrega: calculado.regraEntregaAplicada,
+      descontos: calculado.descontos,
+      vantagem: calculado.vantagemAplicada,
+    };
   },
 
   async lancar(dados) {
@@ -122,6 +132,8 @@ const pedidos: PedidosDoCheckoutPort = {
         entrada: dados.dados.origem === "WHATSAPP" ? "IA" : "ONLINE",
         clienteId: dados.clienteId,
         origemDaCampanha: dados.dados.origemDaCampanha,
+        // Clube: a vantagem que o cliente pagou com (resolvida no servidor quando o pagamento foi aberto).
+        vantagemDoClube: dados.vantagemDoClube,
         enderecoEntrega: {
           enderecoId: dados.enderecoId,
           rotulo: "CASA",
@@ -265,6 +277,7 @@ export function getCheckoutService(requisicao?: Request): CheckoutService {
     pedidos,
     clientes,
     distancia,
+    vantagens: { resolver: (codigoDoCartao) => resgateParaUsar(codigoDoCartao) },
     funcionamento: {
       async recebePedidos() {
         const { funcionamento } = await getSiteService().cardapio();

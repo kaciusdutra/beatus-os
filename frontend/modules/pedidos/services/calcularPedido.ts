@@ -93,6 +93,37 @@ function validarQuantidade(quantidade: unknown, nome: string): number {
   return quantidade;
 }
 
+// Uma vantagem do clube (seção 28) para abater do pedido. Quem chama já conferiu que o cliente tem direito a ela.
+export interface VantagemParaCalcular {
+  tipo: "ITEM_GRATIS" | "DESCONTO_PERCENTUAL" | "ENTREGA_GRATIS";
+
+  nome?: string;
+
+  // ITEM_GRATIS: categoria do produto que pode sair de graça (vazio = qualquer produto).
+  categoria?: string | null;
+
+  // ITEM_GRATIS: preço máximo do item grátis (vazio = qualquer preço).
+  valorMaximo?: number | null;
+
+  // DESCONTO_PERCENTUAL: de 0 a 100, sobre os itens.
+  percentual?: number | null;
+}
+
+export interface VantagemAplicada {
+  tipo: VantagemParaCalcular["tipo"];
+
+  nome?: string;
+
+  // Quanto saiu dos itens (o que conta como "valor do prêmio" na regra do selo).
+  valorNosItens: number;
+
+  // Quanto saiu da taxa de entrega.
+  valorNaEntrega: number;
+
+  // ITEM_GRATIS: o produto que saiu de graça.
+  produtoId?: string;
+}
+
 export interface PedidoCalculado {
   itens: ItemPedido[];
 
@@ -107,6 +138,9 @@ export interface PedidoCalculado {
   distanciaEntregaKm: number;
 
   regraEntregaAplicada?: string;
+
+  // Só quando uma vantagem do clube entrou na conta.
+  vantagemAplicada?: VantagemAplicada;
 }
 
 export function calcularPedidoNoServidor(entrada: {
@@ -129,6 +163,9 @@ export function calcularPedidoNoServidor(entrada: {
     precoUnitario: number;
     observacao?: string;
   }[];
+
+  // Vantagem do clube a abater (só pedidos de canal próprio, com entrega).
+  vantagem?: VantagemParaCalcular;
 
   produtos: ProdutoDoCatalogo[];
 
@@ -286,13 +323,76 @@ export function calcularPedidoNoServidor(entrada: {
     itens.reduce((soma, item) => soma + item.subtotal, 0)
   );
 
+  // Vantagem do clube: abate dos itens (item grátis, desconto em %) ou da taxa de entrega. O preço dos itens
+  // não muda: o abatimento aparece em "descontos", e o total é refeito aqui, no servidor.
+  let descontos = 0;
+
+  let vantagemAplicada: VantagemAplicada | undefined;
+
+  if (entrada.vantagem) {
+    const vantagem = entrada.vantagem;
+
+    if (entrada.semEntrega || entrada.aceitarPrecoDaPlataforma) {
+      throw new ErroDePedido("A vantagem do clube só vale em pedido de canal próprio.");
+    }
+
+    if (vantagem.tipo === "ITEM_GRATIS") {
+      const categoria = vantagem.categoria?.trim().toUpperCase();
+
+      const elegiveis = itens.filter((item) => {
+        const produto = entrada.produtos.find((candidato) => candidato.id === item.produtoId);
+
+        return (
+          item.produtoId !== "" &&
+          produto !== undefined &&
+          (!categoria || produto.categoria.trim().toUpperCase() === categoria) &&
+          (vantagem.valorMaximo === null || vantagem.valorMaximo === undefined || item.precoUnitario <= vantagem.valorMaximo)
+        );
+      });
+
+      if (elegiveis.length === 0) {
+        throw new ErroDePedido(
+          `Para usar a vantagem do clube, peça um item${vantagem.categoria ? ` da categoria ${vantagem.categoria}` : ""}${
+            vantagem.valorMaximo ? ` de até R$ ${vantagem.valorMaximo.toFixed(2).replace(".", ",")}` : ""
+          }.`
+        );
+      }
+
+      // O item de maior preço que se encaixa, uma unidade só.
+      const escolhido = elegiveis.reduce((maior, item) => (item.precoUnitario > maior.precoUnitario ? item : maior));
+
+      descontos = centavos(escolhido.precoUnitario);
+
+      vantagemAplicada = { tipo: vantagem.tipo, nome: vantagem.nome, valorNosItens: descontos, valorNaEntrega: 0, produtoId: escolhido.produtoId };
+    } else if (vantagem.tipo === "DESCONTO_PERCENTUAL") {
+      const percentual = vantagem.percentual ?? 0;
+
+      if (!(percentual > 0 && percentual <= 100)) {
+        throw new ErroDePedido("A vantagem do clube está com a porcentagem inválida.");
+      }
+
+      descontos = Math.min(subtotal, centavos((subtotal * percentual) / 100));
+
+      vantagemAplicada = { tipo: vantagem.tipo, nome: vantagem.nome, valorNosItens: descontos, valorNaEntrega: 0 };
+    } else if (vantagem.tipo === "ENTREGA_GRATIS") {
+      vantagemAplicada = { tipo: vantagem.tipo, nome: vantagem.nome, valorNosItens: 0, valorNaEntrega: taxaEntrega };
+
+      taxaEntrega = 0;
+
+      regraEntregaAplicada = "VANTAGEM_ENTREGA_GRATIS";
+    } else {
+      throw new ErroDePedido("Vantagem do clube desconhecida.");
+    }
+  }
+
   return {
     itens,
     subtotal,
-    descontos: 0,
+    descontos,
     taxaEntrega,
-    total: centavos(subtotal + taxaEntrega),
+    total: centavos(subtotal - descontos + taxaEntrega),
     distanciaEntregaKm,
     regraEntregaAplicada,
+    ...(vantagemAplicada ? { vantagemAplicada } : {}),
   };
 }

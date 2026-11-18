@@ -16,7 +16,7 @@
 
 - Next.js 16 com App Router, React 19, TypeScript, Tailwind e Prisma 7, tudo em `frontend/`. A API fica em `frontend/app/api/`.
 - PostgreSQL 17 instalado no notebook (serviço `postgresql-x64-17`, início automático), em `localhost:5432`, banco `beatus`. O banco `beatus_shadow` é usado só pelo Prisma para testar migrações.
-- 39 migrações aplicadas, de 19/08 a 18/11/2026 (as últimas: `add_origem_campanha_pedido`, `add_memoria_da_beatriz` e `add_cartao_do_clube`, com os checkpoints `checkpoint-antes-origem-campanha`, `checkpoint-antes-memoria-beatriz` e `checkpoint-antes-cartao-do-clube`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
+- 40 migrações aplicadas, de 19/08 a 18/11/2026 (as últimas: `add_memoria_da_beatriz`, `add_cartao_do_clube` e `add_vantagens_do_clube`, com os checkpoints `checkpoint-antes-memoria-beatriz`, `checkpoint-antes-cartao-do-clube` e `checkpoint-antes-vantagens-do-clube`). As últimas (`add_destino_itens_compra`, `add_endereco_inscricao_fornecedor`, `add_equivalencia_e_perda_limpeza_insumo` e `add_modo_preparo_e_ordem_fichas`) têm os checkpoints `checkpoint-antes-7b`, `checkpoint-antes-7e`, `checkpoint-antes-8b` e `checkpoint-antes-8e` antes delas.
 - Os dados atuais são fictícios, usados para testar telas e sprints.
 - Verificação única: `npm run check` (tipos, lint e testes), rodado a partir de `frontend/`. O lint tem uma linha de base de 10 erros e 7 avisos antigos, e o check só falha se piorar.
 - Repositório remoto: GitHub `kaciusdutra/beatus-os`.
@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 18/11/2026 | (este commit) | Clube, etapa 2: catálogo de vantagens (item grátis, desconto em %, entrega grátis), escolha de uma ao completar o cartão, desconto aplicado no cálculo do pedido pelo servidor, uso na entrega (cartão reinicia, selo no ciclo novo) e devolução no cancelamento; telas Vantagens do clube (Configurações) e escolha na página do cartão; migração `add_vantagens_do_clube`; regra 28.10b; tudo desligado atrás do `CLUBE_ATIVO` |
 | 18/11/2026 | `16af21a` | Clube, etapa 1: cartão do clube acionado no checkout (aceite + pagamento) e selo creditado na entrega (pedido de R$ 50 ou mais em itens, um por pedido, sem acúmulo, reinício em 60 dias ou 15 dias), página `/cardapio/clube/<código>`; migração `add_cartao_do_clube`; tudo desligado atrás do `CLUBE_ATIVO` até o prêmio existir; regra 28.10 |
 | 18/11/2026 | `19d83ed` | QR do convite: endereço curto `/convite` que redireciona para a página de convite do site (com a origem da embalagem gravada no pedido), página sem promessa de clube enquanto ele não estiver ligado, regras do clube num arquivo só (`modules/clube/regras.ts`) e o gerador do QR para imprimir em Configurações; sem migração |
 | 18/11/2026 | `4346444` | Clube de vantagens definido como cartão de selos digital e automático (regras da seção 28: 1 selo por pedido entregue, 8 selos = hambúrguer por conta da casa, reinicia após 60 dias sem pedir; carteira do celular depois da página web); só documentação |

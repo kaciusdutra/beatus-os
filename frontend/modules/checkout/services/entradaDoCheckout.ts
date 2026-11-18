@@ -33,6 +33,8 @@ export interface DadosDoCheckout {
     estado: string;
   };
   itens: { produtoId: string; quantidade: number; observacao?: string }[];
+  // Clube: o cartão cuja vantagem o cliente quer usar (o código do link). O servidor confere tudo no banco.
+  vantagem?: { codigoDoCartao: string };
   consentimentos: {
     aceitaPolitica: true;
     aceitaMarketing: boolean;
@@ -186,6 +188,10 @@ export function validarEntradaDoCheckout(entrada: unknown, hoje: Date = new Date
 
   const origemDaCampanha = limparOrigemDaCampanha(bruto.origemDaCampanha);
 
+  const codigoDoCartao = typeof (bruto.vantagem as Record<string, unknown> | undefined)?.codigoDoCartao === "string" ? ((bruto.vantagem as Record<string, unknown>).codigoDoCartao as string).trim() : "";
+
+  const vantagem = /^[A-Za-z0-9_-]{43}$/.test(codigoDoCartao) ? { codigoDoCartao } : undefined;
+
   return {
     ok: true,
     dados: {
@@ -194,6 +200,7 @@ export function validarEntradaDoCheckout(entrada: unknown, hoje: Date = new Date
       cliente: { nome, telefone, cpf, ...(email ? { email } : {}), ...(dataNascimento ? { dataNascimento } : {}) },
       endereco: { cep, logradouro, numero, ...(complemento ? { complemento } : {}), bairro, cidade, estado },
       itens,
+      ...(vantagem ? { vantagem } : {}),
       consentimentos: { aceitaPolitica: true, aceitaMarketing: consentimentos.aceitaMarketing === true },
     },
   };

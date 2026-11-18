@@ -53,6 +53,8 @@ const REGRAS: Regra[] = [
   { padrao: "/api/publico/mercadopago/webhook", metodos: "ESCRITA", exato: true, exige: publica },
   // O chat da Beatriz no site (com limite por visitante e teto diário dentro da rota).
   { padrao: "/api/publico/beatriz", metodos: "ESCRITA", exato: true, exige: publica },
+  // O cliente escolhe a vantagem do clube ao completar o cartão (o código do link do cartão é a prova; há limite por visitante).
+  { padrao: "/api/publico/clube/vantagem", metodos: "ESCRITA", exato: true, exige: publica },
 
   // ---------- Qualquer pessoa que entrou ----------
   { padrao: "/api/auth", exige: autenticada },
@@ -71,6 +73,7 @@ const REGRAS: Regra[] = [
   { padrao: "/compras", exige: p("compras.visualizar") },
   { padrao: "/configuracoes", exige: p("configuracoes.visualizar") },
   { padrao: "/configuracoes/usuarios", exige: p("configuracoes.gerenciar") },
+  { padrao: "/configuracoes/vantagens", exige: p("configuracoes.gerenciar") },
   { padrao: "/cozinha", exige: p("producao.visualizar", "pedidos.visualizar") },
   { padrao: "/estoque", exige: p("estoque.visualizar") },
   { padrao: "/fichas", exige: p("financeiro.visualizar") },
@@ -93,6 +96,8 @@ const REGRAS: Regra[] = [
   { padrao: "/api/beatriz", exige: p("inteligencia.visualizar") },
   { padrao: "/api/cep", exige: p("pdv.visualizar") },
   { padrao: "/api/clientes", metodos: "LEITURA", exige: p("pdv.visualizar") },
+  { padrao: "/api/clube", metodos: "LEITURA", exige: p("configuracoes.visualizar") },
+  { padrao: "/api/clube", metodos: "ESCRITA", exige: p("configuracoes.gerenciar") },
   { padrao: "/api/clientes", metodos: "ESCRITA", exige: p("pdv.gerenciar") },
   { padrao: "/api/compras", exige: p("compras.visualizar") },
   { padrao: "/api/fornecedores", exige: p("compras.visualizar") },

@@ -14,6 +14,8 @@ import type { OrigemDoCheckout } from "../services/entradaDoCheckout";
 
 import { lerCampanhaGuardada } from "@/modules/site/services/campanhaGuardada";
 
+import { lerCodigoDaVantagem } from "@/modules/clube/vantagemGuardada";
+
 import type { Estimativa } from "../types/checkout";
 
 const CAMPO =
@@ -99,6 +101,8 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento, i
     origem,
     // Campanha de anúncio de onde o cliente veio (o servidor limpa e confere de novo).
     origemDaCampanha: lerCampanhaGuardada(localStorage, Date.now()),
+    // Clube: o cartão cuja vantagem o cliente escolheu (o servidor confere tudo no banco).
+    vantagem: lerCodigoDaVantagem(localStorage) ? { codigoDoCartao: lerCodigoDaVantagem(localStorage) } : undefined,
     cliente: { nome, telefone, cpf, email, dataNascimento },
     endereco: { cep, logradouro, numero, complemento, bairro, cidade, estado },
     itens: itens.map((item) => ({ produtoId: item.id, quantidade: item.quantidade })),
@@ -315,6 +319,14 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento, i
 
             <span>{dinheiro(estimativa?.subtotal ?? subtotalDoCarrinho)}</span>
           </div>
+
+          {estimativa?.vantagem && (
+            <div className="flex justify-between text-ouro">
+              <span>Vantagem do clube{estimativa.vantagem.nome ? ` (${estimativa.vantagem.nome})` : ""}</span>
+
+              <span>− {dinheiro(estimativa.vantagem.valorNosItens + estimativa.vantagem.valorNaEntrega)}</span>
+            </div>
+          )}
 
           <div className="flex justify-between text-slate-300">
             <span>Entrega</span>
