@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 18/11/2026 | (este commit) | QR do convite: endereço curto `/convite` que redireciona para a página de convite do site (com a origem da embalagem gravada no pedido), página sem promessa de clube enquanto ele não estiver ligado, regras do clube num arquivo só (`modules/clube/regras.ts`) e o gerador do QR para imprimir em Configurações; sem migração |
+| 18/11/2026 | `19d83ed` | QR do convite: endereço curto `/convite` que redireciona para a página de convite do site (com a origem da embalagem gravada no pedido), página sem promessa de clube enquanto ele não estiver ligado, regras do clube num arquivo só (`modules/clube/regras.ts`) e o gerador do QR para imprimir em Configurações; sem migração |
 | 18/11/2026 | `4346444` | Clube de vantagens definido como cartão de selos digital e automático (regras da seção 28: 1 selo por pedido entregue, 8 selos = hambúrguer por conta da casa, reinicia após 60 dias sem pedir; carteira do celular depois da página web); só documentação |
 | 17/11/2026 | `a7fa8f7` | Desempenho medido em produção (rotas em 14 a 30 ms, 20 acessos simultâneos sem erro), análise do cache em `docs/DESEMPENHO.md` e o teste de velocidade `frontend/scripts/medirDesempenho.mjs`; regra 1.8 (gravação primeiro); sem mudança no sistema |
 | 17/11/2026 | `e44ec55` | Banco único como princípio (regra 1.9) e percurso do pedido: o detalhe do pedido mostra o cliente (novo ou antigo, com os pedidos anteriores), o pagamento, a cozinha e a entrega; sem migração |
