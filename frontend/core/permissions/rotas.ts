@@ -43,6 +43,8 @@ const REGRAS: Regra[] = [
   // O site (cardápio online) é público. Na API pública só entra leitura: qualquer
   // escrita futura (checkout) precisa de regra própria e cai no padrão restrito até lá.
   { padrao: "/cardapio", exige: publica },
+  // O endereço curto do QR da embalagem: redireciona para a página de convite do site (só leitura, sem login).
+  { padrao: "/convite", exato: true, exige: publica },
   { padrao: "/api/publico", metodos: "LEITURA", exige: publica },
   // As únicas escritas públicas: fechar o pedido do site e o aviso do gateway (este só
   // vale com a assinatura do Mercado Pago, conferida na própria rota).

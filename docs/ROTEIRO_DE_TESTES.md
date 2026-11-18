@@ -469,6 +469,11 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 289 | Em Pedidos, abra o detalhe de um pedido de cliente que já pediu antes | "Percurso do pedido" com 4 etapas (Cliente, Pagamento, Cozinha, Entrega) e, em "Cliente e entrega", a data do cadastro, o clube e os pedidos anteriores |
 | 290 | Abra o primeiro pedido de um cliente | A etapa Cliente diz "Cliente novo, cadastrado neste pedido" |
 | 291 | Abra um pedido cancelado e um de marketplace | Cancelado: Cozinha com problema e Entrega "não se aplica"; marketplace: cliente e pagamento "da plataforma" |
+| 292 | Abra `/convite?o=ifood` (sem login) | Redireciona para a página de convite do site com os botões "pedir pelo site" e "pedir pelo WhatsApp"; sem promessa de clube enquanto ele não estiver ligado |
+| 293 | Depois de abrir o convite, faça um pedido pelo site e veja o detalhe em Pedidos | A campanha do pedido mostra `qr / embalagem / ifood` |
+| 294 | Abra `/convite?o=qualquer-coisa` | Cai em "canais próprios", sem erro |
+| 295 | Em Configurações → QR do convite, digite o endereço definitivo do site e escolha a origem | Aparece o QR e o endereço que ele guarda; com `localhost` ou sem https aparece o alerta de endereço de teste |
+| 296 | Toque em "Imprimir a folha" e em "Baixar a imagem (PNG)" | A folha sai só com os cartões de QR; o PNG baixa. Leia com um iPhone e um Android antes de imprimir em quantidade |
 
 ## O que anotar
 

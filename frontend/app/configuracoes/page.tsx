@@ -30,6 +30,14 @@ export default async function ConfiguracoesPage() {
           </Link>
         )}
 
+        <Link href="/configuracoes/convite" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
+          <p className="text-lg font-bold text-slate-800">QR do convite</p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            O QR que vai em cada pedido que sai da cozinha e convida o cliente a pedir direto, pelo site ou pelo WhatsApp.
+          </p>
+        </Link>
+
         <Link href="/configuracoes/horarios" className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50">
           <p className="text-lg font-bold text-slate-800">Horários de funcionamento</p>
 

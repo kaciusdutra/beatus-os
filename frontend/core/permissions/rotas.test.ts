@@ -94,6 +94,10 @@ verificar(!pode("GESTOR", "POST", "/api/publico/qualquer-coisa"), "escrita públ
 verificar(exigenciaDaRota("POST", "/api/publico/checkout").exige.tipo === "PUBLICA", "fechar o pedido do site é público");
 verificar(exigenciaDaRota("POST", "/api/publico/checkout/estimativa").exige.tipo === "PUBLICA", "a estimativa é pública");
 verificar(exigenciaDaRota("POST", "/api/publico/beatriz").exige.tipo === "PUBLICA", "o chat da Beatriz no site é público");
+verificar(exigenciaDaRota("GET", "/convite").exige.tipo === "PUBLICA", "o endereço do QR da embalagem é público");
+verificar(exigenciaDaRota("GET", "/convite/outro").exige.tipo !== "PUBLICA", "só o endereço exato do convite é público");
+verificar(exigenciaDaRota("GET", "/cardapio/convite").exige.tipo === "PUBLICA", "a página de convite do site é pública");
+verificar(exigenciaDaRota("GET", "/configuracoes/convite").exige.tipo === "PERMISSAO", "o gerador do QR é só da equipe");
 verificar(exigenciaDaRota("GET", "/api/publico/beatriz").exige.tipo === "PUBLICA", "saber se o chat está disponível é público");
 verificar(exigenciaDaRota("POST", "/api/publico/beatriz/outra").exige.tipo === "PERMISSAO", "escrita em outro caminho da Beatriz pública não é pública");
 verificar(exigenciaDaRota("POST", "/api/beatriz/responder").exige.tipo === "PERMISSAO", "a Beatriz da equipe continua exigindo login e permissão");
