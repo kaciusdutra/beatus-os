@@ -91,6 +91,20 @@ export default function FinanceiroPage() {
         </Link>
 
         <Link
+          href="/financeiro/dre"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
+        >
+          <p className="text-lg font-bold text-slate-800">
+            DRE do mês
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Quanto sobrou da receita depois de comissões, taxas,
+            impostos, custo dos produtos e custos fixos.
+          </p>
+        </Link>
+
+        <Link
           href="/financeiro/analise-de-vendas"
           className="rounded-xl border bg-white p-6 shadow-sm transition hover:bg-slate-50"
         >

@@ -8,11 +8,15 @@ import { ConferenciaMarketplaceService } from "../conferenciaMarketplaceService"
 
 import { ContaPagarService } from "../contaPagarService";
 
+import { DreService } from "../dreService";
+
 import { FinanceiroService } from "../financeiroService";
 
 import { criarConferenciaMarketplaceRepositoryPostgres } from "../../repositories/postgres/conferenciaMarketplaceRepositoryPostgres";
 
 import { criarContaPagarRepositoryPostgres } from "../../repositories/postgres/contaPagarRepositoryPostgres";
+
+import { criarDreRepositoryPostgres } from "../../repositories/postgres/dreRepositoryPostgres";
 
 import { criarFinanceiroRepositoryPostgres } from "../../repositories/postgres/financeiroRepositoryPostgres";
 
@@ -29,6 +33,10 @@ export function getFinanceiroService(): FinanceiroService {
     criarFinanceiroRepositoryPostgres(contexto),
     totalCustosFixos()
   );
+}
+
+export function getDreService(): DreService {
+  return new DreService(criarDreRepositoryPostgres(criarContextoDesenvolvimento()), totalCustosFixos());
 }
 
 export function getContaPagarService(): ContaPagarService {
