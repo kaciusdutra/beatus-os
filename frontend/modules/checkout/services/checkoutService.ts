@@ -410,6 +410,9 @@ export class CheckoutService {
           metodo: pagamento.metodo,
           transacaoExterna: pagamento.id,
           statusExterno: pagamento.statusBruto,
+          taxaGateway: pagamento.taxa,
+          valorLiquido: pagamento.valorLiquido,
+          liberadoEm: pagamento.liberadoEm,
         });
       } catch (error) {
         console.error("Não foi possível gravar a referência do pagamento no gateway:", error);

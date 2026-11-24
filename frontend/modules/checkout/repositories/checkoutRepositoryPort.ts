@@ -22,5 +22,5 @@ export interface CheckoutRepositoryPort {
   concluirEvento(gateway: string, eventoId: string, status: "PROCESSADO" | "ERRO" | "IGNORADO", erro?: string): Promise<void>;
 
   // A referência do pagamento no gateway, ligada ao pagamento do pedido (para estornos).
-  registrarPagamentoOnline(dados: { pagamentoId: string; gateway: string; metodo: MetodoDoPagamento; transacaoExterna: string; statusExterno: string }): Promise<void>;
+  registrarPagamentoOnline(dados: { pagamentoId: string; gateway: string; metodo: MetodoDoPagamento; transacaoExterna: string; statusExterno: string; taxaGateway?: number; valorLiquido?: number; liberadoEm?: Date }): Promise<void>;
 }

@@ -165,8 +165,18 @@ export function criarCheckoutRepositoryPostgres(contexto: EmpresaContext): Check
           metodo: dados.metodo,
           transacaoExterna: dados.transacaoExterna,
           statusExterno: dados.statusExterno,
+          taxaGateway: dados.taxaGateway,
+          valorLiquido: dados.valorLiquido,
+          liberadoEm: dados.liberadoEm,
         },
-        update: { metodo: dados.metodo, transacaoExterna: dados.transacaoExterna, statusExterno: dados.statusExterno },
+        update: {
+          metodo: dados.metodo,
+          transacaoExterna: dados.transacaoExterna,
+          statusExterno: dados.statusExterno,
+          ...(dados.taxaGateway !== undefined ? { taxaGateway: dados.taxaGateway } : {}),
+          ...(dados.valorLiquido !== undefined ? { valorLiquido: dados.valorLiquido } : {}),
+          ...(dados.liberadoEm ? { liberadoEm: dados.liberadoEm } : {}),
+        },
       });
     },
   };

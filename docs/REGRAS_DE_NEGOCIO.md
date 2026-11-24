@@ -393,6 +393,13 @@
 7. **Dependências:** CNPJ regular e **verificação da empresa na Meta** (a mesma do WhatsApp, regra 26); conta de anúncios; fotos de produtos; base do clube com consentimento; site no ar com o pixel e a API de Conversões; revisão da política de privacidade e das regras de anúncio da Meta.
 8. **Etapa 1 construída (campanha de origem no pedido):** o site guarda no navegador do visitante, por **30 dias**, a campanha do último link de anúncio aberto (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`); anúncio novo substitui o anterior, e visita sem campanha não apaga a guardada. No checkout a campanha vai junto, o servidor limpa (minúsculas, só letras, números, hífen, sublinhado e ponto, até 60 caracteres) e o pedido do site ou do WhatsApp grava os 4 campos. Pedido do PDV e de marketplace nunca leva campanha. A tela Pedidos mostra "Campanha" no detalhe. Ainda não há envio à Meta nem relatório por campanha.
 
+## 27b. Taxa e líquido do gateway (24/11/2026)
+
+1. Quando o Mercado Pago aprova um pagamento, o Beatus guarda, em `PagamentoOnline`, a **taxa cobrada de nós** (só a de quem recebe; a de financiamento paga pelo cliente não conta), o **valor líquido** e a **data de liberação do dinheiro**, exatamente como o gateway informa.
+2. Dado que o gateway não informar fica vazio: nunca se estima nem se inventa. Pagamentos antigos ficam sem esses valores.
+3. Falha ao gravar isto nunca desfaz o pedido pago (mesma regra da referência do pagamento).
+4. Mostrar a taxa real no Fluxo de caixa e na Conferência do dia é o próximo passo.
+
 ## 28. Clube de vantagens: cartão de selos (decisões do Kacius em 18/11/2026; a construir)
 
 1. **O clube é um cartão de selos digital, automático e sem impressão, que mora na área do cliente, dentro do site.** Como o Beatus é só delivery, ninguém lê QR nem dá baixa: o selo nasce do próprio pedido. O cliente acompanha o cartão **só pelo site** ou também o **grava na carteira do celular** (Google Wallet e, se compensar, Apple Wallet): a carteira é um **extra opcional**, não uma exigência. Assim, se o Apple Developer Program (pago por ano) não valer o custo, o clube funciona do mesmo jeito.

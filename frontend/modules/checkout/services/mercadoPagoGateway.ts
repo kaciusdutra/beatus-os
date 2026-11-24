@@ -25,6 +25,45 @@ function numero(valor: unknown): number {
   return typeof valor === "number" ? valor : Number(valor);
 }
 
+function arredondar(valor: number): number {
+  return Math.round(valor * 100) / 100;
+}
+
+// Taxa que fica com o Mercado Pago (só a que é cobrada de nós), valor líquido e data de liberação. Dado ausente ou estranho fica de fora.
+export function custosDoPagamento(dados: Record<string, unknown>): { taxa?: number; valorLiquido?: number; liberadoEm?: Date } {
+  const resultado: { taxa?: number; valorLiquido?: number; liberadoEm?: Date } = {};
+
+  if (Array.isArray(dados.fee_details)) {
+    const taxa = dados.fee_details.reduce((soma: number, item) => {
+      const taxaDoItem = item as { amount?: unknown; fee_payer?: unknown };
+
+      const valor = numero(taxaDoItem.amount);
+
+      return taxaDoItem.fee_payer === "payer" || !Number.isFinite(valor) || valor < 0 ? soma : soma + valor;
+    }, 0);
+
+    resultado.taxa = arredondar(taxa);
+  }
+
+  const detalhes = dados.transaction_details as { net_received_amount?: unknown } | undefined;
+
+  const liquido = detalhes?.net_received_amount === undefined || detalhes.net_received_amount === null ? NaN : numero(detalhes.net_received_amount);
+
+  if (Number.isFinite(liquido) && liquido >= 0) {
+    resultado.valorLiquido = arredondar(liquido);
+  }
+
+  if (typeof dados.money_release_date === "string") {
+    const data = new Date(dados.money_release_date);
+
+    if (!Number.isNaN(data.getTime())) {
+      resultado.liberadoEm = data;
+    }
+  }
+
+  return resultado;
+}
+
 export class MercadoPagoGateway implements GatewayDePagamento {
   readonly nome = "MERCADO_PAGO" as const;
 
@@ -110,6 +149,7 @@ export class MercadoPagoGateway implements GatewayDePagamento {
       ),
       valor: numero(dados.transaction_amount),
       referenciaExterna: typeof dados.external_reference === "string" && dados.external_reference ? dados.external_reference : undefined,
+      ...custosDoPagamento(dados),
     };
   }
 

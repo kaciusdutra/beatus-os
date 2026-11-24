@@ -1376,6 +1376,11 @@ model PagamentoOnline {
 
   expiraEm DateTime?
 
+  // O que o gateway informa depois da aprovação: taxa cobrada de nós, valor líquido e quando o dinheiro é liberado.
+  taxaGateway  Decimal?  @db.Decimal(12, 2)
+  valorLiquido Decimal?  @db.Decimal(12, 2)
+  liberadoEm   DateTime?
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

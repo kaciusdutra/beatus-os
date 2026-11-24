@@ -25,6 +25,10 @@ export interface PagamentoNoGateway {
   metodo: MetodoDoPagamento;
   valor: number;
   referenciaExterna?: string;
+  // O que o gateway cobra de nós e quanto sobra (só vêm depois da aprovação; podem faltar).
+  taxa?: number;
+  valorLiquido?: number;
+  liberadoEm?: Date;
 }
 
 export interface GatewayDePagamento {
