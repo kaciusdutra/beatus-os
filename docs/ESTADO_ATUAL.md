@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 24/11/2026 | `6f21db9` | DRE do mês (Financeiro → DRE do mês), estimada: receita, comissões, taxa real do Mercado Pago, imposto estimado, custo dos produtos pela baixa de estoque, custos fixos e resultado; sem migração |
 | 24/11/2026 | `2b97080` | Conferência do dia mostra a taxa e o líquido reais do Mercado Pago por canal (informativo, não mexe na conta que fecha) |
 | 24/11/2026 | `4f15b9b` | Taxa e valor líquido do Mercado Pago: cada pagamento aprovado grava a taxa cobrada, o líquido e a data de liberação (migração `add_taxa_e_liquido_do_pagamento_online`, checkpoint `checkpoint-antes-taxa-e-liquido-do-pagamento`). Ainda não aparece nas telas do Financeiro |
 | 24/11/2026 | `ad45dc1` | Clube pronto para ligar: caixa de aceite do checkout com o texto do clube, link do cartão na página do pedido e no aviso "entregue", política de privacidade com a seção do clube (versão 2026-11-24-rascunho); `CLUBE_ATIVO` continua desligado |
