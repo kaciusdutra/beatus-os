@@ -17,6 +17,8 @@ export interface PedidoParaDre {
 // Uma baixa (ou devolução) de estoque por venda, já valorizada. valor > 0 = custo; valor < 0 = devolvido ao estoque.
 export interface CustoDeBaixa {
   valor: number | null;
+  // true = custo gravado na própria baixa (dia da venda); ausente/false = estimado pelo custo de hoje.
+  exato?: boolean;
 }
 
 export interface EntradaDaDre {
@@ -34,7 +36,7 @@ export interface Dre {
   receita: { produtos: number; descontos: number; entrega: number; total: number };
   deducoes: { comissoes: number; taxasDoGateway: number; impostos: number; total: number };
   receitaLiquida: number;
-  cmv: { total: number; baixasSemCusto: number };
+  cmv: { total: number; baixasSemCusto: number; baixasEstimadas: number };
   lucroBruto: number;
   custosFixos: number;
   resultado: number;

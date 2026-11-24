@@ -25,6 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
+| 24/11/2026 | (este commit) | Custo gravado em cada baixa de estoque por venda (e na devolução): a DRE passa a usar o custo do dia da venda; só as vendas antigas ficam estimadas. Sem migração (a coluna já existia) |
 | 24/11/2026 | `d6a5115` | Exportação para o contador: livro-caixa e DRE do mês em CSV (abre no Excel), na tela da DRE; sem migração |
 | 24/11/2026 | `6f21db9` | DRE do mês (Financeiro → DRE do mês), estimada: receita, comissões, taxa real do Mercado Pago, imposto estimado, custo dos produtos pela baixa de estoque, custos fixos e resultado; sem migração |
 | 24/11/2026 | `2b97080` | Conferência do dia mostra a taxa e o líquido reais do Mercado Pago por canal (informativo, não mexe na conta que fecha) |

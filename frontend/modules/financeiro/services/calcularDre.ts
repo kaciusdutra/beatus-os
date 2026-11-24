@@ -38,6 +38,8 @@ export function calcularDre(entrada: EntradaDaDre): Dre {
 
   const baixasSemCusto = entrada.baixas.filter((baixa) => baixa.valor === null).length;
 
+  const baixasEstimadas = entrada.baixas.filter((baixa) => baixa.valor !== null && !baixa.exato).length;
+
   const lucroBruto = arredondar(receitaLiquida - cmvTotal);
 
   const custosFixos = arredondar(entrada.custosFixosDoMes);
@@ -54,7 +56,9 @@ export function calcularDre(entrada: EntradaDaDre): Dre {
     avisos.push("Impostos zerados: cadastre o percentual na Precificação para a DRE descontá-los.");
   }
 
-  avisos.push("O custo dos produtos usa o custo de hoje dos insumos e o custo do lote das preparações: é uma estimativa, não o custo exato do dia da venda.");
+  if (baixasEstimadas > 0) {
+    avisos.push(`${baixasEstimadas} baixa(s) de estoque de vendas antigas não têm o custo gravado: foram valorizadas pelo custo de hoje (estimativa). As vendas novas já saem com o custo do dia.`);
+  }
 
   if (baixasSemCusto > 0) {
     avisos.push(`${baixasSemCusto} baixa(s) de estoque ficaram sem custo (preparação sem lote): o custo dos produtos está um pouco abaixo do real.`);
@@ -75,7 +79,7 @@ export function calcularDre(entrada: EntradaDaDre): Dre {
     receita: { produtos, descontos, entrega, total: receitaTotal },
     deducoes: { comissoes, taxasDoGateway, impostos, total: deducoesTotal },
     receitaLiquida,
-    cmv: { total: cmvTotal, baixasSemCusto },
+    cmv: { total: cmvTotal, baixasSemCusto, baixasEstimadas },
     lucroBruto,
     custosFixos,
     resultado,

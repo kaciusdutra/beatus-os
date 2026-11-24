@@ -84,6 +84,32 @@ export async function baixarPedido(
 
   const motivo = `Pedido #${pedido.numero}`;
 
+  // Custo gravado em cada baixa (regra 12.11): insumo pelo custo de hoje; preparação pelo custo do lote de onde saiu
+  // (sem lote, o do último lote da ficha). Assim a DRE usa o custo do dia da venda, não o de hoje.
+  const insumoIds = [...consumos.values()].filter((c) => c.itemTipo === "INSUMO").map((c) => c.id);
+
+  const fichaIds = [...consumos.values()].filter((c) => c.itemTipo === "PREPARACAO").map((c) => c.id);
+
+  const [insumosDaBaixa, lotesDasFichas] = await Promise.all([
+    insumoIds.length > 0 ? tx.insumo.findMany({ where: { empresaId, id: { in: insumoIds } }, select: { id: true, custoUnitario: true } }) : [],
+    fichaIds.length > 0
+      ? tx.producaoLote.findMany({ where: { empresaId, fichaTecnicaId: { in: fichaIds }, custoUnitario: { not: null } }, orderBy: { criadoEm: "desc" }, select: { id: true, fichaTecnicaId: true, custoUnitario: true } })
+      : [],
+  ]);
+
+  const custoDoInsumo = new Map(insumosDaBaixa.map((insumo) => [insumo.id, Number(insumo.custoUnitario)]));
+
+  const custoDoLote = new Map(lotesDasFichas.map((lote) => [lote.id, Number(lote.custoUnitario)]));
+
+  // Os lotes vêm do mais novo para o mais antigo: o primeiro de cada ficha é o último.
+  const custoDoUltimoLote = new Map<string, number>();
+
+  for (const lote of lotesDasFichas) {
+    if (!custoDoUltimoLote.has(lote.fichaTecnicaId)) {
+      custoDoUltimoLote.set(lote.fichaTecnicaId, Number(lote.custoUnitario));
+    }
+  }
+
   for (const consumo of consumos.values()) {
     if (consumo.itemTipo === "INSUMO") {
       await tx.movimentoEstoque.create({
@@ -94,6 +120,7 @@ export async function baixarPedido(
           tipo: "BAIXA_VENDA",
           quantidade: arredondar(consumo.quantidade) * -1,
           unidade: consumo.unidade,
+          custoUnitario: custoDoInsumo.get(consumo.id) ?? null,
           motivo,
           pedidoId: pedido.id,
         },
@@ -160,6 +187,7 @@ export async function baixarPedido(
           tipo: "BAIXA_VENDA",
           quantidade: alocacao.quantidade * -1,
           unidade: consumo.unidade,
+          custoUnitario: (alocacao.producaoLoteId ? custoDoLote.get(alocacao.producaoLoteId) : undefined) ?? custoDoUltimoLote.get(consumo.id) ?? null,
           motivo,
           pedidoId: pedido.id,
           producaoLoteId: alocacao.producaoLoteId ?? null,
@@ -178,6 +206,7 @@ export async function baixarPedido(
           tipo: "BAIXA_VENDA",
           quantidade: arredondar(faltante) * -1,
           unidade: consumo.unidade,
+          custoUnitario: custoDoUltimoLote.get(consumo.id) ?? null,
           motivo: `${motivo} (a cozinha não tinha tudo)`,
           pedidoId: pedido.id,
         },
@@ -287,6 +316,8 @@ export async function devolverAoEstoque(
         tipo: "ESTORNO_VENDA",
         quantidade: arredondar(devolucao.quantidade),
         unidade: doItem[0]?.unidade ?? "",
+        // A devolução volta pelo mesmo custo da baixa.
+        custoUnitario: doItem.find((m) => m.tipo === "BAIXA_VENDA")?.custoUnitario ?? null,
         motivo: `Pedido #${pedido.numero} cancelado: aproveitado`,
         pedidoId: pedido.id,
       },

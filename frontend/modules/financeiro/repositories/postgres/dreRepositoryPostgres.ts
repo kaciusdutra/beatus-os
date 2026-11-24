@@ -56,11 +56,11 @@ export function criarDreRepositoryPostgres(contexto: EmpresaContext): DreReposit
       });
     },
 
-    // Baixas de estoque por venda do período, valorizadas: insumo pelo custo de hoje; preparação pelo custo do lote.
+    // Baixas de estoque por venda do período, valorizadas: pelo custo gravado na baixa; as antigas, pelo custo de hoje (insumo) ou do lote (preparação).
     async listarBaixasDeVenda(de, ate) {
       const movimentos = await prisma.movimentoEstoque.findMany({
         where: { empresaId, tipo: { in: ["BAIXA_VENDA", "ESTORNO_VENDA"] }, criadoEm: { gte: de, lt: ate } },
-        select: { itemTipo: true, insumoId: true, producaoLoteId: true, quantidade: true },
+        select: { itemTipo: true, insumoId: true, producaoLoteId: true, quantidade: true, custoUnitario: true },
       });
 
       const insumoIds = [...new Set(movimentos.map((movimento) => movimento.insumoId).filter((id): id is string => Boolean(id)))];
@@ -77,6 +77,11 @@ export function criarDreRepositoryPostgres(contexto: EmpresaContext): DreReposit
       const custoDoLote = new Map(lotes.filter((lote) => lote.custoUnitario !== null).map((lote) => [lote.id, Number(lote.custoUnitario)]));
 
       return movimentos.map((movimento) => {
+        // Custo gravado na própria baixa (a partir de 24/11/2026): exato. Sem ele, o custo de hoje (estimativa).
+        if (movimento.custoUnitario !== null) {
+          return { valor: arredondar(-Number(movimento.quantidade) * Number(movimento.custoUnitario)), exato: true };
+        }
+
         const custo = movimento.itemTipo === "INSUMO" ? custoDoInsumo.get(movimento.insumoId ?? "") : custoDoLote.get(movimento.producaoLoteId ?? "");
 
         // A baixa grava a quantidade negativa e a devolução, positiva: o custo é o oposto da quantidade.
