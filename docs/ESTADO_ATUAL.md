@@ -25,7 +25,7 @@
 
 | Data | Commit | O que mudou |
 |---|---|---|
-| 24/11/2026 | (este commit) | Clube pronto para ligar: caixa de aceite do checkout com o texto do clube, link do cartão na página do pedido e no aviso "entregue", política de privacidade com a seção do clube (versão 2026-11-24-rascunho); `CLUBE_ATIVO` continua desligado |
+| 24/11/2026 | `ad45dc1` | Clube pronto para ligar: caixa de aceite do checkout com o texto do clube, link do cartão na página do pedido e no aviso "entregue", política de privacidade com a seção do clube (versão 2026-11-24-rascunho); `CLUBE_ATIVO` continua desligado |
 | 18/11/2026 | `d533cc2` | Clube, etapa 2: catálogo de vantagens (item grátis, desconto em %, entrega grátis), escolha de uma ao completar o cartão, desconto aplicado no cálculo do pedido pelo servidor, uso na entrega (cartão reinicia, selo no ciclo novo) e devolução no cancelamento; telas Vantagens do clube (Configurações) e escolha na página do cartão; migração `add_vantagens_do_clube`; regra 28.10b; tudo desligado atrás do `CLUBE_ATIVO` |
 | 18/11/2026 | `16af21a` | Clube, etapa 1: cartão do clube acionado no checkout (aceite + pagamento) e selo creditado na entrega (pedido de R$ 50 ou mais em itens, um por pedido, sem acúmulo, reinício em 60 dias ou 15 dias), página `/cardapio/clube/<código>`; migração `add_cartao_do_clube`; tudo desligado atrás do `CLUBE_ATIVO` até o prêmio existir; regra 28.10 |
 | 18/11/2026 | `19d83ed` | QR do convite: endereço curto `/convite` que redireciona para a página de convite do site (com a origem da embalagem gravada no pedido), página sem promessa de clube enquanto ele não estiver ligado, regras do clube num arquivo só (`modules/clube/regras.ts`) e o gerador do QR para imprimir em Configurações; sem migração |
