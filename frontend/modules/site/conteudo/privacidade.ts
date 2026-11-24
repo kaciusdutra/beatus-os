@@ -1,3 +1,5 @@
+import { DIAS_DE_VALIDADE_DA_VANTAGEM, DIAS_PARA_O_CARTAO_REINICIAR, SELOS_PARA_A_VANTAGEM, VALOR_MINIMO_DO_SELO, valorPremium } from "@/modules/clube/regras";
+
 // Política de privacidade do site. >>> RASCUNHO PARA REVISÃO JURÍDICA <<<
 // Os trechos entre colchetes são dados da empresa que faltam (o CNPJ está em revisão).
 // Ao mudar o texto, mude também a versão em modules/checkout/services/entradaDoCheckout.ts
@@ -38,7 +40,8 @@ export const POLITICA_DE_PRIVACIDADE: SecaoDaPolitica[] = [
     paragrafos: [
       "Para receber, preparar, entregar e cobrar o seu pedido, e para falar com você sobre ele (execução do contrato).",
       "O CPF é usado para o pagamento e para identificar o seu cadastro, sem duplicidade.",
-      "Para manter o seu cadastro e o seu histórico, e para o clube de vantagens do Beatus, quando ele existir (legítimo interesse e execução do contrato).",
+      "Para manter o seu cadastro e o seu histórico (legítimo interesse e execução do contrato).",
+      "Para o clube de vantagens e o cartão de selos digital: somente se você aceitar participar (seção 6).",
       "Para enviar promoções e novidades: somente se você marcar a caixa de autorização de mensagens. Essa autorização é separada da política de privacidade, nunca vem marcada e você pode retirá-la quando quiser.",
       "A data de nascimento é opcional e serve para ações de aniversário.",
     ],
@@ -59,33 +62,43 @@ export const POLITICA_DE_PRIVACIDADE: SecaoDaPolitica[] = [
     ],
   },
   {
-    titulo: "6. Com quem compartilhamos",
+    titulo: "6. Clube de vantagens e cartão de selos",
+    paragrafos: [
+      "O clube é opcional. Se você marcar a caixa de participação no pedido, criamos o seu cartão de selos digital (consentimento). Sem a caixa marcada, você compra normalmente e não recebe cartão.",
+      `Cada pedido entregue com ${valorPremium(VALOR_MINIMO_DO_SELO)} ou mais em itens (sem contar a entrega) dá 1 selo. Com ${SELOS_PARA_A_VANTAGEM} selos você escolhe uma vantagem do clube. O cartão reinicia depois de ${DIAS_PARA_O_CARTAO_REINICIAR} dias sem pedidos, e uma vantagem ganha e não usada vale ${DIAS_DE_VALIDADE_DA_VANTAGEM} dias.`,
+      "Para isso guardamos o seu primeiro nome (que aparece no cartão), os pedidos que geraram selo, a vantagem que você escolheu e quando usou. O cartão não mostra CPF, telefone nem endereço.",
+      "O cartão abre por um link com código longo e aleatório. Quem tiver o link vê o seu primeiro nome e os seus selos, então guarde o link só para você. Se achar que ele foi parar em mãos erradas, fale com a gente para trocarmos.",
+      "Você pode sair do clube quando quiser, pelo contato da seção 1: você deixa de ganhar selos, e o histórico dos seus pedidos continua guardado pelo prazo da lei.",
+    ],
+  },
+  {
+    titulo: "7. Com quem compartilhamos",
     paragrafos: [
       "Compartilhamos o mínimo necessário com o Mercado Pago (para cobrar o pagamento), com o provedor de IA da Beatriz (seção 5), com a Meta (WhatsApp, para os avisos do pedido e a conversa) e, quando houver, com serviços de entrega que usamos para atender você. Não vendemos os seus dados.",
       "Podemos compartilhar dados quando a lei ou uma autoridade exigir.",
     ],
   },
   {
-    titulo: "7. Por quanto tempo guardamos",
+    titulo: "8. Por quanto tempo guardamos",
     paragrafos: [
-      "Guardamos os dados enquanto você for nosso cliente e pelo tempo exigido por lei para documentos fiscais e contábeis. Depois disso, eliminamos ou anonimizamos. Os prazos da conversa com a Beatriz e das etiquetas estão na seção 5.",
+      "Guardamos os dados enquanto você for nosso cliente e pelo tempo exigido por lei para documentos fiscais e contábeis. Depois disso, eliminamos ou anonimizamos. Os prazos da conversa com a Beatriz e das etiquetas estão na seção 5, e os do cartão de selos, na seção 6.",
     ],
   },
   {
-    titulo: "8. Seus direitos",
+    titulo: "9. Seus direitos",
     paragrafos: [
       "Você pode, a qualquer momento: confirmar que tratamos seus dados e acessá-los (inclusive o que a Beatriz aprendeu do seu gosto), corrigir dados incompletos ou errados, pedir a eliminação de dados tratados com o seu consentimento, pedir a portabilidade, saber com quem compartilhamos, pedir a revisão por uma pessoa de uma decisão tomada pela IA e retirar o consentimento de marketing.",
       `Faça o pedido por ${DADOS_DO_CONTROLADOR.contato}. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).`,
     ],
   },
   {
-    titulo: "9. Segurança",
+    titulo: "10. Segurança",
     paragrafos: [
       "Usamos conexão segura, acesso restrito por perfil, senhas guardadas de forma protegida e registro de quem acessa o quê. Nenhum sistema é totalmente imune, e em caso de incidente relevante avisaremos você e a ANPD, como manda a lei.",
     ],
   },
   {
-    titulo: "10. Mudanças nesta política",
+    titulo: "11. Mudanças nesta política",
     paragrafos: [
       "Podemos atualizar esta política. A versão em vigor fica nesta página e a versão que você aceitou fica registrada no seu cadastro.",
     ],

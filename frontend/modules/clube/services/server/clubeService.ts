@@ -84,6 +84,25 @@ export async function ativarCartaoDoPedido(pedidoId: string, ativo = CLUBE_ATIVO
   return ativarCartao(prisma, { empresaId, clienteId: pedido.clienteId, ativadoEm: pedido.criadoEm }, ativo);
 }
 
+// O código do cartão do cliente deste pedido (para o link "ver meu cartão"). Nulo se o clube está desligado ou o cliente não tem cartão.
+export async function codigoDoCartaoDoPedido(pedidoId: string, ativo = CLUBE_ATIVO): Promise<string | null> {
+  if (!ativo) {
+    return null;
+  }
+
+  const empresaId = criarContextoDesenvolvimento().empresaId;
+
+  const pedido = await prisma.pedido.findFirst({ where: { id: pedidoId, empresaId }, select: { clienteId: true } });
+
+  if (!pedido) {
+    return null;
+  }
+
+  const cartao = await prisma.cartaoDoClube.findUnique({ where: { empresaId_clienteId: { empresaId, clienteId: pedido.clienteId } }, select: { codigo: true } });
+
+  return cartao?.codigo ?? null;
+}
+
 export interface PedidoEntregue {
   id: string;
   empresaId: string;

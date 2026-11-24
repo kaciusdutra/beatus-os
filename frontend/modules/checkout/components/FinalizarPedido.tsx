@@ -16,6 +16,8 @@ import { lerCampanhaGuardada } from "@/modules/site/services/campanhaGuardada";
 
 import { lerCodigoDaVantagem } from "@/modules/clube/vantagemGuardada";
 
+import { CLUBE_ATIVO, SELOS_PARA_A_VANTAGEM, VALOR_MINIMO_DO_SELO, valorPremium } from "@/modules/clube/regras";
+
 import type { Estimativa } from "../types/checkout";
 
 const CAMPO =
@@ -364,7 +366,16 @@ export default function FinalizarPedido({ recebePedidos, textoDeFuncionamento, i
         <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-200">
           <input type="checkbox" checked={aceitaMarketing} onChange={(evento) => setAceitaMarketing(evento.target.checked)} className="mt-1 h-4 w-4" />
 
-          <span>Quero receber promoções e novidades do Beatus pelo WhatsApp. (opcional; você pode cancelar quando quiser)</span>
+          {CLUBE_ATIVO ? (
+            <span>
+              Quero participar do clube de vantagens do Beatus: ganho selos nos meus pedidos e recebo novidades pelo WhatsApp. (opcional; você pode sair quando quiser)
+              <span className="mt-1 block text-xs text-slate-400">
+                A cada pedido entregue com {valorPremium(VALOR_MINIMO_DO_SELO)} ou mais em itens (sem contar a entrega) você ganha 1 selo; com {SELOS_PARA_A_VANTAGEM} selos, escolhe uma vantagem. O cartão fica aqui no site, sem papel.
+              </span>
+            </span>
+          ) : (
+            <span>Quero receber promoções e novidades do Beatus pelo WhatsApp. (opcional; você pode cancelar quando quiser)</span>
+          )}
         </label>
       </section>
 

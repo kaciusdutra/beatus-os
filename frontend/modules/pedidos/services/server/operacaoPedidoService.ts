@@ -15,7 +15,7 @@ import {
 
 import { podeMudarStatus } from "../../domain/pedidoStatus";
 
-import { SELOS_PARA_A_VANTAGEM } from "@/modules/clube/regras";
+import { CLUBE_ATIVO, SELOS_PARA_A_VANTAGEM } from "@/modules/clube/regras";
 
 import { creditarSeloDaEntrega } from "@/modules/clube/services/server/clubeService";
 
@@ -224,7 +224,15 @@ export class OperacaoPedidoService {
 
       // Aviso ao cliente (site e WhatsApp): nasce junto da mudança, na mesma transação.
       // O envio é outra etapa; aqui só fica registrado o que deve ser dito.
-      const aviso = avisoParaMudanca({ novaSituacao: novo, canalDoPedido: pedido.canal, numero: pedido.numero });
+      // Clube ligado e cliente com cartão: o aviso de entregue leva o link do cartão.
+      const cartaoDoCliente = CLUBE_ATIVO && novo === "ENTREGUE" ? await tx.cartaoDoClube.findUnique({ where: { empresaId_clienteId: { empresaId: this.empresaId, clienteId: pedido.clienteId } }, select: { codigo: true } }) : null;
+
+      const aviso = avisoParaMudanca({
+        novaSituacao: novo,
+        canalDoPedido: pedido.canal,
+        numero: pedido.numero,
+        cartaoDoClube: cartaoDoCliente ? { enderecoDoSite: process.env.SITE_URL_BASE?.trim() || "http://localhost:3000", codigo: cartaoDoCliente.codigo } : undefined,
+      });
 
       if (aviso) {
         await tx.avisoDoPedido.createMany({

@@ -482,6 +482,10 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 302 | Toque em "Pedir com a minha vantagem", monte um pedido com hambúrguer e calcule o total no checkout | Aparece a linha "Vantagem do clube − valor" e o total já com o desconto; o pedido pago grava o desconto |
 | 303 | Entregue esse pedido na Cozinha | O cartão volta a zero (ciclo novo) e, se os itens depois do desconto passarem de R$ 50, o pedido já dá o 1º selo |
 | 304 | Faça outro pedido com o mesmo link | Sem desconto (a vantagem já foi usada) |
+| 306 | Com o clube ligado em teste, abra o checkout | A caixa de aceite fala em "participar do clube de vantagens" e mostra a regra do selo; com o clube desligado volta o texto de promoções |
+| 307 | Aceite o clube, pague e abra a página do pedido | Aparece "Ver meu cartão do clube" e o link abre o cartão |
+| 308 | Entregue um pedido de quem tem cartão | O aviso "entregue" traz o link do cartão (WhatsApp, dentro da janela de 24 h) |
+| 309 | Abra a política de privacidade | Tem a seção "Clube de vantagens e cartão de selos" |
 | 305 | Cancele um pedido que usava a vantagem | O histórico diz que a vantagem voltou para o cliente, e ele pode usá-la de novo |
 
 ## O que anotar

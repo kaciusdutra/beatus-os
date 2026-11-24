@@ -27,6 +27,16 @@ const aviso = avisoParaMudanca({ novaSituacao: "EM_ROTA", canalDoPedido: "WHATSA
 
 verificar(aviso?.evento === "A_CAMINHO" && aviso.canalDoAviso === "WHATSAPP" && aviso.texto.includes("nº 7"), "aviso para mudança válida");
 verificar(avisoParaMudanca({ novaSituacao: "EM_ROTA", canalDoPedido: "IFOOD", numero: "7" }) === undefined, "marketplace não gera aviso");
+{
+  const cartao = { enderecoDoSite: "https://beatus.exemplo/", codigo: "l74m0w4PHIsXtQqc1km8xqsYwmUZhDY96LIWJxxyHuE" };
+
+  const entregue = avisoParaMudanca({ novaSituacao: "ENTREGUE", canalDoPedido: "CARDAPIO_ONLINE", numero: "7", cartaoDoClube: cartao });
+
+  verificar(entregue?.texto.includes("https://beatus.exemplo/cardapio/clube/l74m0w4PHIsXtQqc1km8xqsYwmUZhDY96LIWJxxyHuE") === true, "entregue leva o link do cartão");
+  verificar(!avisoParaMudanca({ novaSituacao: "ENTREGUE", canalDoPedido: "CARDAPIO_ONLINE", numero: "7" })?.texto.includes("cartão"), "sem cartão, sem link");
+  verificar(!avisoParaMudanca({ novaSituacao: "EM_ROTA", canalDoPedido: "CARDAPIO_ONLINE", numero: "7", cartaoDoClube: cartao })?.texto.includes("cartão"), "só o entregue leva o link");
+}
+
 verificar(avisoParaMudanca({ novaSituacao: "PRONTO", canalDoPedido: "WHATSAPP", numero: "7" }) === undefined, "pronto não gera aviso");
 
 console.log(`[OK] avisoDoPedido: ${total} verificações`);

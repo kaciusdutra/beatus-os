@@ -52,6 +52,9 @@ export interface DistanciaDoEnderecoPort {
 export interface VantagensDoCheckoutPort {
   // A vantagem que o cartão (pelo código do link) pode usar agora. Nulo se não há (ou se o clube está desligado).
   resolver(codigoDoCartao: string): Promise<VantagemDoCheckout | null>;
+
+  // O código do cartão do cliente do pedido, para o link "ver meu cartão". Nulo se não há cartão (ou clube desligado).
+  cartaoDoPedido?(pedidoId: string): Promise<string | null>;
 }
 
 export interface FuncionamentoDoCheckoutPort {
@@ -235,10 +238,23 @@ export class CheckoutService {
     return this.paraOCliente(checkout);
   }
 
+  // Falha ao achar o cartão nunca atrapalha o acompanhamento do pedido.
+  private async cartaoDoClubeDoPedido(pedidoId: string): Promise<string | undefined> {
+    try {
+      return (await this.dependencias.vantagens?.cartaoDoPedido?.(pedidoId)) ?? undefined;
+    } catch (error) {
+      console.error("Não foi possível achar o cartão do clube do pedido:", error);
+
+      return undefined;
+    }
+  }
+
   private async paraOCliente(checkout: CheckoutSalvo): Promise<StatusPublicoDoCheckout> {
     const numero = checkout.pedidoId ? await this.dependencias.pedidos.numeroDoPedido(checkout.pedidoId) : undefined;
 
     const situacao = checkout.status === "APROVADO" && checkout.pedidoId ? await this.dependencias.pedidos.situacaoDoPedido(checkout.pedidoId) : undefined;
+
+    const cartaoDoClube = checkout.status === "APROVADO" && checkout.pedidoId ? await this.cartaoDoClubeDoPedido(checkout.pedidoId) : undefined;
 
     const mensagens: Record<CheckoutSalvo["status"], string> = {
       PENDENTE: "Aguardando o pagamento.",
@@ -259,6 +275,7 @@ export class CheckoutService {
       situacao,
       total: checkout.total,
       numeroDoPedido: numero,
+      cartaoDoClube,
       checkoutUrl: podePagar ? checkout.checkoutUrl : undefined,
       expiraEm: checkout.expiraEm.toISOString(),
     };

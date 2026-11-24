@@ -95,6 +95,12 @@ export default function AcompanharPedido({ checkoutId }: { checkoutId: string })
 
           <p className="text-sm text-slate-400">Total: {dinheiro(status.total)}</p>
 
+          {status.cartaoDoClube && (
+            <Link href={`/cardapio/clube/${status.cartaoDoClube}`} className="inline-block text-sm font-semibold text-ouro underline">
+              Ver meu cartão do clube
+            </Link>
+          )}
+
           {status.checkoutUrl && (
             <a href={status.checkoutUrl} className="inline-block rounded-xl bg-ouro px-6 py-3 font-bold text-black hover:bg-ouro-400">
               {status.status === "RECUSADO" ? "Tentar pagar de novo" : "Ir para o pagamento"}

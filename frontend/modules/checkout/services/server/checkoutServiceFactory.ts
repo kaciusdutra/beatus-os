@@ -10,7 +10,7 @@ import { registrarAtividade } from "@/modules/atividades/services/server/ativida
 
 import { absorverContatoDaBeatriz } from "@/modules/beatriz/repositories/postgres/memoriaDoClienteRepositoryPostgres";
 
-import { ativarCartaoDoPedido } from "@/modules/clube/services/server/clubeService";
+import { ativarCartaoDoPedido, codigoDoCartaoDoPedido } from "@/modules/clube/services/server/clubeService";
 
 import { resgateParaUsar } from "@/modules/clube/services/server/vantagemService";
 
@@ -277,7 +277,7 @@ export function getCheckoutService(requisicao?: Request): CheckoutService {
     pedidos,
     clientes,
     distancia,
-    vantagens: { resolver: (codigoDoCartao) => resgateParaUsar(codigoDoCartao) },
+    vantagens: { resolver: (codigoDoCartao) => resgateParaUsar(codigoDoCartao), cartaoDoPedido: (pedidoId) => codigoDoCartaoDoPedido(pedidoId) },
     funcionamento: {
       async recebePedidos() {
         const { funcionamento } = await getSiteService().cardapio();

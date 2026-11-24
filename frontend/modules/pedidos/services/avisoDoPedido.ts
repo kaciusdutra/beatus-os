@@ -55,8 +55,13 @@ export function textoDoAviso(evento: EventoDoAviso, numero: string, canal: Canal
   }
 }
 
+// O aviso de entregue ganha o link do cartão do clube (só quando o cliente tem cartão e o clube está ligado).
+export function linkDoCartaoNoAviso(texto: string, cartao: { enderecoDoSite: string; codigo: string }): string {
+  return `${texto} Seu cartão de selos do clube: ${cartao.enderecoDoSite.replace(/[/]+$/, "")}/cardapio/clube/${cartao.codigo}`;
+}
+
 // O que gravar para esta mudança de situação, ou nada.
-export function avisoParaMudanca(dados: { novaSituacao: string; canalDoPedido: string; numero: string }): { evento: EventoDoAviso; canalDoAviso: CanalDoAviso; texto: string } | undefined {
+export function avisoParaMudanca(dados: { novaSituacao: string; canalDoPedido: string; numero: string; cartaoDoClube?: { enderecoDoSite: string; codigo: string } }): { evento: EventoDoAviso; canalDoAviso: CanalDoAviso; texto: string } | undefined {
   const evento = eventoDaSituacao(dados.novaSituacao);
 
   const canal = canalDoAviso(dados.canalDoPedido);
@@ -65,5 +70,7 @@ export function avisoParaMudanca(dados: { novaSituacao: string; canalDoPedido: s
     return undefined;
   }
 
-  return { evento, canalDoAviso: canal, texto: textoDoAviso(evento, dados.numero, canal) };
+  const texto = textoDoAviso(evento, dados.numero, canal);
+
+  return { evento, canalDoAviso: canal, texto: evento === "ENTREGUE" && dados.cartaoDoClube ? linkDoCartaoNoAviso(texto, dados.cartaoDoClube) : texto };
 }
