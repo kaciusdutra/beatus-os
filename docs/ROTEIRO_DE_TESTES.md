@@ -482,6 +482,8 @@ Endereços: `/beatriz`, `/cardapio/finalizar?c=...` e `/cardapio/pedido/<código
 | 302 | Toque em "Pedir com a minha vantagem", monte um pedido com hambúrguer e calcule o total no checkout | Aparece a linha "Vantagem do clube − valor" e o total já com o desconto; o pedido pago grava o desconto |
 | 303 | Entregue esse pedido na Cozinha | O cartão volta a zero (ciclo novo) e, se os itens depois do desconto passarem de R$ 50, o pedido já dá o 1º selo |
 | 304 | Faça outro pedido com o mesmo link | Sem desconto (a vantagem já foi usada) |
+| 313 | Na DRE do mês, toque em "Livro-caixa do mês" e abra o arquivo no Excel | Colunas Data, Tipo, Origem, Categoria, Descrição, Forma, Canal, Referência e Valor; acentos corretos; saídas negativas |
+| 314 | Toque em "DRE do mês" (exportação) | Duas colunas com os valores da tela e as observações no fim |
 | 311 | Financeiro → DRE do mês, escolha o mês dos pedidos de teste | Mostra receita, deduções, custo dos produtos, lucro bruto, custos fixos e resultado, com os avisos do que é estimado; cancelados ficam fora |
 | 312 | Troque para um mês sem pedidos | Tudo zerado, margens com traço e aviso "Sem pedidos no mês" |
 | 310 | Faça um pagamento de teste real no Mercado Pago (quando houver credenciais) e abra Financeiro → Conferência do dia | Embaixo de "Entrou" aparece a taxa e o líquido do pagamento; "Entrou" e a conta que fecha não mudam |

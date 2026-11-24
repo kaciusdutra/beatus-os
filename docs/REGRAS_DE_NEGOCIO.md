@@ -223,6 +223,8 @@
 
 11. **DRE do mês (construída em 24/11/2026, decisões do Kacius):** tela Financeiro → DRE do mês, **por competência** (pela data do pedido; difere do Fluxo de caixa, que conta pela data do dinheiro). Pedido cancelado não conta. A conta: **receita total** (produtos − descontos + taxa de entrega cobrada) **− comissões dos marketplaces − taxa real do Mercado Pago − impostos = receita líquida; − custo dos produtos vendidos = lucro bruto; − custos fixos do mês (o mês inteiro, regra 7.6) = resultado.** O **imposto é estimado** (percentual da Precificação sobre a receita), não o imposto pago. O **custo dos produtos é estimado** pela baixa de estoque das vendas: insumo pelo custo de hoje, preparação pelo custo do lote; devolução ao estoque entra com sinal contrário; baixa sem custo conhecido é contada e avisada. A tela sempre mostra os avisos do que está estimado. Quando o custo da baixa passar a ser gravado no momento da venda, o CMV deixa de ser estimativa.
 
+12. **Exportação para o contador (24/11/2026):** na tela da DRE, dois arquivos CSV do mês (ponto e vírgula, vírgula decimal, abre direto no Excel): o **livro-caixa** (cada entrada e saída do Fluxo de caixa, na data do dinheiro, saída com sinal negativo) e a **DRE** com as observações do que é estimado. Textos que começam com `=`, `+`, `-` ou `@` recebem um apóstrofo para a planilha não executá-los como fórmula. Quem pode baixar: a mesma permissão de ver o Financeiro. Conciliação com o extrato bancário continua para depois.
+
 ## 13. Consulta de pedidos e clientes
 
 *(decisões do Kacius em 13/11/2026)*

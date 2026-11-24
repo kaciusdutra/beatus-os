@@ -94,6 +94,18 @@ export default function DrePage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <span className="font-semibold text-slate-600">Para o contador (planilha CSV, abre no Excel):</span>
+
+        <a href={`/api/financeiro/exportacao?mes=${mes}&tipo=caixa`} className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50">
+          Livro-caixa do mês
+        </a>
+
+        <a href={`/api/financeiro/exportacao?mes=${mes}&tipo=dre`} className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50">
+          DRE do mês
+        </a>
+      </div>
+
       {erro && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</div>}
 
       {carregando && <p className="text-sm text-slate-500">Montando a DRE...</p>}
