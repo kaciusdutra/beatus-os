@@ -5,6 +5,11 @@ export interface PedidoDoDia {
   total: number;
   // Soma dos pagamentos aprovados do pedido
   pagamentoAprovado: number;
+  // Só o que o gateway (Mercado Pago) informou: taxa cobrada de nós e valor líquido dos pagamentos aprovados.
+  taxaDoGateway?: number;
+  liquidoDoGateway?: number;
+  // Pago por gateway (Mercado Pago): a taxa deveria ter vindo.
+  pagoPorGateway?: boolean;
   // Só pedido de marketplace
   comissaoEsperada?: number;
   liquidoEsperado?: number;
@@ -31,6 +36,11 @@ export interface LinhaDoCanal {
   pedidosAguardando: number;
   // Marketplace: comissão da plataforma
   comissao: number;
+  // Canal próprio: taxa real do gateway e líquido, dos pagamentos que o gateway informou (só informativo: não entra na conta que fecha).
+  taxasDoGateway: number;
+  liquidoDoGateway: number;
+  // Quantos pagamentos aprovados ainda estão sem taxa informada pelo gateway.
+  semTaxaInformada: number;
   // Entrou menos o esperado (negativo = faltou dinheiro)
   diferenca: number;
   situacao: SituacaoDoCanal;
@@ -47,6 +57,7 @@ export interface ConferenciaDoDia {
     entrou: number;
     aReceber: number;
     comissoes: number;
+    taxasDoGateway: number;
     diferenca: number;
   };
   // vendido = entrou + a receber + comissões − diferença. Sempre fecha; se não

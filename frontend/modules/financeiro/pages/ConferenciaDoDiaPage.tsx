@@ -62,7 +62,11 @@ function Linha({ linha }: { linha: LinhaDoCanal }) {
 
       <td className="px-4 py-3 text-right font-semibold">{moeda(linha.vendido)}</td>
 
-      <td className="px-4 py-3 text-right text-emerald-700">{moeda(linha.entrou)}</td>
+      <td className="px-4 py-3 text-right text-emerald-700">
+        {moeda(linha.entrou)}
+        {!marketplace && linha.taxasDoGateway > 0 && <span className="block text-xs text-slate-500">taxa {moeda(linha.taxasDoGateway)} · líquido {moeda(linha.liquidoDoGateway)}</span>}
+        {!marketplace && linha.semTaxaInformada > 0 && <span className="block text-xs text-amber-700">{linha.semTaxaInformada} pedido(s) sem taxa informada</span>}
+      </td>
 
       <td className="px-4 py-3 text-right text-amber-700">
         {marketplace ? moeda(linha.aReceber) : "—"}
@@ -198,7 +202,10 @@ export default function ConferenciaDoDiaPage() {
 
                     <td className="px-4 py-3 text-right">{moeda(conferencia.totais.vendido)}</td>
 
-                    <td className="px-4 py-3 text-right text-emerald-700">{moeda(conferencia.totais.entrou)}</td>
+                    <td className="px-4 py-3 text-right text-emerald-700">
+                      {moeda(conferencia.totais.entrou)}
+                      {conferencia.totais.taxasDoGateway > 0 && <span className="block text-xs font-normal text-slate-500">taxa do gateway {moeda(conferencia.totais.taxasDoGateway)}</span>}
+                    </td>
 
                     <td className="px-4 py-3 text-right text-amber-700">{moeda(conferencia.totais.aReceber)}</td>
 
@@ -219,7 +226,7 @@ export default function ConferenciaDoDiaPage() {
             <p>
               <strong>Vendido</strong> = total dos pedidos do dia, sem os cancelados. <strong>Entrou</strong> = nos canais próprios, os
               pagamentos aprovados; nos marketplaces, os repasses que você já conferiu. <strong>A receber</strong> = o que a plataforma
-              ainda deve (total menos comissão dos pedidos não conferidos). <strong>Diferença</strong> = entrou menos o esperado.
+              ainda deve (total menos comissão dos pedidos não conferidos). <strong>Diferença</strong> = entrou menos o esperado. A <strong>taxa</strong> e o <strong>líquido</strong> embaixo de Entrou são os que o Mercado Pago informou; servem para você ver quanto sobra de verdade e não mudam a conta que fecha.
             </p>
 
             <p>

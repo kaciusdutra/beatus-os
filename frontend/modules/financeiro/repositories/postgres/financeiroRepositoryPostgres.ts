@@ -19,6 +19,23 @@ import type {
   PagamentoRecebido,
 } from "../../types/fluxoDeCaixa";
 
+// Taxa e líquido que o gateway informou para os pagamentos do pedido. Só há valor quando TODOS os pagamentos online trouxeram o dado.
+function custosDoGateway(pagamentos: { online: { taxaGateway: unknown; valorLiquido: unknown } | null }[]): { taxaDoGateway?: number; liquidoDoGateway?: number; pagoPorGateway: boolean } {
+  const online = pagamentos.filter((pagamento) => pagamento.online);
+
+  if (online.length === 0) {
+    return { pagoPorGateway: false };
+  }
+
+  if (online.some((pagamento) => pagamento.online?.taxaGateway === null || pagamento.online?.valorLiquido === null)) {
+    return { pagoPorGateway: true };
+  }
+
+  const soma = (campo: "taxaGateway" | "valorLiquido") => Math.round(online.reduce((total, pagamento) => total + Number(pagamento.online?.[campo]), 0) * 100) / 100;
+
+  return { taxaDoGateway: soma("taxaGateway"), liquidoDoGateway: soma("valorLiquido"), pagoPorGateway: true };
+}
+
 function mapearLancamento(linha: {
   id: string;
   tipo: string;
@@ -99,7 +116,7 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
         liquidoEsperado: true,
         conferenciaStatus: true,
         valorRecebido: true,
-        pagamentos: { where: { status: "APROVADO" }, select: { valor: true } },
+        pagamentos: { where: { status: "APROVADO" }, select: { valor: true, online: { select: { taxaGateway: true, valorLiquido: true } } } },
       },
     });
 
@@ -108,6 +125,7 @@ export class FinanceiroRepositoryPostgres implements FinanceiroRepositoryPort {
       status: pedido.statusOperacional,
       total: Number(pedido.total),
       pagamentoAprovado: pedido.pagamentos.reduce((soma, pagamento) => soma + Number(pagamento.valor), 0),
+      ...custosDoGateway(pedido.pagamentos),
       comissaoEsperada: pedido.comissaoEsperada === null ? undefined : Number(pedido.comissaoEsperada),
       liquidoEsperado: pedido.liquidoEsperado === null ? undefined : Number(pedido.liquidoEsperado),
       conferenciaStatus: pedido.conferenciaStatus ?? undefined,

@@ -45,6 +45,15 @@ export function conferirDia(data: string, pedidos: PedidoDoDia[]): ConferenciaDo
 
     let diferenca: number;
 
+    const comTaxa = validos.filter((pedido) => pedido.taxaDoGateway !== undefined);
+
+    const taxasDoGateway = arredondar(comTaxa.reduce((soma, pedido) => soma + (pedido.taxaDoGateway ?? 0), 0));
+
+    const liquidoDoGateway = arredondar(validos.reduce((soma, pedido) => soma + (pedido.liquidoDoGateway ?? 0), 0));
+
+    // Só conta como "sem taxa" o pedido pago por gateway que ainda não trouxe a taxa (pagamento manual não tem).
+    const semTaxaInformada = marketplace ? 0 : validos.filter((pedido) => pedido.taxaDoGateway === undefined && pedido.pagoPorGateway).length;
+
     if (marketplace) {
       const conferidos = validos.filter((pedido) => pedido.conferenciaStatus === "CONFERIDO");
 
@@ -86,6 +95,9 @@ export function conferirDia(data: string, pedidos: PedidoDoDia[]): ConferenciaDo
       aReceber,
       pedidosAguardando,
       comissao,
+      taxasDoGateway,
+      liquidoDoGateway,
+      semTaxaInformada,
       diferenca,
       situacao,
     };
@@ -106,6 +118,7 @@ export function conferirDia(data: string, pedidos: PedidoDoDia[]): ConferenciaDo
     entrou: soma("entrou"),
     aReceber: soma("aReceber"),
     comissoes: soma("comissao"),
+    taxasDoGateway: soma("taxasDoGateway"),
     diferenca: soma("diferenca"),
   };
 

@@ -398,7 +398,7 @@
 1. Quando o Mercado Pago aprova um pagamento, o Beatus guarda, em `PagamentoOnline`, a **taxa cobrada de nós** (só a de quem recebe; a de financiamento paga pelo cliente não conta), o **valor líquido** e a **data de liberação do dinheiro**, exatamente como o gateway informa.
 2. Dado que o gateway não informar fica vazio: nunca se estima nem se inventa. Pagamentos antigos ficam sem esses valores.
 3. Falha ao gravar isto nunca desfaz o pedido pago (mesma regra da referência do pagamento).
-4. Mostrar a taxa real no Fluxo de caixa e na Conferência do dia é o próximo passo.
+4. **Conferência do dia (construído em 24/11/2026):** nos canais próprios, embaixo de "Entrou" aparecem a **taxa** e o **líquido** informados pelo gateway, e um aviso "N pedido(s) sem taxa informada" quando um pagamento do Mercado Pago ainda não trouxe o dado (pagamento manual não conta). É só informativo: **não muda** "Entrou" nem a conta que fecha. Mostrar no Fluxo de caixa fica para depois.
 
 ## 28. Clube de vantagens: cartão de selos (decisões do Kacius em 18/11/2026; a construir)
 

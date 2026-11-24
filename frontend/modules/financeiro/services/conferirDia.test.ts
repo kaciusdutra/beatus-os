@@ -85,6 +85,17 @@ function executarTestes(): void {
   const vazio = conferirDia("2026-11-18", []);
 
   verificar(vazio.canais.length === 0 && vazio.totais.vendido === 0 && vazio.fecha, "dia sem pedidos");
+
+  // Taxa real do gateway: informativa, não muda a conta que fecha
+  const gateway = conferirDia("2026-11-18", [
+    { canal: "CARDAPIO_ONLINE", status: "ENTREGUE", total: 60, pagamentoAprovado: 60, taxaDoGateway: 2.4, liquidoDoGateway: 57.6, pagoPorGateway: true },
+    { canal: "CARDAPIO_ONLINE", status: "ENTREGUE", total: 40, pagamentoAprovado: 40, pagoPorGateway: true },
+    { canal: "CARDAPIO_ONLINE", status: "ENTREGUE", total: 30, pagamentoAprovado: 30 },
+  ]);
+
+  verificar(gateway.canais[0].taxasDoGateway === 2.4 && gateway.canais[0].liquidoDoGateway === 57.6, "soma a taxa e o líquido informados");
+  verificar(gateway.canais[0].semTaxaInformada === 1, "só o pago por gateway sem taxa conta como sem taxa (o pagamento manual não)");
+  verificar(gateway.totais.taxasDoGateway === 2.4 && gateway.fecha && gateway.totais.entrou === 130, "a taxa não mexe no entrou nem na conta que fecha");
 }
 
 executarTestes();
